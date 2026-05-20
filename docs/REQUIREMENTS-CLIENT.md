@@ -5,6 +5,8 @@
 **日期**：2026-05-19  
 **用途**：客户确认、合同附件、项目报价依据（**仅 Web 端 · 手动输入**）  
 
+> English version: [REQUIREMENTS-CLIENT-EN.md](./REQUIREMENTS-CLIENT-EN.md)
+
 ---
 
 ## 一、文档说明

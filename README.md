@@ -4,7 +4,8 @@
 
 ## 文档
 
-- [客户需求说明书 · Web 版](./docs/REQUIREMENTS-CLIENT.md) — **USD 10,000** / **100 人时**（仅 Web、仅手动输入；客户已确认 v3.0）
+- [客户需求说明书 · Web 版（中文）](./docs/REQUIREMENTS-CLIENT.md) — **USD 10,000** / **100 人时**（v3.0）
+- [Client Requirements · Web (English)](./docs/REQUIREMENTS-CLIENT-EN.md) — **USD 10,000** / **100 hours** (v3.0 EN)
 - [客户需求说明书 · Web + App 版](./docs/REQUIREMENTS-CLIENT-WEB-APP.md) — **USD 32,000** / **320 人时**（独立签约文档，互不引用）
 - [开发需求清单（内部）](./docs/REQUIREMENTS.md) — 功能/非功能需求、发布阶段与待拍板项
 - [需求 vs 实现对比](./docs/IMPLEMENTATION-COMPARISON.md) — Recall Checker 与 Requirements 对照及偏差说明
