@@ -288,6 +288,7 @@ DDI-* · DATA-09 · B2B 药房流程
 
 | 文档 | 说明 |
 |------|------|
+| [需求 vs 实现对比](./IMPLEMENTATION-COMPARISON.md) | Recall Checker 与本文对照、偏差与完成度 |
 | PRD | 本文 + 线框图、用户流程 |
 | 数据字典 | Recall、Medication、User、Match 等实体 |
 | API 规格 | OpenAPI |
