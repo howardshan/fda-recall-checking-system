@@ -288,6 +288,7 @@ DDI-* · DATA-09 · B2B 药房流程
 
 | 文档 | 说明 |
 |------|------|
+| [客户需求与报价说明书](./REQUIREMENTS-CLIENT.md) | 签约用范围、验收与工时（对外） |
 | [需求 vs 实现对比](./IMPLEMENTATION-COMPARISON.md) | Recall Checker 与本文对照、偏差与完成度 |
 | PRD | 本文 + 线框图、用户流程 |
 | 数据字典 | Recall、Medication、User、Match 等实体 |
