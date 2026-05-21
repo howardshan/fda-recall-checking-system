@@ -1,0 +1,5 @@
+# macOS
+.DS_Store
+
+# Local pandoc toolchain (downloaded by docs/scripts/md-to-docx.sh; do not commit)
+docs/.tools/
