@@ -1,7 +1,7 @@
 import { dateRangeClause, paginateSearch } from "./openfda";
 import { normalizeEnforcementRecord, upsertRecallsChunked } from "./recalls";
 import { scanAllActiveItems } from "./matching";
-import { dispatchPendingEmails } from "./notification-dispatcher";
+import { sendDailyDigests, type DigestStats } from "./daily-digest";
 import { sendEmailQuietly } from "./mailer";
 import { getServerSupabase } from "./supabase";
 import type { OpenFdaEnforcementRecord, RecallRow } from "./types";
@@ -16,7 +16,7 @@ export type SyncResult = {
   normalized: number;
   upserted: number;
   matching: { scanned: number; newNotifications: number };
-  emails: { considered: number; emailsSent: number; smsSent: number; skipped: number; failed: number };
+  digest: DigestStats;
   runId: number;
 };
 
@@ -91,9 +91,9 @@ export async function runSync(lookbackDays: number): Promise<SyncResult> {
     });
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:4000";
-    const dispatchResult = await dispatchPendingEmails(supabase, appUrl).catch((e) => {
-      console.error("[sync] dispatch failed:", e);
-      return { considered: 0, emailsSent: 0, smsSent: 0, skipped: 0, failed: 0 };
+    const digestResult = await sendDailyDigests(supabase, appUrl).catch((e) => {
+      console.error("[sync] daily digest failed:", e);
+      return { usersConsidered: 0, emailsSent: 0, skipped: 0, failed: 0 };
     });
 
     await supabase
@@ -115,7 +115,7 @@ export async function runSync(lookbackDays: number): Promise<SyncResult> {
       normalized: totalNormalized,
       upserted: totalUpserted,
       matching: matchResult,
-      emails: dispatchResult,
+      digest: digestResult,
       runId,
     };
   } catch (err) {
