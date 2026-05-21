@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FDA Notification | Browse Recalls</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&amp;family=Fira+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container": "#004d40",
+                    "on-primary-fixed-variant": "#065043",
+                    "on-tertiary": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "inverse-surface": "#163440",
+                    "outline-variant": "#bfc9c4",
+                    "on-tertiary-fixed": "#1c1c18",
+                    "tertiary-fixed-dim": "#c9c6c0",
+                    "tertiary-container": "#44443f",
+                    "background": "#f4faff",
+                    "surface-container-high": "#ceedfd",
+                    "primary": "#00342b",
+                    "inverse-primary": "#94d3c1",
+                    "surface": "#f4faff",
+                    "on-surface": "#001f2a",
+                    "on-secondary-fixed": "#380c00",
+                    "on-secondary-fixed-variant": "#822800",
+                    "primary-fixed-dim": "#94d3c1",
+                    "outline": "#707975",
+                    "on-surface-variant": "#3f4945",
+                    "on-secondary-container": "#6b1f00",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error": "#ffffff",
+                    "on-background": "#001f2a",
+                    "surface-dim": "#c0dfee",
+                    "secondary-fixed": "#ffdbcf",
+                    "surface-container-low": "#e6f6ff",
+                    "error": "#ba1a1a",
+                    "primary-fixed": "#afefdd",
+                    "on-secondary": "#ffffff",
+                    "surface-container-highest": "#c9e7f7",
+                    "secondary": "#a43c12",
+                    "surface-variant": "#c9e7f7",
+                    "on-primary-container": "#7ebdac",
+                    "surface-tint": "#29695b",
+                    "secondary-fixed-dim": "#ffb59c",
+                    "surface-bright": "#f4faff",
+                    "secondary-container": "#fe7e4f",
+                    "tertiary-fixed": "#e5e2db",
+                    "on-tertiary-fixed-variant": "#474742",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed": "#00201a",
+                    "tertiary": "#2e2e29",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-container": "#b3b1ab",
+                    "surface-container": "#d9f2ff",
+                    "inverse-on-surface": "#e0f4ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "margin-desktop": "48px",
+                    "container-max": "1120px",
+                    "base": "8px",
+                    "margin-mobile": "16px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "label-md": ["Fira Sans"],
+                    "display-lg": ["Merriweather"],
+                    "label-sm": ["Fira Sans"],
+                    "body-md": ["Fira Sans"],
+                    "headline-sm": ["Merriweather"],
+                    "headline-md": ["Merriweather"],
+                    "body-lg": ["Fira Sans"],
+                    "display-lg-mobile": ["Merriweather"]
+            },
+            "fontSize": {
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-sm": ["22px", {"lineHeight": "30px", "fontWeight": "700"}],
+                    "headline-md": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .severity-pill-i { @apply bg-[#ba1a1a] text-white px-3 py-1 rounded-full font-label-sm text-label-sm uppercase tracking-wider; }
+        .severity-pill-ii { @apply bg-[#fe7e4f] text-[#00342b] px-3 py-1 rounded-full font-label-sm text-label-sm uppercase tracking-wider; }
+        .severity-pill-iii { @apply bg-[#707975] text-white px-3 py-1 rounded-full font-label-sm text-label-sm uppercase tracking-wider; }
+        
+        .recall-card {
+            @apply bg-surface border border-primary/10 transition-all duration-200 hover:bg-surface-container-low p-6 flex flex-col md:flex-row gap-6 items-start;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<nav class="bg-surface border-b border-outline-variant/10 sticky top-0 z-50">
+<div class="flex justify-between items-center w-full px-margin-desktop max-w-container-max mx-auto h-16">
+<div class="flex items-center gap-8">
+<span class="font-headline-sm text-headline-sm font-bold text-primary">FDA Notification</span>
+<div class="hidden md:flex gap-6 items-center h-full">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Dashboard</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Cabinet</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Quick Check</a>
+<a class="text-primary border-b-2 border-primary pb-1 font-bold font-label-md text-label-md" href="#">Browse Recalls</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-outline-variant bg-surface-container-lowest">
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="group">group</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Family Member</span>
+<span class="material-symbols-outlined text-outline" data-icon="expand_more">expand_more</span>
+</div>
+<button class="p-2 hover:bg-surface-container-low rounded-full transition-all active:scale-95">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="notifications">notifications</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-primary-fixed overflow-hidden border border-outline-variant">
+<img alt="User Profile Menu" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwGqvEkyY_DVdEfqnCS8TdDppd2fXgqJSUELq742OwDpH8P5QKg3nGUwvhblxQMcwBy0VJJUrkd8SakJ6Svwpx71STNoFKT1mhidWiJ_5wDkBeQ0Lonoe78Gcjt7yClCMzE0718D72o3p_Q3Y5Q7blZKR8nI5BP-OBU6h3rQjTkpR4xpai9zK6HCp13QJRUOzOKDC6rEb7H31SgvHOUWp2MpxDGyl3p1824HzqZ4-w6aHOu_lwnMoDmFI1p-RLFLjnSZjWnrTD9ck"/>
+</div>
+</div>
+</div>
+</nav>
+<main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-12">
+<!-- Search & Filter Section -->
+<header class="mb-12">
+<h1 class="font-headline-md text-headline-md text-primary mb-2">Browse Drug Recalls</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mb-8 max-w-2xl">Access real-time safety alerts and enforcement reports. Search by NDC, drug name, or manufacturer to verify your prescriptions.</p>
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/20">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Search Input -->
+<div class="lg:col-span-6 relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline" data-icon="search">search</span>
+<input class="w-full pl-12 pr-4 py-3 bg-surface-container-lowest border border-outline rounded-lg focus:border-2 focus:border-primary-container outline-none font-body-md transition-all" placeholder="Search by NDC, Drug Name, or Manufacturer..." type="text"/>
+</div>
+<!-- Severity Filter -->
+<div class="lg:col-span-3">
+<select class="w-full px-4 py-3 bg-surface-container-lowest border border-outline rounded-lg focus:border-2 focus:border-primary-container outline-none font-body-md appearance-none transition-all cursor-pointer">
+<option value="">All Severities</option>
+<option value="class-i">Class I (Most Urgent)</option>
+<option value="class-ii">Class II</option>
+<option value="class-iii">Class III</option>
+</select>
+</div>
+<!-- Date Range -->
+<div class="lg:col-span-3">
+<select class="w-full px-4 py-3 bg-surface-container-lowest border border-outline rounded-lg focus:border-2 focus:border-primary-container outline-none font-body-md appearance-none transition-all cursor-pointer">
+<option value="">Past 30 Days</option>
+<option value="">Past 90 Days</option>
+<option value="">Last 12 Months</option>
+<option value="">Custom Range</option>
+</select>
+</div>
+</div>
+</div>
+</header>
+<!-- Recall Feed -->
+<div class="space-y-6">
+<!-- Card 1: Class I -->
+<article class="recall-card rounded-xl">
+<div class="w-full md:w-48 flex-shrink-0">
+<img class="w-full aspect-video md:aspect-square object-cover rounded-lg border border-outline-variant/10" data-alt="A clean, professional studio shot of a pharmaceutical pill bottle with generic white labels on a soft teal background. The lighting is bright and clinical, reflecting a high-stakes safety environment. The image emphasizes clarity and drug identification through a minimalist composition and muted professional colors matching the UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQITbkmiqMl7s_mH8vvb0dgcqrvxY2ckNxUMrjglz-DPPwVncSzMcqBd5aTdbc2yo6k1UWAjPz_5eBMEjXIIbplyajNMbhJ63CMRIBpCxfRrwK7cElw4GmYugfj6QYpw84pSETAJKoSYC8nyi4JTI6Z_MBUvVufr_ZrTF2F9jE-aFmcwt7y8n4yAqzmOO5SVA2PcTlWJ_PEq-KlSie_-MBhSL-WjZg_rv1ABViJAbJjgtBJCo5MZwmjil0szR2HJf-swHTc4zxnew"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start mb-2">
+<span class="severity-pill-i">Class I Recall</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="calendar_today">calendar_today</span>
+                            Oct 24, 2023
+                        </span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-1">Epinephrine Injection, USP, 0.3 mg</h3>
+<p class="font-label-md text-label-md text-secondary mb-3">Manufacturer: SafeLife Pharmaceuticals Inc.</p>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 line-clamp-2">
+                        Potential for device failure: The auto-injector may fail to activate or require excessive force to use, which could result in life-threatening consequences during an emergency.
+                    </p>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline">NDC: 12345-678-90</span>
+<a class="flex items-center gap-2 text-primary font-bold hover:underline" href="#">
+                            View Details
+                            <span class="material-symbols-outlined text-[18px]" data-icon="arrow_forward">arrow_forward</span>
+</a>
+</div>
+</div>
+</article>
+<!-- Card 2: Class II -->
+<article class="recall-card rounded-xl">
+<div class="w-full md:w-48 flex-shrink-0">
+<img class="w-full aspect-video md:aspect-square object-cover rounded-lg border border-outline-variant/10" data-alt="A macro photography shot of several white medicinal tablets scattered on a pristine, soft cream surface. The aesthetic is clean and minimalist, with soft shadows and a professional medical tone. The lighting is high-key, reinforcing an atmosphere of calm authority and clinical precision suitable for a health alert portal." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqwOtY4gGMTsMUFBEmL0H7EGMlWGu46iTHdQApQ6YFLj-Q2TZWKwV0I37zK17glqqRFHngVPzeE0d9vVld5HNRfqJA49Tm90Ii7SCV4MRWZ3D-fX6Q3XiMwJckB25jRmX77_RjyH7k2_NhRJZywMA1gJ2pZclrAiSQvnYA61qJCF3vVrDav7icl-tZokzAPjSEoH3yBaqoz67UHgAhBOYnm7DGg-YwaC-u9qnwsvqsfNiI8o0vSG2BsBWhyi9aiYQc5j8Ec0uR8tg"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start mb-2">
+<span class="severity-pill-ii">Class II Recall</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="calendar_today">calendar_today</span>
+                            Oct 18, 2023
+                        </span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-1">Amoxicillin Capsules, 500 mg</h3>
+<p class="font-label-md text-label-md text-secondary mb-3">Manufacturer: Global Pharma Solutions</p>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 line-clamp-2">
+                        Presence of foreign matter: Small metallic particles were discovered in a specific batch during routine quality control testing. No adverse events reported to date.
+                    </p>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline">NDC: 98765-432-10</span>
+<a class="flex items-center gap-2 text-primary font-bold hover:underline" href="#">
+                            View Details
+                            <span class="material-symbols-outlined text-[18px]" data-icon="arrow_forward">arrow_forward</span>
+</a>
+</div>
+</div>
+</article>
+<!-- Card 3: Class III -->
+<article class="recall-card rounded-xl">
+<div class="w-full md:w-48 flex-shrink-0">
+<img class="w-full aspect-video md:aspect-square object-cover rounded-lg border border-outline-variant/10" data-alt="An artistic close-up of a glass medicine vial with a rubber stopper, set against a blurred background of a modern, clean pharmacy. The color palette consists of deep teals and soft whites, matching the brand's primary-container and surface-container colors. The mood is sophisticated and reassuring, emphasizing transparency and safety." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1D62V4203F4rKEIHtUS5pACjKkt4TyRWTjkn7JDVBQzbnkwU_62oAONkmcDKIWrYRArZrLusgBqinngwmOdeofDC0lPpRhITSf2_KpKhnrCEM0bCy5aba86CBH6mP5vQyxxNuwfgyoL9qZxjDz3z1IntBi_eEeGGo2DNA97bvCk61N6EJN5FpLMwupXhAvx-RhHcP7NagR67mOA3-ChQgizX86x7wYU8RorGUS8liXPVAU0lBhpIntHv7PHpEEZx6rMYLBkYtgzQ"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start mb-2">
+<span class="severity-pill-iii">Class III Recall</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="calendar_today">calendar_today</span>
+                            Oct 12, 2023
+                        </span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-1">Lisinopril Tablets, 10 mg</h3>
+<p class="font-label-md text-label-md text-secondary mb-3">Manufacturer: PureHealth Labs</p>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 line-clamp-2">
+                        Labeling error: The expiration date printed on the outer carton is inconsistent with the primary container label. The drug potency and safety are not compromised.
+                    </p>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline">NDC: 55443-112-22</span>
+<a class="flex items-center gap-2 text-primary font-bold hover:underline" href="#">
+                            View Details
+                            <span class="material-symbols-outlined text-[18px]" data-icon="arrow_forward">arrow_forward</span>
+</a>
+</div>
+</div>
+</article>
+<!-- Pagination/Load More -->
+<div class="flex justify-center py-8">
+<button class="px-8 py-3 bg-primary text-white rounded font-label-md text-label-md hover:opacity-90 active:scale-95 transition-all">
+                    Load More Recalls
+                </button>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full bg-surface-container-low border-t border-outline-variant/10">
+<div class="w-full py-8 px-margin-desktop max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-center gap-gutter">
+<div class="flex flex-col gap-2">
+<span class="font-label-md text-label-md font-bold text-primary">FDA Notification</span>
+<p class="font-label-sm text-label-sm text-on-surface-variant max-w-sm text-center md:text-left">
+                    Independent platform not affiliated with the U.S. Government. © 2024 FDA Notification.
+                </p>
+</div>
+<div class="flex flex-wrap justify-center gap-6">
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary hover:underline transition-all" href="#">Privacy Policy</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary hover:underline transition-all" href="#">Terms of Use</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary hover:underline transition-all" href="#">Contact Support</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary hover:underline transition-all" href="#">Accessibility</a>
+</div>
+</div>
+</footer>
+<script>
+        // Simple Micro-interaction for filter focus
+        const inputs = document.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.classList.add('ring-2', 'ring-primary-container/20');
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.classList.remove('ring-2', 'ring-primary-container/20');
+            });
+        });
+
+        // Search trigger imitation
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('keyup', (e) => {
+            if(e.key === 'Enter') {
+                console.log('Searching for:', searchInput.value);
+                // Potential for search animation logic here
+            }
+        });
+    </script>
+</body></html>

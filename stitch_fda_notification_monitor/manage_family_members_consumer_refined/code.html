@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Manage Family Members | FDA Notification</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&amp;family=Fira+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-container": "#004d40",
+                        "on-primary-fixed-variant": "#065043",
+                        "on-tertiary": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#163440",
+                        "outline-variant": "#bfc9c4",
+                        "on-tertiary-fixed": "#1c1c18",
+                        "tertiary-fixed-dim": "#c9c6c0",
+                        "tertiary-container": "#44443f",
+                        "background": "#f4faff",
+                        "surface-container-high": "#ceedfd",
+                        "primary": "#00342b",
+                        "inverse-primary": "#94d3c1",
+                        "surface": "#f4faff",
+                        "on-surface": "#001f2a",
+                        "on-secondary-fixed": "#380c00",
+                        "on-secondary-fixed-variant": "#822800",
+                        "primary-fixed-dim": "#94d3c1",
+                        "outline": "#707975",
+                        "on-surface-variant": "#3f4945",
+                        "on-secondary-container": "#6b1f00",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error": "#ffffff",
+                        "on-background": "#001f2a",
+                        "surface-dim": "#c0dfee",
+                        "secondary-fixed": "#ffdbcf",
+                        "surface-container-low": "#e6f6ff",
+                        "error": "#ba1a1a",
+                        "primary-fixed": "#afefdd",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#c9e7f7",
+                        "secondary": "#a43c12",
+                        "surface-variant": "#c9e7f7",
+                        "on-primary-container": "#7ebdac",
+                        "surface-tint": "#29695b",
+                        "secondary-fixed-dim": "#ffb59c",
+                        "surface-bright": "#f4faff",
+                        "secondary-container": "#fe7e4f",
+                        "tertiary-fixed": "#e5e2db",
+                        "on-tertiary-fixed-variant": "#474742",
+                        "on-error-container": "#93000a",
+                        "on-primary-fixed": "#00201a",
+                        "tertiary": "#2e2e29",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-container": "#b3b1ab",
+                        "surface-container": "#d9f2ff",
+                        "inverse-on-surface": "#e0f4ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-desktop": "48px",
+                        "container-max": "1120px",
+                        "base": "8px",
+                        "margin-mobile": "16px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Fira Sans"],
+                        "display-lg": ["Merriweather"],
+                        "label-sm": ["Fira Sans"],
+                        "body-md": ["Fira Sans"],
+                        "headline-sm": ["Merriweather"],
+                        "headline-md": ["Merriweather"],
+                        "body-lg": ["Fira Sans"],
+                        "display-lg-mobile": ["Merriweather"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-sm": ["22px", {"lineHeight": "30px", "fontWeight": "700"}],
+                        "headline-md": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { background-color: #f4faff; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .severity-chip { border-radius: 9999px; padding: 4px 12px; }
+        .member-card { border: 1px solid rgba(0, 77, 64, 0.1); }
+    </style>
+</head>
+<body class="font-body-md text-on-surface">
+<!-- TopNavBar -->
+<header class="bg-surface border-b border-outline-variant/10 fixed top-0 w-full z-50">
+<div class="flex justify-between items-center w-full px-margin-desktop max-w-container-max mx-auto h-16">
+<div class="flex items-center gap-base">
+<span class="font-headline-sm text-headline-sm font-bold text-primary">FDA Notification</span>
+</div>
+<nav class="hidden md:flex items-center gap-8 h-full">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors py-2" href="#">Dashboard</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors py-2" href="#">Cabinet</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors py-2" href="#">Quick Check</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors py-2" href="#">Browse Recalls</a>
+</nav>
+<div class="flex items-center gap-gutter">
+<!-- Family Switcher: Active state specified as 'Sarah Johnson' -->
+<div class="group relative">
+<button class="flex items-center gap-2 bg-surface-container-low px-4 py-2 rounded-lg hover:bg-surface-container-high transition-all text-primary font-label-md text-label-md">
+<span class="material-symbols-outlined">family_history</span>
+<span>Sarah Johnson</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+<!-- Dropdown Placeholder -->
+<div class="absolute right-0 top-full mt-2 w-48 bg-surface border border-outline-variant/20 rounded shadow-sm hidden group-hover:block overflow-hidden">
+<div class="p-2 border-b border-outline-variant/10 text-label-sm font-label-sm uppercase opacity-60 px-4 pt-4">Switch Member</div>
+<a class="block px-4 py-3 hover:bg-surface-container-low font-label-md text-label-md text-on-surface-variant" href="#">Michael Johnson</a>
+<a class="block px-4 py-3 bg-primary-container/10 text-primary font-bold font-label-md text-label-md" href="#">Sarah Johnson</a>
+<a class="block px-4 py-3 hover:bg-surface-container-low font-label-md text-label-md text-on-surface-variant" href="#">Emma Johnson</a>
+</div>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">notifications</button>
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-xs">SJ</div>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-16 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+<!-- Page Header & Action -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
+<div>
+<nav class="flex items-center gap-2 text-label-sm font-label-sm text-on-surface-variant/60 mb-2">
+<a class="hover:text-primary" href="#">Account Settings</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span>Family Management</span>
+</nav>
+<h1 class="font-headline-md text-headline-md text-primary mb-2">Family Members</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">
+                    Manage the profiles in your household. Each member has an independent medicine cabinet and customized notification settings to ensure safety information remains clear and relevant.
+                </p>
+</div>
+<button class="bg-[#ff5722] hover:brightness-110 text-white px-6 py-3 rounded-[4px] font-label-md text-label-md flex items-center gap-2 transition-all active:scale-95">
+<span class="material-symbols-outlined">person_add</span>
+                Add Family Member
+            </button>
+</div>
+<!-- Bento-style Grid of Members -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Member: Michael Johnson (Self) -->
+<div class="member-card bg-surface-container-lowest p-gutter rounded-xl transition-all hover:bg-surface-container-low flex flex-col justify-between">
+<div>
+<div class="flex items-start justify-between mb-6">
+<div class="w-12 h-12 bg-primary-container/10 rounded-full flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+</div>
+<span class="bg-slate-500 text-white text-[10px] uppercase font-bold px-2 py-1 rounded">Primary</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary">Michael Johnson (You)</h3>
+<p class="font-label-md text-label-md text-on-surface-variant mt-1">Relationship: Self</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant/70 mt-4 italic">Complete access to all account settings and billing.</p>
+</div>
+<div class="flex items-center gap-4 mt-8 pt-6 border-t border-outline-variant/10">
+<button class="text-primary font-label-md text-label-md flex items-center gap-1 hover:underline">
+<span class="material-symbols-outlined text-[18px]">edit</span> Edit
+                    </button>
+</div>
+</div>
+<!-- Member: Sarah Johnson -->
+<div class="member-card bg-surface-container-lowest p-gutter rounded-xl transition-all border-2 border-primary/20 flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 right-0 p-2">
+<div class="bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">check_circle</span> ACTIVE VIEW
+                    </div>
+</div>
+<div>
+<div class="flex items-start justify-between mb-6">
+<div class="w-12 h-12 bg-secondary-container/20 rounded-full flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">female</span>
+</div>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary">Sarah Johnson</h3>
+<div class="flex flex-wrap gap-2 mt-2">
+<span class="text-label-md font-label-md text-on-surface-variant">Relationship: Spouse</span>
+<span class="text-on-surface-variant/30 text-label-md">•</span>
+<span class="text-label-md font-label-md text-on-surface-variant">Age: 34</span>
+</div>
+<div class="mt-6 flex items-center gap-2 text-on-primary-fixed-variant bg-primary-fixed px-3 py-2 rounded">
+<span class="material-symbols-outlined text-sm">medication</span>
+<span class="text-label-sm font-label-sm">Cabinet: 12 Active Medications</span>
+</div>
+</div>
+<div class="flex items-center gap-6 mt-8 pt-6 border-t border-outline-variant/10">
+<button class="text-primary font-label-md text-label-md flex items-center gap-1 hover:underline">
+<span class="material-symbols-outlined text-[18px]">edit</span> Edit
+                    </button>
+<button class="text-error font-label-md text-label-md flex items-center gap-1 hover:underline">
+<span class="material-symbols-outlined text-[18px]">delete</span> Remove
+                    </button>
+</div>
+</div>
+<!-- Member: Emma Johnson -->
+<div class="member-card bg-surface-container-lowest p-gutter rounded-xl transition-all hover:bg-surface-container-low flex flex-col justify-between">
+<div>
+<div class="flex items-start justify-between mb-6">
+<div class="w-12 h-12 bg-tertiary-fixed/40 rounded-full flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">child_care</span>
+</div>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary">Emma Johnson</h3>
+<div class="flex flex-wrap gap-2 mt-2">
+<span class="text-label-md font-label-md text-on-surface-variant">Relationship: Child</span>
+<span class="text-on-surface-variant/30 text-label-md">•</span>
+<span class="text-label-md font-label-md text-on-surface-variant">Age: 4</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-4">
+                        Pediatric recalls prioritised. Notifications sent to both parent accounts.
+                    </p>
+</div>
+<div class="flex items-center gap-6 mt-8 pt-6 border-t border-outline-variant/10">
+<button class="text-primary font-label-md text-label-md flex items-center gap-1 hover:underline">
+<span class="material-symbols-outlined text-[18px]">edit</span> Edit
+                    </button>
+<button class="text-error font-label-md text-label-md flex items-center gap-1 hover:underline">
+<span class="material-symbols-outlined text-[18px]">delete</span> Remove
+                    </button>
+</div>
+</div>
+<!-- Visual Info Card: Privacy Focus -->
+<div class="md:col-span-2 lg:col-span-3 bg-surface-container border border-primary/10 p-8 rounded-xl flex flex-col md:flex-row items-center gap-10 mt-4">
+<div class="w-full md:w-1/4 flex justify-center">
+<div class="w-32 h-32 md:w-40 md:h-40 bg-primary/5 rounded-full flex items-center justify-center border border-primary/10">
+<span class="material-symbols-outlined text-primary text-[64px] md:text-[80px]" style="font-variation-settings: 'FILL' 0, 'wght' 200;">admin_panel_settings</span>
+</div>
+</div>
+<div class="w-full md:w-3/4">
+<h4 class="font-headline-sm text-headline-sm text-primary mb-4">Why isolate family data?</h4>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-primary-container shrink-0 mt-1">enhanced_encryption</span>
+<div>
+<p class="font-label-md text-label-md text-primary font-bold">Privacy First</p>
+<p class="font-body-md text-body-md text-on-surface-variant">Medical records are personal. Your household's data is partitioned so each member's history remains private and accessible only to their designated managers.</p>
+</div>
+</div>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-primary-container shrink-0 mt-1">notifications_active</span>
+<div>
+<p class="font-label-md text-label-md text-primary font-bold">Relevant Alerts</p>
+<p class="font-body-md text-body-md text-on-surface-variant">Avoid alert fatigue. We filter safety notifications so you only receive updates for medications actively used by your family members.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-low border-t border-outline-variant/10">
+<div class="w-full py-8 px-margin-desktop max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-center gap-gutter">
+<div class="flex flex-col items-center md:items-start gap-2">
+<span class="font-label-md text-label-md font-bold text-primary">FDA Notification</span>
+<p class="font-label-sm text-label-sm text-on-surface-variant text-center md:text-left">
+                    Independent platform not affiliated with the U.S. Government. © 2024 FDA Notification.
+                </p>
+</div>
+<div class="flex gap-6">
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-all" href="#">Privacy Policy</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-all" href="#">Terms of Use</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-all" href="#">Contact Support</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-all" href="#">Accessibility</a>
+</div>
+</div>
+</footer>
+<script>
+        // Simple micro-interaction for the family switcher dropdown
+        const familySwitcher = document.querySelector('.group');
+        const dropdown = familySwitcher.querySelector('div.absolute');
+        
+        familySwitcher.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('hidden');
+        });
+
+        window.addEventListener('click', () => {
+            dropdown.classList.add('hidden');
+        });
+    </script>
+</body></html>

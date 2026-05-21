@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Quick Check | FDA Notification</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&amp;family=Fira+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-fixed-variant": "#065043",
+                    "tertiary-fixed": "#e5e2db",
+                    "surface-dim": "#c0dfee",
+                    "on-tertiary-fixed": "#1c1c18",
+                    "on-secondary": "#ffffff",
+                    "surface-container-high": "#ceedfd",
+                    "primary-container": "#004d40",
+                    "surface-variant": "#c9e7f7",
+                    "surface": "#f4faff",
+                    "on-secondary-fixed-variant": "#822800",
+                    "primary-fixed-dim": "#94d3c1",
+                    "secondary-fixed-dim": "#ffb59c",
+                    "primary-fixed": "#afefdd",
+                    "error": "#ba1a1a",
+                    "outline-variant": "#bfc9c4",
+                    "on-tertiary-fixed-variant": "#474742",
+                    "on-surface": "#001f2a",
+                    "on-secondary-fixed": "#380c00",
+                    "on-error": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "surface-tint": "#29695b",
+                    "surface-container": "#d9f2ff",
+                    "on-primary-fixed": "#00201a",
+                    "tertiary": "#2e2e29",
+                    "inverse-surface": "#163440",
+                    "on-primary": "#ffffff",
+                    "inverse-on-surface": "#e0f4ff",
+                    "on-error-container": "#93000a",
+                    "surface-container-low": "#e6f6ff",
+                    "secondary-fixed": "#ffdbcf",
+                    "surface-container-highest": "#c9e7f7",
+                    "tertiary-container": "#44443f",
+                    "secondary-container": "#fe7e4f",
+                    "background": "#f4faff",
+                    "surface-bright": "#f4faff",
+                    "on-tertiary": "#ffffff",
+                    "inverse-primary": "#94d3c1",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-container": "#b3b1ab",
+                    "outline": "#707975",
+                    "on-primary-container": "#7ebdac",
+                    "on-secondary-container": "#6b1f00",
+                    "primary": "#00342b",
+                    "tertiary-fixed-dim": "#c9c6c0",
+                    "secondary": "#a43c12",
+                    "on-background": "#001f2a",
+                    "on-surface-variant": "#3f4945"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "margin-mobile": "16px",
+                    "margin-desktop": "48px",
+                    "base": "8px",
+                    "gutter": "24px",
+                    "container-max": "1120px"
+            },
+            "fontFamily": {
+                    "body-md": ["Fira Sans"],
+                    "label-md": ["Fira Sans"],
+                    "headline-sm": ["Merriweather"],
+                    "display-lg-mobile": ["Merriweather"],
+                    "headline-md": ["Merriweather"],
+                    "display-lg": ["Merriweather"],
+                    "body-lg": ["Fira Sans"],
+                    "label-sm": ["Fira Sans"]
+            },
+            "fontSize": {
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-sm": ["22px", {"lineHeight": "30px", "fontWeight": "700"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                    "headline-md": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Fira Sans', sans-serif; background-color: #f4faff; color: #001f2a; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .transition-all-custom { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="bg-surface dark:bg-on-surface docked full-width top-0 border-b border-primary/10 dark:border-outline-variant z-50 sticky">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
+<div class="flex items-center gap-8">
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">FDA Notification</span>
+<nav class="hidden md:flex gap-6 items-center"><a class="text-primary dark:text-primary-fixed-dim border-b-2 border-secondary font-bold pb-1 font-label-md text-label-md active:scale-95 duration-150" href="#">Quick Check</a></nav>
+</div>
+<div class="flex items-center gap-4">
+<a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-secondary dark:hover:text-secondary-fixed transition-colors font-label-md text-label-md" href="#">Log In</a>
+<button class="bg-primary text-on-primary px-6 py-2 rounded-lg font-label-md text-label-md hover:brightness-110 active:scale-95 transition-all shadow-sm">
+        Sign Up
+    </button>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow max-w-container-max mx-auto w-full px-margin-mobile md:px-margin-desktop py-12">
+<div class="grid grid-cols-1 gap-gutter items-start justify-items-center">
+<!-- Input Section (4 Cols Desktop) -->
+<section class="bg-surface-container-lowest border border-primary/10 rounded-xl p-8 transition-all-custom max-w-[600px] w-full">
+<div class="mb-8">
+<h1 class="font-headline-md text-headline-md text-primary mb-2">Quick Recall Check</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Instant lookup against the FDA safety database.</p>
+</div>
+<form class="space-y-6" id="checkForm">
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-primary" for="drugName">Drug Name (Required)</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-3 text-outline text-lg" data-icon="medication">medication</span>
+<input class="w-full pl-10 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md text-body-md outline-none" id="drugName" placeholder="e.g. Valsartan, Losartan" required="" type="text"/>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-primary" for="ndc">NDC Number</label>
+<input class="w-full px-4 py-3 bg-surface-container-low border border-outline-variant rounded focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md text-body-md outline-none" id="ndc" placeholder="0000-0000-00" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-primary" for="lot">Lot Number</label>
+<input class="w-full px-4 py-3 bg-surface-container-low border border-outline-variant rounded focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md text-body-md outline-none" id="lot" placeholder="e.g. LOT12345" type="text"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-primary" for="manufacturer">Manufacturer</label>
+<input class="w-full px-4 py-3 bg-surface-container-low border border-outline-variant rounded focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md text-body-md outline-none" id="manufacturer" placeholder="Company Name" type="text"/>
+</div>
+<div class="bg-surface-container p-4 rounded flex items-start gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="info">info</span>
+<p class="font-label-sm text-label-sm text-on-surface-variant">You can find the NDC and lot number on your medication bottle or prescription label. Providing these greatly improves matching accuracy.</p>
+</div>
+<button class="w-full bg-secondary text-on-secondary font-label-md text-label-md py-4 rounded-lg hover:brightness-110 active:scale-[0.98] transition-all-custom shadow-sm flex items-center justify-center gap-2" type="submit">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+                        Run Safety Check
+                    </button>
+<p class="text-center font-label-sm text-label-sm text-outline">FDA data last synced: Oct 27, 2023 14:30 EST</p>
+</form>
+</section><div id="resultsPlaceholder"></div>
+<!-- Results Section (8 Cols Desktop) -->
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-low dark:bg-surface-dim full-width bottom-0 border-t border-primary/10 mt-auto">
+<div class="w-full px-margin-mobile md:px-margin-desktop py-base max-w-container-max mx-auto">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 py-8">
+<div class="max-w-xl">
+<span class="font-headline-sm text-headline-sm text-primary mb-4 block">FDA Notification</span>
+<p class="font-body-md text-body-md text-on-surface-variant opacity-80 leading-relaxed">
+                        FDA data last synced: 2023-10-27 14:30 EST. This service aggregates recall information from FDA public data. It is not medical advice. For health decisions, consult your pharmacist or physician.
+                    </p>
+</div>
+<nav class="flex flex-col gap-3">
+<a class="text-on-surface-variant opacity-80 hover:text-secondary dark:hover:text-secondary-fixed font-label-sm text-label-sm" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant opacity-80 hover:text-secondary dark:hover:text-secondary-fixed font-label-sm text-label-sm" href="#">Terms of Service</a>
+<a class="text-on-surface-variant opacity-80 hover:text-secondary dark:hover:text-secondary-fixed font-label-sm text-label-sm" href="#">Contact Support</a>
+</nav>
+</div>
+<div class="border-t border-outline-variant/30 py-4 text-center">
+<p class="font-label-sm text-label-sm text-on-surface-variant opacity-60">© 2023 FDA Notification Platform. All rights reserved.</p>
+</div>
+</div>
+</footer>
+<script>
+        const form = document.getElementById('checkForm');
+        const emptyState = document.getElementById('emptyState');
+        const resultState = document.getElementById('resultState');
+        const statusBanner = document.getElementById('statusBanner');
+        const statusTitle = document.getElementById('statusTitle');
+        const statusDesc = document.getElementById('statusDesc');
+        const statusIcon = document.getElementById('statusIcon');
+        
+        const resDrug = document.getElementById('resDrug');
+        const resMan = document.getElementById('resMan');
+        const resNdc = document.getElementById('resNdc');
+        const resLot = document.getElementById('resLot');
+        const resReason = document.getElementById('resReason');
+        const resSeverity = document.getElementById('resSeverity');
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const drug = document.getElementById('drugName').value;
+            const ndc = document.getElementById('ndc').value || 'Not provided';
+            const lot = document.getElementById('lot').value || 'Not provided';
+            const man = document.getElementById('manufacturer').value || 'Generic Manufacturer';
+
+            emptyState.classList.add('hidden');
+            resultState.classList.remove('hidden');
+
+            // Simple Logic for demo results simulation
+            if (drug.toLowerCase().includes('valsartan')) {
+                // Confirmed Recall (Red)
+                statusBanner.className = 'w-full p-8 rounded-xl flex items-center justify-between transition-all-custom bg-error text-on-error';
+                statusTitle.innerText = 'Confirmed Recall Found';
+                statusDesc.innerText = 'Immediate Action Required: Stop using this medication.';
+                statusIcon.innerText = 'report';
+                resSeverity.className = 'px-4 py-1 rounded-full font-label-sm text-label-sm uppercase tracking-tighter bg-error text-on-error';
+                resSeverity.innerText = 'Class I';
+                resReason.innerText = 'Presence of NDMA, a probable human carcinogen, detected during independent laboratory testing.';
+            } else if (drug.toLowerCase().includes('losartan')) {
+                // Possible Match (Amber)
+                statusBanner.className = 'w-full p-8 rounded-xl flex items-center justify-between transition-all-custom bg-secondary-container text-on-secondary-container';
+                statusTitle.innerText = 'Possible Recall Match';
+                statusDesc.innerText = 'A similar drug or lot is under investigation. Please consult your physician.';
+                statusIcon.innerText = 'warning';
+                resSeverity.className = 'px-4 py-1 rounded-full font-label-sm text-label-sm uppercase tracking-tighter bg-tertiary-container text-on-tertiary-container';
+                resSeverity.innerText = 'Class II';
+                resReason.innerText = 'Deviations from current Good Manufacturing Practices (cGMP) reported at the processing facility.';
+            } else {
+                // No Recall (Neutral)
+                statusBanner.className = 'w-full p-8 rounded-xl flex items-center justify-between transition-all-custom bg-primary-container text-on-primary-container';
+                statusTitle.innerText = 'No Recall Found';
+                statusDesc.innerText = 'No active recalls match your drug and lot information in our database.';
+                statusIcon.innerText = 'check_circle';
+                resSeverity.className = 'px-4 py-1 rounded-full font-label-sm text-label-sm uppercase tracking-tighter bg-surface-container-highest text-on-surface-variant';
+                resSeverity.innerText = 'Safe';
+                resReason.innerText = 'Regular screening indicates this lot is compliant with current safety standards.';
+            }
+
+            resDrug.innerText = drug;
+            resMan.innerText = man;
+            resNdc.innerText = ndc;
+            resLot.innerText = lot;
+
+            // Simple scroll effect
+            resultState.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    </script>
+</body></html>
