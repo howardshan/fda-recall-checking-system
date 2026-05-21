@@ -4,8 +4,8 @@
 
 ## 文档
 
-- [客户需求说明书 · Web 版（中文）](./docs/REQUIREMENTS-CLIENT.md) — **USD 17,500** / **175 人时**（v4.0，含订阅与 3 个月维护）
-- [Client Requirements · Web (English)](./docs/REQUIREMENTS-CLIENT-EN.md) — **USD 17,500** / **175 hours** (v4.0 EN)
+- [客户需求说明书 · Web 版（中文）](./docs/REQUIREMENTS-CLIENT.md) — **USD 17,500** / **175 人时**（v4.2，支付服务商待确认）
+- [Client Requirements · Web (English)](./docs/REQUIREMENTS-CLIENT-EN.md) — **USD 17,500** / **175 hours** (待同步 v4.2)
 - [客户需求说明书 · Web + App 版](./docs/REQUIREMENTS-CLIENT-WEB-APP.md) — **USD 32,000** / **320 人时**（独立签约文档，互不引用）
 - [开发需求清单（内部）](./docs/REQUIREMENTS.md) — 功能/非功能需求、发布阶段与待拍板项
 - [需求 vs 实现对比](./docs/IMPLEMENTATION-COMPARISON.md) — Recall Checker 与 Requirements 对照及偏差说明
