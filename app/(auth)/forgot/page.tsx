@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ForgotForm } from "@/components/auth/ForgotForm";
 
 export const metadata = {
-  title: "Reset Password | FDA Notification",
+  title: "Reset Password | SafeTrack",
 };
 
 export default function ForgotPage() {

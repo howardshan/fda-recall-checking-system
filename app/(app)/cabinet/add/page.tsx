@@ -3,7 +3,7 @@ import { MedicationForm, type FamilyOption } from "@/components/cabinet/Medicati
 import { getServerAuthSupabase } from "@/lib/auth";
 
 export const metadata = {
-  title: "Add Medication | FDA Notification",
+  title: "Add Medication | SafeTrack",
 };
 
 export const dynamic = "force-dynamic";

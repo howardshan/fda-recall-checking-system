@@ -11,7 +11,6 @@ export type MedicationFormValues = {
   manufacturer: string;
   productNdc: string;
   lotNumber: string;
-  expectedStopDate: string;
   memberId: number | null;
 };
 
@@ -29,7 +28,6 @@ const EMPTY: MedicationFormValues = {
   manufacturer: "",
   productNdc: "",
   lotNumber: "",
-  expectedStopDate: "",
   memberId: null,
 };
 
@@ -78,7 +76,6 @@ export function MedicationForm({ mode, initial, itemId, familyOptions = [] }: Pr
           manufacturer: values.manufacturer.trim(),
           productNdc: values.productNdc.trim() || null,
           lotNumber: values.lotNumber.trim() || null,
-          expectedStopDate: values.expectedStopDate || null,
           memberId: values.memberId,
         }),
       });
@@ -216,22 +213,6 @@ export function MedicationForm({ mode, initial, itemId, familyOptions = [] }: Pr
             onChange={(e) => update("lotNumber", e.target.value)}
           />
         </div>
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <label className="text-label-md text-on-surface-variant" htmlFor="stop">
-          Expected end of treatment <span className="text-outline">(optional)</span>
-        </label>
-        <input
-          id="stop"
-          type="date"
-          className="input bg-surface-container-low"
-          value={values.expectedStopDate}
-          onChange={(e) => update("expectedStopDate", e.target.value)}
-        />
-        <p className="text-label-sm text-on-surface-variant">
-          If set, alerts stop after this date — except Class I recalls, which always notify.
-        </p>
       </div>
 
       {error ? (

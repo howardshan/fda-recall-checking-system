@@ -11,6 +11,8 @@ export function ResetForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPwd, setShowPwd] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -44,17 +46,26 @@ export function ResetForm() {
         <label htmlFor="password" className="text-label-md text-on-surface-variant">
           New password
         </label>
-        <input
-          id="password"
-          type="password"
-          required
-          minLength={8}
-          autoComplete="new-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="input bg-surface-container-low"
-          placeholder="At least 8 characters"
-        />
+        <div className="relative">
+          <input
+            id="password"
+            type={showPwd ? "text" : "password"}
+            required
+            minLength={8}
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="input bg-surface-container-low pr-12"
+            placeholder="At least 8 characters"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPwd((s) => !s)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-label-sm text-outline hover:text-primary"
+          >
+            {showPwd ? "Hide" : "Show"}
+          </button>
+        </div>
         <PasswordChecklist password={password} touched={password.length > 0} />
       </div>
 
@@ -62,16 +73,25 @@ export function ResetForm() {
         <label htmlFor="confirm" className="text-label-md text-on-surface-variant">
           Confirm new password
         </label>
-        <input
-          id="confirm"
-          type="password"
-          required
-          minLength={8}
-          autoComplete="new-password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          className="input bg-surface-container-low"
-        />
+        <div className="relative">
+          <input
+            id="confirm"
+            type={showConfirm ? "text" : "password"}
+            required
+            minLength={8}
+            autoComplete="new-password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="input bg-surface-container-low pr-12"
+          />
+          <button
+            type="button"
+            onClick={() => setShowConfirm((s) => !s)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-label-sm text-outline hover:text-primary"
+          >
+            {showConfirm ? "Hide" : "Show"}
+          </button>
+        </div>
       </div>
 
       {error ? (

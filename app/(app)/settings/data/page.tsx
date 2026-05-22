@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export const metadata = { title: "Data & Privacy | FDA Notification" };
+export const metadata = { title: "Data & Privacy | SafeTrack" };
 
 export default function DataExportPage() {
   return (

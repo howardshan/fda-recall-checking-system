@@ -1,7 +1,7 @@
 import { ResetForm } from "@/components/auth/ResetForm";
 
 export const metadata = {
-  title: "Choose a New Password | FDA Notification",
+  title: "Choose a New Password | SafeTrack",
 };
 
 export default function ResetPage() {

@@ -11,7 +11,7 @@ export async function GET() {
   const supabase = await getServerAuthSupabase();
   const { data, error } = await supabase
     .from("medication_items")
-    .select("id, product_name, manufacturer, product_ndc, lot_number, expected_stop_date, status, added_at")
+    .select("id, product_name, manufacturer, product_ndc, lot_number, status, added_at")
     .eq("status", "active")
     .order("added_at", { ascending: false });
   if (error) {
@@ -25,7 +25,6 @@ type CreateBody = {
   manufacturer?: string;
   productNdc?: string | null;
   lotNumber?: string | null;
-  expectedStopDate?: string | null;
   memberId?: number | null;
 };
 
@@ -68,10 +67,9 @@ export async function POST(req: Request) {
       manufacturer,
       product_ndc: body.productNdc?.trim() || null,
       lot_number: body.lotNumber?.trim() || null,
-      expected_stop_date: body.expectedStopDate || null,
       member_id: body.memberId ?? null,
     })
-    .select("id, user_id, product_name, manufacturer, product_ndc, lot_number, expected_stop_date")
+    .select("id, user_id, product_name, manufacturer, product_ndc, lot_number")
     .single();
   if (insertErr || !inserted) {
     return NextResponse.json(

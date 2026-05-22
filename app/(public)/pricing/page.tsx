@@ -5,7 +5,7 @@ import { PlanCards } from "@/components/billing/PlanCards";
 import type { Plan } from "@/lib/plan";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Plans & Pricing | FDA Notification" };
+export const metadata = { title: "Plans & Pricing | SafeTrack" };
 
 async function loadCurrentPlan(): Promise<{ plan: Plan; signedIn: boolean }> {
   const user = await getCurrentUser();

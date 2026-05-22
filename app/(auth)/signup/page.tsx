@@ -3,7 +3,7 @@ import { SignupForm } from "@/components/auth/SignupForm";
 import { GoogleButton } from "@/components/auth/GoogleButton";
 
 export const metadata = {
-  title: "Create Account | FDA Notification",
+  title: "Create Account | SafeTrack",
 };
 
 export default function SignupPage() {

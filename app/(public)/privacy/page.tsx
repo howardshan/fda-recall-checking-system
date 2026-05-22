@@ -1,4 +1,4 @@
-export const metadata = { title: "Privacy Policy | FDA Notification" };
+export const metadata = { title: "Privacy Policy | SafeTrack" };
 
 export default function PrivacyPage() {
   return (
@@ -9,7 +9,7 @@ export default function PrivacyPage() {
       </p>
       <div className="mt-6 space-y-4 text-body-md text-on-surface">
         <p>
-          FDA Notification (&ldquo;we&rdquo;) collects only the information you provide
+          SafeTrack (&ldquo;we&rdquo;) collects only the information you provide
           when creating an account and adding medications to your cabinet:
           name (optional), email address, optional phone number, and the
           medication details you enter.

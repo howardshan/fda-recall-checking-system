@@ -15,7 +15,6 @@ type ItemRow = {
   manufacturer: string;
   product_ndc: string | null;
   lot_number: string | null;
-  expected_stop_date: string | null;
   member_id: number | null;
   status: string;
 };
@@ -32,7 +31,7 @@ export default async function EditMedicationPage({
   const supabase = await getServerAuthSupabase();
   const { data, error } = await supabase
     .from("medication_items")
-    .select("id, product_name, manufacturer, product_ndc, lot_number, expected_stop_date, member_id, status")
+    .select("id, product_name, manufacturer, product_ndc, lot_number, member_id, status")
     .eq("id", id)
     .single();
   if (error || !data) return notFound();
@@ -50,7 +49,6 @@ export default async function EditMedicationPage({
     manufacturer: item.manufacturer,
     productNdc: item.product_ndc ?? "",
     lotNumber: item.lot_number ?? "",
-    expectedStopDate: item.expected_stop_date ?? "",
     memberId: item.member_id,
   };
 

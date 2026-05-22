@@ -1,4 +1,4 @@
-export const metadata = { title: "Terms of Service | FDA Notification" };
+export const metadata = { title: "Terms of Service | SafeTrack" };
 
 export default function TermsPage() {
   return (
@@ -9,13 +9,13 @@ export default function TermsPage() {
       </p>
       <div className="mt-6 space-y-4 text-body-md text-on-surface">
         <p>
-          By creating an account, you agree to use FDA Notification only for
+          By creating an account, you agree to use SafeTrack only for
           personal, non-commercial purposes related to monitoring drug recall
           information.
         </p>
         <h2 className="font-display text-headline-sm text-primary">Not medical advice</h2>
         <p>
-          FDA Notification is an information aggregation service. We surface
+          SafeTrack is an information aggregation service. We surface
           publicly-available FDA recall data. We do{" "}
           <strong>not provide medical advice, diagnosis, or treatment</strong>{" "}
           recommendations. Always consult a licensed pharmacist or physician

@@ -18,7 +18,7 @@ const firaSans = Fira_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "FDA Notification — Drug Recall Alerts",
+  title: "SafeTrack — Drug Recall Alerts",
   description:
     "Know instantly if your medications have been recalled by the FDA. Add prescriptions to your medicine cabinet and receive email alerts when matching recalls are issued.",
 };

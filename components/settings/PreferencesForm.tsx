@@ -9,7 +9,6 @@ export type Preferences = {
   alert_on_class_i: boolean;
   alert_on_class_ii: boolean;
   alert_on_class_iii: boolean;
-  alert_after_stop_date: boolean;
 };
 
 const DEFAULT_PREFS: Preferences = {
@@ -19,7 +18,6 @@ const DEFAULT_PREFS: Preferences = {
   alert_on_class_i: true,
   alert_on_class_ii: true,
   alert_on_class_iii: false,
-  alert_after_stop_date: false,
 };
 
 function Toggle({
@@ -148,22 +146,6 @@ export function PreferencesForm({ initial }: { initial: Preferences | null }) {
             description="Labeling / minor quality issues. Off by default to reduce noise."
             checked={prefs.alert_on_class_iii}
             onChange={(v) => set("alert_on_class_iii", v)}
-          />
-        </div>
-      </section>
-
-      <section className="card">
-        <h2 className="font-display text-headline-sm text-primary">After expected end of treatment</h2>
-        <p className="mt-1 text-body-md text-on-surface-variant">
-          Whether to keep alerting after a medication&apos;s expected stop date.
-          Class I recalls always fire regardless.
-        </p>
-        <div className="mt-4">
-          <Toggle
-            label="Keep monitoring past stop date"
-            description="If off, only Class I recalls will trigger after the stop date."
-            checked={prefs.alert_after_stop_date}
-            onChange={(v) => set("alert_after_stop_date", v)}
           />
         </div>
       </section>

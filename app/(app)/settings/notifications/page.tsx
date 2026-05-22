@@ -12,7 +12,7 @@ export default async function NotificationSettingsPage() {
     const { data } = await supabase
       .from("notification_preferences")
       .select(
-        "email_enabled, sms_enabled, phone_number, alert_on_class_i, alert_on_class_ii, alert_on_class_iii, alert_after_stop_date",
+        "email_enabled, sms_enabled, phone_number, alert_on_class_i, alert_on_class_ii, alert_on_class_iii",
       )
       .eq("user_id", userId)
       .maybeSingle();

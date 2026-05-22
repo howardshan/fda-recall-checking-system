@@ -15,6 +15,7 @@ export function SignupForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sentTo, setSentTo] = useState<string | null>(null);
+  const [showPwd, setShowPwd] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -48,13 +49,20 @@ export function SignupForm() {
         },
       });
       if (error) throw error;
-      if (data.user && !data.session) {
-        // Email verification required
-        setSentTo(email);
-      } else if (data.session) {
+      if (data.session) {
         // Email confirmation disabled — straight in
         router.push("/dashboard");
         router.refresh();
+      } else if (data.user && (data.user.identities?.length ?? 0) === 0) {
+        // Supabase obfuscation: empty identities means email is already registered.
+        setError(
+          "An account with this email already exists. Try signing in or use the forgot-password link.",
+        );
+      } else if (data.user) {
+        // Email verification required (first-time or re-send for unverified user)
+        setSentTo(email);
+      } else {
+        setError("Sign up did not complete. Please try again.");
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Sign up failed");
@@ -94,7 +102,6 @@ export function SignupForm() {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           className="input bg-surface-container-low"
-          placeholder="e.g. yiqing"
         />
       </div>
 
@@ -118,17 +125,26 @@ export function SignupForm() {
         <label htmlFor="password" className="text-label-md text-on-surface-variant">
           Password
         </label>
-        <input
-          id="password"
-          type="password"
-          required
-          autoComplete="new-password"
-          minLength={8}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="input bg-surface-container-low"
-          placeholder="At least 8 characters"
-        />
+        <div className="relative">
+          <input
+            id="password"
+            type={showPwd ? "text" : "password"}
+            required
+            autoComplete="new-password"
+            minLength={8}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="input bg-surface-container-low pr-12"
+            placeholder="At least 8 characters"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPwd((s) => !s)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-label-sm text-outline hover:text-primary"
+          >
+            {showPwd ? "Hide" : "Show"}
+          </button>
+        </div>
         <PasswordChecklist password={password} touched={password.length > 0} />
       </div>
 

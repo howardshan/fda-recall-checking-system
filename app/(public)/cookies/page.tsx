@@ -1,4 +1,4 @@
-export const metadata = { title: "Cookie Policy | FDA Notification" };
+export const metadata = { title: "Cookie Policy | SafeTrack" };
 
 export default function CookiesPage() {
   return (
@@ -9,7 +9,7 @@ export default function CookiesPage() {
       </p>
       <div className="mt-6 space-y-4 text-body-md text-on-surface">
         <p>
-          FDA Notification uses only the cookies required to keep you signed in
+          SafeTrack uses only the cookies required to keep you signed in
           and to remember your consent to this policy.
         </p>
         <h2 className="font-display text-headline-sm text-primary">Strictly necessary</h2>

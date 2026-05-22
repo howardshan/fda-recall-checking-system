@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { RecallBrowser } from "@/components/recalls/RecallBrowser";
 
 export const metadata = {
-  title: "Browse FDA Recalls | FDA Notification",
+  title: "Browse FDA Recalls | SafeTrack",
 };
 
 export default function RecallsBrowserPage() {

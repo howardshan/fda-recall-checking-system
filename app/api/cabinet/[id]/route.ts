@@ -11,7 +11,6 @@ type UpdateBody = {
   manufacturer?: string;
   productNdc?: string | null;
   lotNumber?: string | null;
-  expectedStopDate?: string | null;
   memberId?: number | null;
   status?: "active" | "paused" | "deleted";
 };
@@ -28,7 +27,7 @@ export async function GET(_req: Request, ctx: Params) {
   const supabase = await getServerAuthSupabase();
   const { data, error } = await supabase
     .from("medication_items")
-    .select("id, product_name, manufacturer, product_ndc, lot_number, expected_stop_date, status")
+    .select("id, product_name, manufacturer, product_ndc, lot_number, status")
     .eq("id", id)
     .single();
   if (error || !data) {
@@ -53,7 +52,6 @@ export async function PATCH(req: Request, ctx: Params) {
   if (typeof body.manufacturer === "string") patch.manufacturer = body.manufacturer.trim();
   if (body.productNdc !== undefined) patch.product_ndc = body.productNdc?.trim() || null;
   if (body.lotNumber !== undefined) patch.lot_number = body.lotNumber?.trim() || null;
-  if (body.expectedStopDate !== undefined) patch.expected_stop_date = body.expectedStopDate || null;
   if (body.memberId !== undefined) patch.member_id = body.memberId;
   if (body.status) patch.status = body.status;
   patch.updated_at = new Date().toISOString();
@@ -63,7 +61,7 @@ export async function PATCH(req: Request, ctx: Params) {
     .from("medication_items")
     .update(patch)
     .eq("id", id)
-    .select("id, product_name, manufacturer, product_ndc, lot_number, expected_stop_date, status")
+    .select("id, product_name, manufacturer, product_ndc, lot_number, status")
     .single();
   if (error || !data) {
     return NextResponse.json({ error: error?.message ?? "Update failed" }, { status: 500 });

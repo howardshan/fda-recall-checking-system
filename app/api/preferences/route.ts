@@ -28,7 +28,6 @@ type PatchBody = {
   alert_on_class_i?: boolean;
   alert_on_class_ii?: boolean;
   alert_on_class_iii?: boolean;
-  alert_after_stop_date?: boolean;
 };
 
 export async function PATCH(req: Request) {
@@ -52,7 +51,6 @@ export async function PATCH(req: Request) {
     "alert_on_class_i",
     "alert_on_class_ii",
     "alert_on_class_iii",
-    "alert_after_stop_date",
   ] as const) {
     if (body[key] !== undefined) update[key] = body[key];
   }

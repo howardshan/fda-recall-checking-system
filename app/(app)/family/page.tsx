@@ -2,7 +2,7 @@ import { getServerAuthSupabase } from "@/lib/auth";
 import { FamilyMembersList, type FamilyMember } from "@/components/family/FamilyMembersList";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Family Members | FDA Notification" };
+export const metadata = { title: "Family Members | SafeTrack" };
 
 export default async function FamilyPage() {
   const supabase = await getServerAuthSupabase();

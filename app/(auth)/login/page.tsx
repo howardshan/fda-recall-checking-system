@@ -4,7 +4,7 @@ import { LoginForm } from "@/components/auth/LoginForm";
 import { GoogleButton } from "@/components/auth/GoogleButton";
 
 export const metadata = {
-  title: "Log In | FDA Notification",
+  title: "Log In | SafeTrack",
 };
 
 export default function LoginPage() {
@@ -31,7 +31,7 @@ export default function LoginPage() {
         <GoogleButton />
 
         <div className="mt-8 border-t border-primary/5 pt-6 text-center">
-          <p className="mb-4 text-body-md text-on-surface-variant">New to FDA Notification?</p>
+          <p className="mb-4 text-body-md text-on-surface-variant">New to SafeTrack?</p>
           <Link href="/signup" className="btn-secondary w-full">
             Create an account
           </Link>

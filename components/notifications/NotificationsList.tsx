@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 
 type NotificationRow = {
   id: number;
@@ -175,22 +174,6 @@ export function NotificationsList({ initial }: { initial: NotificationRow[] }) {
                       Mark unread
                     </button>
                   )}
-                  {n.medication_items ? (
-                    <Link
-                      href={`/cabinet/${n.medication_items.id}/edit`}
-                      className="btn-ghost text-label-sm"
-                    >
-                      View medication
-                    </Link>
-                  ) : null}
-                  <a
-                    href="https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-ghost text-label-sm"
-                  >
-                    FDA notice ↗
-                  </a>
                   <button
                     type="button"
                     onClick={() => updateStatus(n.id, "dismissed")}

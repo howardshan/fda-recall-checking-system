@@ -41,7 +41,14 @@ async function getStaleSyncWarning(): Promise<string | null> {
   if (!last) return "Recall data has never been synced. Alerts will not fire until the first sync runs.";
   const hoursAgo = (Date.now() - new Date(last).getTime()) / 1000 / 60 / 60;
   if (hoursAgo > 48) {
-    return `Recall data was last synced ${Math.round(hoursAgo)} hours ago — that's longer than expected. Alerts may be delayed.`;
+    const when = new Date(last).toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+    return `Last updated ${when} — that's longer than expected. Alerts may be delayed.`;
   }
   return null;
 }

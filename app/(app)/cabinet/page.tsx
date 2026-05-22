@@ -9,7 +9,6 @@ type Item = {
   manufacturer: string;
   product_ndc: string | null;
   lot_number: string | null;
-  expected_stop_date: string | null;
   added_at: string;
 };
 
@@ -17,7 +16,7 @@ async function getItems(): Promise<Item[]> {
   const supabase = await getServerAuthSupabase();
   const { data } = await supabase
     .from("medication_items")
-    .select("id, product_name, manufacturer, product_ndc, lot_number, expected_stop_date, added_at")
+    .select("id, product_name, manufacturer, product_ndc, lot_number, added_at")
     .eq("status", "active")
     .order("added_at", { ascending: false });
   return (data ?? []) as Item[];
@@ -121,10 +120,6 @@ export default async function CabinetPage() {
                     <div>
                       <dt className="opacity-70">Added</dt>
                       <dd>{formatDate(item.added_at)}</dd>
-                    </div>
-                    <div>
-                      <dt className="opacity-70">Expected end</dt>
-                      <dd>{formatDate(item.expected_stop_date)}</dd>
                     </div>
                   </dl>
                 </Link>
