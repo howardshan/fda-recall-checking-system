@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FDA Notification - Barcode Scan</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&amp;family=Fira+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container": "#004d40",
+                    "on-primary-fixed-variant": "#065043",
+                    "on-tertiary": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "inverse-surface": "#163440",
+                    "outline-variant": "#bfc9c4",
+                    "on-tertiary-fixed": "#1c1c18",
+                    "tertiary-fixed-dim": "#c9c6c0",
+                    "tertiary-container": "#44443f",
+                    "background": "#f4faff",
+                    "surface-container-high": "#ceedfd",
+                    "primary": "#00342b",
+                    "inverse-primary": "#94d3c1",
+                    "surface": "#f4faff",
+                    "on-surface": "#001f2a",
+                    "on-secondary-fixed": "#380c00",
+                    "on-secondary-fixed-variant": "#822800",
+                    "primary-fixed-dim": "#94d3c1",
+                    "outline": "#707975",
+                    "on-surface-variant": "#3f4945",
+                    "on-secondary-container": "#6b1f00",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error": "#ffffff",
+                    "on-background": "#001f2a",
+                    "surface-dim": "#c0dfee",
+                    "secondary-fixed": "#ffdbcf",
+                    "surface-container-low": "#e6f6ff",
+                    "error": "#ba1a1a",
+                    "primary-fixed": "#afefdd",
+                    "on-secondary": "#ffffff",
+                    "surface-container-highest": "#c9e7f7",
+                    "secondary": "#a43c12",
+                    "surface-variant": "#c9e7f7",
+                    "on-primary-container": "#7ebdac",
+                    "surface-tint": "#29695b",
+                    "secondary-fixed-dim": "#ffb59c",
+                    "surface-bright": "#f4faff",
+                    "secondary-container": "#fe7e4f",
+                    "tertiary-fixed": "#e5e2db",
+                    "on-tertiary-fixed-variant": "#474742",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed": "#00201a",
+                    "tertiary": "#2e2e29",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-container": "#b3b1ab",
+                    "surface-container": "#d9f2ff",
+                    "inverse-on-surface": "#e0f4ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "margin-desktop": "48px",
+                    "container-max": "1120px",
+                    "base": "8px",
+                    "margin-mobile": "16px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "label-md": ["Fira Sans"],
+                    "display-lg": ["Merriweather"],
+                    "label-sm": ["Fira Sans"],
+                    "body-md": ["Fira Sans"],
+                    "headline-sm": ["Merriweather"],
+                    "headline-md": ["Merriweather"],
+                    "body-lg": ["Fira Sans"],
+                    "display-lg-mobile": ["Merriweather"]
+            },
+            "fontSize": {
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-sm": ["22px", {"lineHeight": "30px", "fontWeight": "700"}],
+                    "headline-md": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .scanner-capsule {
+            box-shadow: 0 0 0 9999px rgba(0, 31, 42, 0.65);
+            transition: all 0.3s ease;
+        }
+        .scan-animation {
+            animation: scan-move 3s infinite ease-in-out;
+        }
+        @keyframes scan-move {
+            0%, 100% { transform: translateY(-40px); opacity: 0; }
+            50% { transform: translateY(40px); opacity: 1; }
+        }
+        .pulse-glow {
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.5; border-color: rgba(148, 211, 193, 0.4); }
+            50% { opacity: 1; border-color: rgba(148, 211, 193, 1); }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col font-body-md overflow-hidden">
+<!-- Top Bar -->
+<header class="fixed top-0 left-0 right-0 z-50 h-16 bg-surface/80 backdrop-blur-md flex items-center justify-between px-margin-mobile md:px-margin-desktop border-b border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="font-headline-sm text-headline-sm font-bold text-primary">FDA Notification</span>
+</div>
+<button aria-label="Close Scanner" class="p-2 rounded-full hover:bg-surface-container-low transition-all active:scale-95">
+<span class="material-symbols-outlined text-on-surface-variant">close</span>
+</button>
+</header>
+<!-- Main Viewfinder Area -->
+<main class="relative flex-grow flex flex-col items-center justify-center pt-16">
+<!-- Live Camera Backdrop (Simulated) -->
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover" data-alt="A POV shot of a well-lit medical vanity featuring a pharmacist's counter. The focus is soft and warm with clinical clean surfaces. Professional pharmacy environment with soft lighting hitting wooden and white textures, maintaining an authoritative yet empathetic atmosphere. High quality photography style with subtle teal and cream color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDTCcW7m9bHNpbI5EDXWOU4rqfJC-PYrmYz5XujAGITVdhXTg1kb9AFoKgBkFRLacA-6ZeG4-HaB5vl38zEu1tgcrem2qEdqi3go384yilz1ZmPmpC685XvPb5FVUIKXbrdtgqwIRvX0sH3nIUpipSeu3XKsjbVFLJtvTXbBHRixfTwqxmGJXSr4YgRUxDUFJa-qHVKiRssGdtv5sIDCQp5E7nNQy9Q-mj8OIay6X-QiXg6xE8_j9lnJRziKVMYlyvfZOp6Hqe29co"/>
+</div>
+<!-- Scanner Overlay -->
+<div class="absolute inset-0 z-10 flex flex-col items-center justify-center">
+<!-- The "Cutout" Guide -->
+<div class="relative w-72 h-96 md:w-80 md:h-[480px] scanner-capsule rounded-[80px] border-2 border-primary-fixed-dim/40 flex items-center justify-center overflow-hidden">
+<!-- Laser Line Animation -->
+<div class="scan-animation absolute w-full h-0.5 bg-inverse-primary shadow-[0_0_15px_rgba(148,211,193,0.8)] z-20"></div>
+<!-- Corner Indicators (Humanist Accents) -->
+<div class="absolute top-8 left-8 w-6 h-6 border-t-2 border-l-2 border-primary-fixed-dim rounded-tl-lg"></div>
+<div class="absolute top-8 right-8 w-6 h-6 border-t-2 border-r-2 border-primary-fixed-dim rounded-tr-lg"></div>
+<div class="absolute bottom-8 left-8 w-6 h-6 border-b-2 border-l-2 border-primary-fixed-dim rounded-bl-lg"></div>
+<div class="absolute bottom-8 right-8 w-6 h-6 border-b-2 border-r-2 border-primary-fixed-dim rounded-br-lg"></div>
+<!-- Guidance Icon -->
+<div class="flex flex-col items-center gap-4 text-white/50">
+<span class="material-symbols-outlined text-5xl" style="font-variation-settings: 'wght' 200;">barcode_scanner</span>
+</div>
+</div>
+<!-- Feedback & Instructions -->
+<div class="mt-8 text-center z-20">
+<div class="bg-primary/90 backdrop-blur-sm text-white px-6 py-3 rounded-full flex items-center gap-3 border border-primary-fixed-dim/20">
+<span class="material-symbols-outlined text-inverse-primary animate-pulse">info</span>
+<span class="font-label-md text-label-md">Position the bottle in the frame</span>
+</div>
+<p class="mt-8">
+<button class="text-on-surface-variant font-label-md text-label-md underline hover:text-primary transition-colors focus:ring-2 focus:ring-primary p-2 rounded-lg">
+                        Can't scan? Enter manually
+                    </button>
+</p>
+</div>
+</div>
+<!-- Secondary UI Actions -->
+<div class="absolute bottom-10 left-0 right-0 z-20 flex justify-center gap-12 px-margin-mobile">
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-14 h-14 rounded-full bg-surface-container-highest flex items-center justify-center group-hover:bg-primary-container group-hover:text-white transition-all">
+<span class="material-symbols-outlined">flashlight_on</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Torch</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-14 h-14 rounded-full bg-surface-container-highest flex items-center justify-center group-hover:bg-primary-container group-hover:text-white transition-all">
+<span class="material-symbols-outlined">history</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Recent</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-14 h-14 rounded-full bg-surface-container-highest flex items-center justify-center group-hover:bg-primary-container group-hover:text-white transition-all">
+<span class="material-symbols-outlined">help</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Tips</span>
+</button>
+</div>
+</main>
+<!-- Interactive script for a simulated "snap" when an object is "detected" -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const capsule = document.querySelector('.scanner-capsule');
+            
+            // Randomly trigger a "snap" animation to simulate drug detection
+            setInterval(() => {
+                if (Math.random() > 0.7) {
+                    capsule.classList.add('border-primary-fixed-dim', 'scale-[1.02]', 'ring-4', 'ring-primary-fixed-dim/20');
+                    setTimeout(() => {
+                        capsule.classList.remove('border-primary-fixed-dim', 'scale-[1.02]', 'ring-4', 'ring-primary-fixed-dim/20');
+                    }, 400);
+                }
+            }, 3000);
+        });
+    </script>
+<!-- Footer Identity (Simplified for focused task) -->
+<footer class="w-full py-6 px-margin-desktop bg-surface/90 border-t border-outline-variant/10 text-center z-50">
+<p class="font-label-sm text-label-sm text-on-surface-variant">
+            Independent platform not affiliated with the U.S. Government. © 2024 FDA Notification.
+        </p>
+</footer>
+</body></html>

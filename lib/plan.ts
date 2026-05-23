@@ -1,0 +1,107 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+export type Plan = "free" | "personal" | "family";
+
+export type Quota = {
+  meds: number;
+  familyMembers: number;
+};
+
+export const QUOTAS: Record<Plan, Quota> = {
+  free: { meds: 2, familyMembers: 0 },
+  personal: { meds: 20, familyMembers: 0 },
+  family: { meds: 50, familyMembers: 5 },
+};
+
+export const PLAN_LABEL: Record<Plan, string> = {
+  free: "Free",
+  personal: "Personal Pro",
+  family: "Family Protection",
+};
+
+/** Cheapest plan that satisfies the requested resource, given the user's current plan. */
+export function upgradeTargetForMeds(current: Plan): Plan | null {
+  if (current === "free") return "personal";
+  if (current === "personal") return "family";
+  return null; // family is the top tier
+}
+
+export function upgradeTargetForFamily(current: Plan): Plan | null {
+  if (current === "free" || current === "personal") return "family";
+  return null;
+}
+
+/** Quota check error. Shape mirrors the JSON the API returns. */
+export class QuotaExceededError extends Error {
+  constructor(
+    public readonly resource: "meds" | "familyMembers",
+    public readonly currentPlan: Plan,
+    public readonly limit: number,
+    public readonly upgradeTo: Plan | null,
+  ) {
+    super("QUOTA_EXCEEDED");
+    this.name = "QuotaExceededError";
+  }
+
+  toJson() {
+    return {
+      error: "QUOTA_EXCEEDED",
+      resource: this.resource,
+      currentPlan: this.currentPlan,
+      limit: this.limit,
+      upgradeTo: this.upgradeTo,
+    };
+  }
+}
+
+export async function getUserPlan(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<Plan> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("plan")
+    .eq("id", userId)
+    .maybeSingle();
+  const raw = (data?.plan as string | undefined) ?? "free";
+  if (raw === "personal" || raw === "family") return raw;
+  return "free";
+}
+
+/** Throws QuotaExceededError if adding a med would exceed the user's plan. */
+export async function enforceMedQuota(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<void> {
+  const plan = await getUserPlan(supabase, userId);
+  const limit = QUOTAS[plan].meds;
+  const { count } = await supabase
+    .from("medication_items")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("status", "active");
+  if ((count ?? 0) >= limit) {
+    throw new QuotaExceededError("meds", plan, limit, upgradeTargetForMeds(plan));
+  }
+}
+
+/** Throws QuotaExceededError if adding a family member would exceed the user's plan. */
+export async function enforceFamilyQuota(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<void> {
+  const plan = await getUserPlan(supabase, userId);
+  const limit = QUOTAS[plan].familyMembers;
+  const { count } = await supabase
+    .from("family_members")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId);
+  if ((count ?? 0) >= limit) {
+    throw new QuotaExceededError(
+      "familyMembers",
+      plan,
+      limit,
+      upgradeTargetForFamily(plan),
+    );
+  }
+}

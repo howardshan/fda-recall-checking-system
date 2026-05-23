@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>FDA Recall Notice — {{productName}}</title>
+  </head>
+  <body style="margin: 0; padding: 0; background: #f4faff; font-family: 'Fira Sans', Helvetica, Arial, sans-serif; color: #001f2a; line-height: 1.5;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: #f4faff; padding: 32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background: #ffffff; border: 1px solid rgba(0, 52, 43, 0.1); border-radius: 8px; overflow: hidden;">
+            <!-- Class banner -->
+            <tr>
+              <td style="background: {{classBannerBg}}; color: {{classBannerText}}; padding: 24px 32px;">
+                <div style="font-family: 'Fira Sans', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.9;">
+                  FDA Recall Notification
+                </div>
+                <h1 style="margin: 8px 0 0 0; font-family: Merriweather, Georgia, serif; font-size: 28px; font-weight: 700; line-height: 36px;">
+                  {{classHeadline}}
+                </h1>
+                <div style="margin-top: 8px; font-family: 'Fira Sans', sans-serif; font-size: 14px;">
+                  {{classSubhead}}
+                </div>
+              </td>
+            </tr>
+
+            <!-- Body -->
+            <tr>
+              <td style="padding: 32px;">
+                <p style="margin: 0 0 16px 0; font-size: 16px;">Hi {{userName}},</p>
+                <p style="margin: 0 0 24px 0; font-size: 16px;">
+                  The FDA has issued a recall for a medication in your cabinet. Details below.
+                </p>
+
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; border: 1px solid rgba(0, 52, 43, 0.1); border-radius: 4px;">
+                  <tr>
+                    <td style="padding: 16px; border-bottom: 1px solid rgba(0, 52, 43, 0.08);">
+                      <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #3f4945;">Medication</div>
+                      <div style="margin-top: 4px; font-size: 18px; font-weight: 600; color: #00342b;">{{productName}}</div>
+                      <div style="margin-top: 2px; font-size: 14px; color: #3f4945;">{{manufacturer}}</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 16px; border-bottom: 1px solid rgba(0, 52, 43, 0.08);">
+                      <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #3f4945;">Recall reason</div>
+                      <div style="margin-top: 4px; font-size: 16px;">{{recallReason}}</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 16px;">
+                      <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #3f4945;">Recall number</div>
+                      <div style="margin-top: 4px; font-size: 14px; font-family: 'Courier New', monospace;">{{recallNumber}}</div>
+                      {{#if recallDate}}<div style="margin-top: 4px; font-size: 14px; color: #3f4945;">Initiated {{recallDate}}</div>{{/if}}
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- CTA -->
+                <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top: 32px;">
+                  <tr>
+                    <td style="background: #a43c12; border-radius: 4px;">
+                      <a href="{{appUrl}}/notifications" style="display: inline-block; padding: 14px 28px; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 14px; letter-spacing: 0.05em;">
+                        Review in your account →
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+
+                <p style="margin: 32px 0 0 0; font-size: 14px; color: #3f4945;">
+                  Read the official notice on the FDA website:
+                  <br/>
+                  <a href="https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts" style="color: #a43c12;">fda.gov/safety/recalls</a>
+                </p>
+
+                <p style="margin: 32px 0 0 0; padding-top: 24px; border-top: 1px solid rgba(0, 52, 43, 0.08); font-size: 12px; color: #707975;">
+                  This is an information notice based on FDA public data. It is not medical advice.
+                  Consult your pharmacist or doctor for guidance on next steps.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="background: #e6f6ff; padding: 16px 32px; font-size: 12px; color: #3f4945;">
+                You received this because <strong>{{productName}}</strong> is in your FDA Notification cabinet.
+                <br/>
+                <a href="{{appUrl}}/settings/notifications" style="color: #a43c12;">Notification settings</a>
+                &nbsp;·&nbsp;
+                <a href="{{unsubscribeUrl}}" style="color: #a43c12;">Unsubscribe from this medication</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

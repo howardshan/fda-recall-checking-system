@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  background: #f4faff;
+  color: #001f2a;
+  font-family: "Fira Sans", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: Merriweather, Georgia, serif;
+  color: #00342b;
+}
+
+@layer components {
+  .chip {
+    @apply inline-flex items-center rounded-full px-3 py-1 font-sans font-semibold uppercase tracking-wider text-label-sm;
+  }
+  .chip-i {
+    background-color: #ba1a1a;
+    color: #ffffff;
+  }
+  .chip-ii {
+    background-color: #ffdbcf;
+    color: #00342b;
+  }
+  .chip-iii {
+    background-color: #707975;
+    color: #ffffff;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded bg-secondary px-4 py-2 font-sans font-semibold text-on-secondary transition hover:bg-secondary-container disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded border border-primary px-4 py-2 font-sans font-semibold text-primary transition hover:bg-surface-container-low disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center rounded px-4 py-2 font-sans text-on-surface-variant transition hover:bg-surface-container-low;
+  }
+
+  .card {
+    @apply rounded-lg border border-primary/10 bg-surface-container-lowest p-6;
+  }
+
+  .input {
+    @apply w-full rounded border border-outline bg-surface px-3 py-2 font-sans text-body-md text-on-surface placeholder:text-outline focus:border-2 focus:border-primary focus:outline-none;
+  }
+}

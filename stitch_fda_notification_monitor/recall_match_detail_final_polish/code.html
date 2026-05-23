@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FDA Notification - Recall Detail</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&amp;family=Fira+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "error-container": "#ffdad6",
+                      "on-secondary-fixed": "#380c00",
+                      "on-error": "#ffffff",
+                      "on-tertiary-fixed-variant": "#474742",
+                      "on-surface": "#001f2a",
+                      "outline-variant": "#bfc9c4",
+                      "error": "#ba1a1a",
+                      "primary-fixed": "#afefdd",
+                      "secondary-fixed-dim": "#ffb59c",
+                      "primary-fixed-dim": "#94d3c1",
+                      "surface": "#f4faff",
+                      "on-secondary-fixed-variant": "#822800",
+                      "surface-variant": "#c9e7f7",
+                      "surface-container-high": "#ceedfd",
+                      "primary-container": "#004d40",
+                      "surface-dim": "#c0dfee",
+                      "on-tertiary-fixed": "#1c1c18",
+                      "on-secondary": "#ffffff",
+                      "tertiary-fixed": "#e5e2db",
+                      "on-primary-fixed-variant": "#065043",
+                      "on-surface-variant": "#3f4945",
+                      "secondary": "#a43c12",
+                      "on-background": "#001f2a",
+                      "tertiary-fixed-dim": "#c9c6c0",
+                      "primary": "#00342b",
+                      "on-secondary-container": "#6b1f00",
+                      "on-primary-container": "#7ebdac",
+                      "outline": "#707975",
+                      "surface-container-lowest": "#ffffff",
+                      "on-tertiary-container": "#b3b1ab",
+                      "inverse-primary": "#94d3c1",
+                      "surface-bright": "#f4faff",
+                      "on-tertiary": "#ffffff",
+                      "secondary-container": "#fe7e4f",
+                      "background": "#f4faff",
+                      "tertiary-container": "#44443f",
+                      "surface-container-highest": "#c9e7f7",
+                      "secondary-fixed": "#ffdbcf",
+                      "surface-container-low": "#e6f6ff",
+                      "on-primary": "#ffffff",
+                      "on-error-container": "#93000a",
+                      "inverse-on-surface": "#e0f4ff",
+                      "tertiary": "#2e2e29",
+                      "surface-container": "#d9f2ff",
+                      "on-primary-fixed": "#00201a",
+                      "inverse-surface": "#163440",
+                      "surface-tint": "#29695b"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "margin-mobile": "16px",
+                      "margin-desktop": "48px",
+                      "base": "8px",
+                      "gutter": "24px",
+                      "container-max": "1120px"
+              },
+              "fontFamily": {
+                      "display-lg-mobile": ["Merriweather"],
+                      "headline-sm": ["Merriweather"],
+                      "label-md": ["Fira Sans"],
+                      "body-md": ["Fira Sans"],
+                      "label-sm": ["Fira Sans"],
+                      "display-lg": ["Merriweather"],
+                      "body-lg": ["Fira Sans"],
+                      "headline-md": ["Merriweather"],
+                      "fira-sans": ["Fira Sans"],
+                      "merriweather": ["Merriweather"]
+              },
+              "fontSize": {
+                      "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                      "headline-sm": ["22px", {"lineHeight": "30px", "fontWeight": "700"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                      "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "headline-md": ["28px", {"lineHeight": "36px", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .severity-banner-class1 { background-color: #ba1a1a; }
+        .severity-chip-class1 { background-color: #ba1a1a; color: white; }
+    </style>
+</head>
+<body class="bg-surface font-fira-sans text-on-surface">
+<!-- TopNavBar -->
+<header class="bg-surface border-b border-primary/10 w-full sticky top-0 z-50">
+<div class="flex justify-between items-center px-margin-desktop max-w-container-max mx-auto w-full h-16">
+<div class="font-merriweather text-headline-sm font-bold text-primary">FDA Notification</div>
+<nav class="hidden md:flex items-center gap-gutter">
+<a class="text-on-surface-variant pb-1 hover:text-secondary transition-colors font-fira-sans text-body-md" href="#">Dashboard</a>
+<a class="text-primary font-bold border-b-2 border-primary pb-1 hover:text-secondary transition-colors font-fira-sans text-body-md" href="#">Cabinet</a>
+<a class="text-on-surface-variant pb-1 hover:text-secondary transition-colors font-fira-sans text-body-md" href="#">Quick Check</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<main class="min-h-screen">
+<!-- Result State Banner -->
+<section class="severity-banner-class1 w-full py-8 text-white">
+<div class="max-w-container-max mx-auto px-margin-desktop">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div>
+<div class="inline-flex items-center px-3 py-1 rounded-full bg-white text-error font-bold text-label-md mb-3">
+                            CLASS I RECALL
+                        </div>
+<h1 class="font-merriweather text-display-lg-mobile md:text-display-lg leading-tight">Urgent Safety Alert: Valsartan Tablets</h1>
+</div>
+<div class="flex items-center gap-2 bg-white/10 p-4 rounded backdrop-blur-sm border border-white/20">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">error</span>
+<p class="font-fira-sans text-body-md font-medium">Status: Ongoing</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Main Content Grid -->
+<div class="max-w-container-max mx-auto px-margin-desktop py-12 grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Left Column: Details -->
+<div class="lg:col-span-8 space-y-gutter">
+<!-- Medication Info Block -->
+<article class="bg-surface-container-lowest border border-primary/10 p-8 rounded shadow-sm">
+<h2 class="font-merriweather text-headline-md text-primary mb-6">Medication Information</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div>
+<img alt="Medication Packaging" class="w-full aspect-video object-cover rounded mb-4" data-alt="A clean, clinical close-up shot of professional pharmaceutical packaging for blood pressure medication. The lighting is soft and high-key, highlighting the crisp white container against a soft cream background. The overall mood is serious, authoritative, and medically precise, utilizing the brand's primary deep teal and soft cream color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWIDOhaTHQOb-TCgpghqclWp35tGFgS8HFdc3RPe_MZY_e0ceW3yaLC6dfYzUf9MDYt7KGwKXyLDBOE7JsEy5YGXQmrwP2kh8LVXSY-faFtSr4b59vltbrjovLiZ_ectVL3C6QCQcP75MW8UAyYjQi6nqV2koMzCNtqJeqrwxv9rSnDynYaRNm0S30kwdN6qp0g8Ag8dAUAXeJxV79-L7qrLRAl7KRCv4lxqXbIW6xU3nK0O85WDbe-i-AUzU1VJ_b1BAIpt-y0yQ"/>
+</div>
+<div class="space-y-4">
+<div>
+<p class="text-label-sm uppercase tracking-wider text-on-surface-variant">Generic Name</p>
+<p class="text-body-lg font-bold text-on-surface">Valsartan / Hydrochlorothiazide</p>
+</div>
+<div>
+<p class="text-label-sm uppercase tracking-wider text-on-surface-variant">Strength</p>
+<p class="text-body-lg text-on-surface">160mg / 12.5mg</p>
+</div>
+<div>
+<p class="text-label-sm uppercase tracking-wider text-on-surface-variant">Form</p>
+<p class="text-body-lg text-on-surface">Oral Tablet</p>
+</div>
+</div>
+</div>
+</article>
+<!-- Recall Details Bento -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Reason -->
+<div class="bg-surface-container-low border border-primary/10 p-6 rounded">
+<div class="flex items-center gap-2 mb-4 text-primary">
+<span class="material-symbols-outlined">warning</span>
+<h3 class="font-merriweather text-headline-sm">Reason for Recall</h3>
+</div>
+<p class="text-body-md leading-relaxed text-on-surface-variant">
+                            Detection of an impurity, N-Nitrosodimethylamine (NDMA), which is classified as a probable human carcinogen according to the International Agency for Research on Cancer.
+                        </p>
+</div>
+<!-- Recalling Firm -->
+<div class="bg-surface-container-low border border-primary/10 p-6 rounded">
+<div class="flex items-center gap-2 mb-4 text-primary">
+<span class="material-symbols-outlined">business</span>
+<h3 class="font-merriweather text-headline-sm">Recalling Firm</h3>
+</div>
+<p class="text-body-lg font-bold text-on-surface">Lupin Pharmaceuticals, Inc.</p>
+<p class="text-body-md text-on-surface-variant mt-2">Baltimore, MD</p>
+<p class="text-body-md text-on-surface-variant">Recall initiated on October 14, 2023</p>
+</div>
+</div>
+<!-- Affected Lots -->
+<div class="bg-white border border-primary/10 p-8 rounded">
+<h3 class="font-merriweather text-headline-sm text-primary mb-6">Specific Affected Lot/Code Info</h3>
+<div class="overflow-x-auto">
+<table class="w-full border-collapse">
+<thead>
+<tr class="text-left border-b border-outline-variant">
+<th class="py-3 px-4 font-label-md text-label-md text-on-surface-variant">Lot Number</th>
+<th class="py-3 px-4 font-label-md text-label-md text-on-surface-variant">Expiration Date</th>
+<th class="py-3 px-4 font-label-md text-label-md text-on-surface-variant">NDC Number</th>
+</tr>
+</thead>
+<tbody class="text-body-md">
+<tr class="border-b border-outline-variant/30 hover:bg-surface-container transition-colors">
+<td class="py-4 px-4 font-mono font-bold">L901234</td>
+<td class="py-4 px-4">08/2025</td>
+<td class="py-4 px-4">68180-123-01</td>
+</tr>
+<tr class="border-b border-outline-variant/30 hover:bg-surface-container transition-colors">
+<td class="py-4 px-4 font-mono font-bold">L901235</td>
+<td class="py-4 px-4">09/2025</td>
+<td class="py-4 px-4">68180-123-02</td>
+</tr>
+<tr class="hover:bg-surface-container transition-colors">
+<td class="py-4 px-4 font-mono font-bold">L901236</td>
+<td class="py-4 px-4">11/2025</td>
+<td class="py-4 px-4">68180-123-01</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Right Column: Sidebar Actions -->
+<aside class="lg:col-span-4 space-y-gutter">
+<!-- Action Card -->
+<div class="bg-surface-container-high p-8 rounded sticky top-24">
+<h4 class="font-merriweather text-headline-sm text-primary mb-4">Required Action</h4>
+<p class="text-body-md text-on-surface-variant mb-8 leading-relaxed">
+                        If you have this medication in your possession, check the lot numbers against your bottle immediately. If they match, proceed with the following steps.
+                    </p>
+<a class="block w-full text-center bg-[#ff7e4f] hover:opacity-90 text-white font-bold py-4 rounded transition-all active:opacity-80 mb-4 font-fira-sans text-body-md" href="https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts" target="_blank">
+                        View Official FDA Recall Notice
+                    </a>
+<button class="w-full text-center border-2 border-primary text-primary font-bold py-4 rounded hover:bg-primary/5 transition-all font-fira-sans text-body-md">
+                        Contact Manufacturer
+                    </button>
+<hr class="my-8 border-primary/10"/>
+<!-- Disclaimer -->
+<div class="flex gap-3 p-4 bg-white/50 rounded border-l-4 border-error">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">info</span>
+<p class="font-fira-sans text-label-md text-on-surface italic">
+                            Consult your pharmacist or physician before making changes to your medication schedule. Do not stop taking prescribed medication without professional guidance.
+                        </p>
+</div>
+</div>
+<!-- Support Card -->
+<div class="bg-white border border-primary/10 p-6 rounded">
+<h4 class="font-merriweather text-headline-sm text-primary mb-3">Questions?</h4>
+<p class="text-body-md text-on-surface-variant mb-4">
+                        Lupin Pharmaceuticals Recall Support Line is available 24/7.
+                    </p>
+<div class="flex items-center gap-2 text-primary font-bold"><span class="material-symbols-outlined">call</span><span>[Manufacturer Recall Hotline]</span></div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-low border-t border-outline-variant/30 w-full mt-12">
+<div class="flex flex-col md:flex-row justify-between items-center px-margin-desktop py-base max-w-container-max mx-auto w-full min-h-[80px]">
+<div class="font-merriweather text-label-md font-bold text-on-surface mb-4 md:mb-0">FDA Notification</div>
+<div class="flex flex-wrap justify-center gap-6 mb-4 md:mb-0">
+<a class="font-fira-sans text-label-sm text-on-tertiary-fixed-variant hover:text-secondary transition-colors" href="#">Privacy Policy</a>
+<a class="font-fira-sans text-label-sm text-on-tertiary-fixed-variant hover:text-secondary transition-colors" href="#">Terms of Use</a>
+<a class="font-fira-sans text-label-sm text-on-tertiary-fixed-variant hover:text-secondary transition-colors" href="#">Contact FDA</a>
+<a class="font-fira-sans text-label-sm text-on-tertiary-fixed-variant hover:text-secondary transition-colors" href="#">Accessibility</a>
+</div>
+<p class="font-fira-sans text-label-sm text-on-tertiary-fixed-variant text-center md:text-right">
+                © 2024 U.S. Food and Drug Administration. Official government website.
+            </p>
+</div>
+</footer>
+<script>
+        // Simple micro-interaction for lot number rows
+        document.querySelectorAll('tbody tr').forEach(row => {
+            row.addEventListener('click', () => {
+                // In a real app, this might show more specific info for that lot
+                console.log('Lot selected:', row.cells[0].innerText);
+            });
+        });
+
+        // Atmospheric fade-in for the main content
+        window.addEventListener('load', () => {
+            document.body.classList.add('opacity-0');
+            setTimeout(() => {
+                document.body.classList.add('transition-opacity', 'duration-700');
+                document.body.classList.remove('opacity-0');
+            }, 100);
+        });
+    </script>
+</body></html>
