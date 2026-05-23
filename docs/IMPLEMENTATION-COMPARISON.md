@@ -1,385 +1,367 @@
-# 需求 vs 实现对比文档
+# 客户需求 vs 实现对比（FDA Notification Web）
 
-**文档版本**：0.1  
+**文档版本**：1.1  
 **更新日期**：2026-05-19  
-**对照基准**：[REQUIREMENTS.md](./REQUIREMENTS.md)（FDA Notification 全产品需求，v0.1）  
-**实现范围**：[FDA Recall Checking System](../FDA%20Recall%20Checking%20System/)（同事交付，M1–M7 已完成）  
-**实现规格**：[SPEC.md](../FDA%20Recall%20Checking%20System/SPEC.md)（查询子系统任务书）
+**对照基准**：[REQUIREMENTS-CLIENT.md](./REQUIREMENTS-CLIENT.md)（v4.2；**ADM-02 管理后台已按客户书面决定从交付范围剔除**，见 [§1.1](#11-范围说明)）  
+**实现范围**：仓库根目录 Next.js 应用（`app/`、`lib/`、`components/`、`supabase/migrations/`）  
+**内部需求**（可选参考）：[REQUIREMENTS.md](./REQUIREMENTS.md)（全产品规划，非签约附件）
 
 ---
 
 ## 目录
 
 1. [执行摘要](#1-执行摘要)
-2. [产品范围差异（必读）](#2-产品范围差异必读)
-3. [需求逐项对照表](#3-需求逐项对照表)
-4. [偏差与风险（重点）](#4-偏差与风险重点)
-5. [Phase 1 MVP 完成度](#5-phase-1-mvp-完成度)
-6. [建议的后续工作](#6-建议的后续工作)
-7. [修订记录](#7-修订记录)
+2. [产品范围与架构](#2-产品范围与架构)
+3. [阶段一对照（M1–M15、SUB-01）](#3-阶段一对照m1m15sub-01)
+4. [阶段二对照（V2、ADM、SUB）](#4-阶段二对照v2admsub)
+5. [MVP / 最终验收清单打勾](#5-mvp--最终验收清单打勾)
+6. [订阅与计费（§五）对照](#6-订阅与计费五对照)
+7. [偏差与风险](#7-偏差与风险)
+8. [建议收尾工作（按优先级）](#8-建议收尾工作按优先级)
+9. [关键代码索引](#9-关键代码索引)
+10. [修订记录](#10-修订记录)
 
 **状态图例**
 
 | 符号 | 含义 |
 |------|------|
-| ✅ | 已实现且与需求一致（或接受范围内） |
+| ✅ | 已实现且与签约需求一致（或合同允许范围内） |
 | ⚠️ | 部分实现或与需求存在偏差 |
-| ❌ | 未实现 |
-| ➖ | 需求标为 P2/后续阶段，本期可不验收 |
-| 🔶 | 实现超前于 REQUIREMENTS 排期（V1.1+ 能力已交付） |
+| ❌ | 未实现或无法验收 |
+| ➖ | 合同明确不含 / 待客户确认项 |
+| 🔧 | 代码已有，需配置或接线后方可验收 |
 
 ---
 
 ## 1. 执行摘要
 
-同事完成的 **FDA Recall Checking System** 是一条 **「按需召回查询」** 产品线：用户输入（手动 / OCR / 扫码）→ 确认 → 查本地 Supabase 召回库 → 展示 `recalled` / `possible` / `not_found` 及 Class I/II/III。
+### 1.1 范围说明
 
-[REQUIREMENTS.md](./REQUIREMENTS.md) 定义的是 **「FDA Notification」全产品**：用户登记药箱 → 后台持续监控 → **主动**邮件/站内通知。
+**客户为控制成本，书面确认不交付 ADM-02（客户只读管理后台）。**
+
+- **对用户侧功能无影响**：注册、药箱、匹配、站内/邮件/SMS 通知、订阅等不依赖 Admin UI。  
+- **本文档有效验收范围** = REQUIREMENTS-CLIENT v4.2 **减去 ADM-02（原 13 人时）**；签约 PDF 若仍含管理后台，建议同步修订为 v4.3。  
+- **运营替代**：见 [§2.3 无管理后台时的运营方式](#23-无管理后台时的运营方式)。
+
+当前代码库已从早期「仅按需查询」演进为 **FDA Notification Web 全产品主线**：Supabase Auth、药箱、主动匹配、站内通知、家庭药箱、定价页、召回浏览、数据导出等均已落地。
 
 | 维度 | 结论 |
 |------|------|
-| 与 **查询子系统**（SPEC M1–M7） | 约 **85–90%** 完成，README 验收清单基本打勾 |
-| 与 **REQUIREMENTS Phase 1 MVP（全产品）** | 约 **30–35%**（P0 项）；核心缺口：**账户、药箱、主动通知** |
-| 数据与匹配底座 | 可复用：`recalls`、`ndc_products`、`check-recall` 逻辑、`/api/sync` |
-| 评审前必对齐 | 两份文档 **产品边界不同**；不可用「M7 完成」等同于「Notification MVP 完成」 |
+| **对照有效范围（v4.2 − ADM-02）整体** | 约 **82–86%** |
+| **阶段一 MVP（§三，102h）** | 约 **88%**（不变） |
+| **阶段二完整 Web（§四，原 73h → 有效 60h）** | 约 **80–85%** |
+| **可对客户最终验收** | **尚未** — 仍缺 **SUB-03 真实支付**、**邮件/SMS 生产闭环**；**不含**管理后台 |
+| **团队感知「只剩邮件 + Stripe」** | **基本准确**（在剔除 ADM-02 后） |
+
+**主要缺口（P0）**
+
+1. **SUB-03**：订阅支付 — `/api/upgrade` 为占位，直接改 `profiles.plan`，无 Checkout / Webhook。  
+2. **M7 / V2-8 / V2-9 触达**：`lib/notification-dispatcher.ts`（分级邮件 + SMS）**已实现但未接入** Cron；当前 sync 仅调用 `sendDailyDigests`（每日汇总邮件）。需配置 SMTP / Twilio 并完成接线。  
+
+**已明确不在交付范围**
+
+- **ADM-02** 客户只读管理后台 — 客户确认不做；**不阻塞**产品对用户上线运行。
+
+**已对齐合同的关键点**
+
+- 仅 Web、**手动输入**（`/check` 无扫码/OCR 入口）  
+- 访客 **2 次**查询（`lib/quick-check-quota.ts`）  
+- 免费 **2 药**限额（`lib/plan.ts`、`SUB-01`）  
+- 药箱 CRUD、软删除停监控、站内通知中心  
+- 家庭药箱、召回浏览、通知偏好 UI、JSON 导出  
+- UI **en-US**、Class I/II/III 样式  
 
 ---
 
-## 2. 产品范围差异（必读）
+## 2. 产品范围与架构
 
-### 2.1 文档意图对比
+### 2.1 与签约文档对齐情况
 
-| 项目 | REQUIREMENTS.md | SPEC.md + 已实现代码 |
-|------|-----------------|----------------------|
-| 核心用户旅程 | 注册 → 添加药品到药箱 → 等待召回 → **收到通知** | 打开 Web → 输入/扫码 → **立即查询** → 看结果 |
-| 用户账户 | P0 必须（AUTH-01/02） | **明确不包含**登录/注册 |
-| 扫码 / OCR | Phase 2（V1.1，P1） | **已包含**（M5/M6） |
-| 主动通知 | Phase 1 P0（NOTIF） | **无** |
-| 默认语言 | en-US（NFR-07） | UI 以**中文**为主 |
+| 项目 | REQUIREMENTS-CLIENT v4.2 | 当前实现 |
+|------|--------------------------|----------|
+| 核心旅程 | 注册 → 药箱 → 后台匹配 → 邮件/站内/SMS 通知 | ✅ 主链路已通；邮件/SMS 待接线与配置 |
+| 即时查询 | 未登录 2 次 → 注册；手动 / NDC | ✅ `RecallChecker` + `/api/check-recall` |
+| 扫码 / OCR | **明确不含** | ✅ 前端无 Photo/Barcode Tab（旧 SPEC 能力已移除出 UI） |
+| 订阅 | 支付服务商待确认；Stripe 等为示例 | ⚠️ 定价 UI 完整；**支付占位** |
+| 管理后台 ADM-02 | v4.2 原文含；**客户已确认不做** | ➖ **不在交付范围**；无 Admin UI（符合决策） |
+| Web Push | **不含** | ✅ 未实现 |
 
-### 2.2 架构关系（建议理解）
+### 2.3 无管理后台时的运营方式
+
+客户不做 ADM-02 后，下列能力由 **第三方控制台 + 现有 API** 覆盖，**足以支撑早期运营**，但无统一仪表盘：
+
+| 运营需求 | 替代方式 |
+|----------|----------|
+| 查看注册用户 | Supabase Dashboard → Authentication / `profiles` |
+| 订阅与收款 | Stripe（或所选支付商）Dashboard |
+| 邮件发送记录 | SMTP2go 等发信日志；库表 `notifications.email_sent_at` |
+| 短信记录 | Twilio 控制台 |
+| 召回同步是否成功 | `sync_runs` 表；失败邮件 `OPS_ALERT_EMAIL` |
+| 手动触发同步 | `POST /api/sync` + `CRON_SECRET`（Vercel Cron 已每日调度） |
+| 单用户支持排查 | Supabase SQL；或引导用户使用 **数据导出**（V2-10） |
+
+**建议交付物（低工时）**：一页 **《运营手册》**（Supabase/Stripe/SMTP 入口 + 2–3 条常用 SQL），替代 ADM-02 的 13 人时开发。
+
+### 2.2 运行时架构（当前）
 
 ```mermaid
-flowchart LR
-  subgraph done [已实现 Recall Checker]
-    A[输入: 手动/OCR/扫码]
-    B[check-recall API]
-    C[(Supabase recalls + ndc)]
-    A --> B --> C
+flowchart TB
+  subgraph user [用户侧]
+    A[注册 / 登录 / Google OAuth]
+    B[药箱 manual + typeahead]
+    C[即时查询 /check]
+    D[站内通知 /notifications]
   end
 
-  subgraph missing [REQUIREMENTS 尚未实现]
-    D[Auth / 用户]
-    E[药箱 medications]
-    F[召回入库触发匹配]
-    G[邮件 / 站内通知]
-    D --> E --> F --> G
+  subgraph cron [Vercel Cron 每日]
+    S[/api/sync]
+    S --> U[OpenFDA upsert recalls]
+    U --> M[scanAllActiveItems]
+    M --> N[(notifications)]
+    S --> DD[sendDailyDigests]
   end
 
-  C -.->|新召回事件| F
-  B -.->|可复用匹配逻辑| F
+  subgraph pending [已实现未接入主流程]
+    DP[dispatchPendingEmails + SMS]
+    EM[emails/recall-alert.html]
+  end
+
+  B --> M
+  A --> B
+  M --> N
+  N --> D
+  DD -.->|SMTP| Mail[用户邮箱]
+  DP -.->|未调用| Mail
+  DP -.-> EM
+
+  subgraph gap [缺口]
+    ST[Stripe Checkout / Webhook]
+  end
+
+  subgraph ops [运营替代 无 ADM-02]
+    SB[Supabase Dashboard]
+    STP[Stripe Dashboard]
+    SMTP[SMTP / Twilio 控制台]
+  end
 ```
 
 ---
 
-## 3. 需求逐项对照表
+## 3. 阶段一对照（M1–M15、SUB-01）
 
-### 3.1 业务目标（G）
+| 模块 | 状态 | 实现位置 / 说明 |
+|------|------|-----------------|
+| **M1** FDA 召回数据 | ✅ | `lib/sync.ts`、`app/api/sync/route.ts`、`scripts/seed-recalls.ts`；`sync_runs`；Cron 每日 |
+| **M2** 药品目录 | ✅ | `ndc_products`、`ProductTypeahead` / `ManufacturerTypeahead`、`/api/suggest` |
+| **M3** 召回匹配引擎 | ⚠️ | `lib/check-recall.ts`、`lib/matching.ts`：加药与 sync 后全量扫描、去重 ✅；**缺「厂商不在库 → 无法追踪」明确 UI/文案** |
+| **M4** 用户账户与资料 | ⚠️ | 邮箱注册/登录/重置 ✅；`GoogleButton` ✅；**缺必填：年龄、性别、种族**（仅 username → `profiles.full_name`） |
+| **M5** 个人药箱 | ✅ | `medication_items`、药名中心列表、`/api/cabinet`；软删除 `status=deleted` |
+| **M6** 监控启停 | ⚠️ | 删除即停 ✅；库表仍有 `expected_stop_date`，dispatcher 仍读取（合同要求不设停药日期） |
+| **M7** 邮件通知 | 🔧 | `lib/mailer.ts`、`emails/recall-alert.html`、`lib/notification-dispatcher.ts` ✅；**sync 未调用 dispatcher**；当前为 `lib/daily-digest.ts` 每日汇总；需 **SMTP 环境变量** |
+| **M8** 站内通知中心 | ✅ | `notifications` 表、`app/(app)/notifications`、`NotificationsList`、已读/忽略 |
+| **M9** 分级通知文案 | ✅ | UI `chip-i/ii/iii`；邮件模板按 Class 分色（dispatcher 内） |
+| **M10** 用户界面 | ✅ | Dashboard、药箱、召回详情、Disclaimer；Logo 组件待客户素材 |
+| **M11** 即时召回查询 | ✅ | `QUICK_CHECK_LIMIT=2`、三态 `recalled/possible/not_found`、仅 manual |
+| **M12** 隐私与法律 | ✅ | `/privacy`、`/terms`、`/cookies` 静态页；注册勾选 ToS |
+| **M13** 运维监控 | 🔧 | `sync_runs` + 失败时 `OPS_ALERT_EMAIL`（`lib/sync.ts`）— 依赖 SMTP |
+| **SUB-01** 2 药免费 | ✅ | `enforceMedQuota`、`UpgradeModal`、402 `QUOTA_EXCEEDED` |
+| **M14** 测试与上线 | ⚠️ | 可部署；**正式 UAT 记录 / 生产验收**待做 |
+| **M15** PM 与文档 | ⚠️ | 客户签约文档已有；**英文操作说明**未单独交付 |
 
-| ID | 需求 | 优先级 | 状态 | 实现位置 / 说明 |
-|----|------|--------|------|-----------------|
-| G-01 | 登记用药 + 召回时主动通知 | P0 | ❌ | 无用户、无药箱、无通知通道 |
-| G-02 | 查询/扫描判断是否召回 | P0 | ✅ | `RecallChecker`、`/api/check-recall`、`/api/extract` |
-| G-03 | Class I/II/III 展示 | P0 | ✅ | `components/ResultPanel.tsx` |
-| G-04 | Web MVP 快速上线 | P0 | ✅ | Next.js 15 + Vercel 部署说明 |
-| G-05 | B2B 药房扩展 | P2 | ➖ | 未做，符合预期 |
-
-### 3.2 账户与用户（AUTH）
-
-| ID | 需求 | 优先级 | 状态 | 说明 |
-|----|------|--------|------|------|
-| AUTH-01 | 注册/登录 | P0 | ❌ | SPEC 排除；Supabase 仅 service role 服务端使用 |
-| AUTH-02 | 密码重置 | P0 | ❌ | — |
-| AUTH-03 | 可选用户资料 | P1 | ❌ | — |
-| AUTH-04 | 人口统计字段 | P2 | ➖ | — |
-| AUTH-05 | 删除账号 / 导出数据 | P1 | ❌ | — |
-| AUTH-06 | MFA | P2 | ➖ | — |
-
-### 3.3 药箱（MED）
-
-| ID | 需求 | 优先级 | 状态 | 说明 |
-|----|------|--------|------|------|
-| MED-01 | 手动添加药物（搜索 NDC） | P0 | ❌ | 查询时可填 NDC，**不持久化**到用户药箱 |
-| MED-02 | 记录 NDC（必填） | P0 | ❌ | 仅存在于单次 `query_logs`，非用户药品表 |
-| MED-03 | 可选厂商/商品名 | P1 | ⚠️ | 确认表单支持，不落库 |
-| MED-04 | 可选批号/效期 | P1 | ⚠️ | 确认表单 `lotNumber`；扫码可解析 lot（`lib/gtin.ts`） |
-| MED-05 | 2–3 个月监控窗口 | P0 | ❌ | — |
-| MED-06 | 编辑/删除/停用 | P0 | ❌ | — |
-| MED-07 | 用药历史 | P1 | ❌ | 仅有匿名 `query_logs`（运维用） |
-| MED-08 | 家庭成员 | P1 | ➖ | — |
-| MED-09 | RxNorm 同成分扩展 | P1 | ➖ | 未实现 |
-
-### 3.4 条码扫描（SCAN）
-
-| ID | 需求 | 优先级 | 状态 | 说明 |
-|----|------|--------|------|------|
-| SCAN-01 | 扫码识别 NDC | P1 | 🔶 ✅ | `BarcodeTab` + `lib/gtin.ts`（UPC/EAN/GS1 DataMatrix） |
-| SCAN-02 | 解析批号/效期 | P1 | 🔶 ✅ | GS1 AI (10)/(17) |
-| SCAN-03 | 扫码即时查询（不入药箱） | P1 | 🔶 ✅ | 全流程即查询，无药箱概念 |
-| SCAN-04 | 扫码失败引导 | P1 | 🔶 ⚠️ | 有部分 UI 提示；未单独做成需求级引导页 |
-| SCAN-05 | 原生 App 相机 | P2 | ➖ | — |
-
-### 3.5 FDA 数据（DATA）
-
-| ID | 需求 | 优先级 | 状态 | 说明 |
-|----|------|--------|------|------|
-| DATA-01 | openFDA enforcement 拉取 | P0 | ✅ | `scripts/seed-recalls.ts`、`app/api/sync/route.ts` |
-| DATA-02 | 增量同步 | P0 | ✅ | 默认 30 天 lookback，`recall_number` upsert |
-| DATA-03 | 存储 Class I/II/III | P0 | ✅ | `recalls.classification` |
-| DATA-04 | 召回元数据 | P0 | ⚠️ | 字段齐全；**缺**每条召回的 FDA Enforcement Report **官方深链** |
-| DATA-05 | 解析 `code_info` | P1 | ⚠️ | 存原文 + 子串批号匹配；**未**结构化为 lot 列表 |
-| DATA-06 | NDC 目录 | P0 | ⚠️ | `seed-ndc`、`ndc_products`；无 RxNorm |
-| DATA-07 | 数据更新时间 | P0 | ✅ | `getLastSyncedAt`、`/api/meta`、结果页底部 |
-| DATA-08 | 多数据源校验 | P2 | ➖ | — |
-| DATA-09 | 化妆品/食品 | P2 | ➖ | — |
-
-### 3.6 匹配引擎（MATCH）
-
-| ID | 需求 | 优先级 | 状态 | 说明 |
-|----|------|--------|------|------|
-| MATCH-01 | NDC 精确匹配 | P0 | ✅ | `lib/check-recall.ts` → `ndcExactMatches` |
-| MATCH-02 | 批号匹配 | P1 | ⚠️ | `lotInCodeInfo` 子串包含；无规范化规则文档 |
-| MATCH-03 | 仅 NDC、无批号时的提示策略 | P0 | ⚠️ | **见 [§4.1](#41-match-03仅-ndc无批号)** |
-| MATCH-04 | 新召回入库触发用户检查 | P0 | ❌ | 同步后无用户维度任务 |
-| MATCH-05 | 用户加药触发历史召回扫描 | P0 | ❌ | 无加药流程 |
-| MATCH-06 | 同用户同召回去重 | P0 | ❌ | 无通知故无去重 |
-| MATCH-07 | 同成分/多厂家扩展 | P1 | ➖ | NDC 路径故意不 fuzzy，避免误报 |
-
-### 3.7 通知（NOTIF）
-
-| ID | 需求 | 优先级 | 状态 |
-|----|------|--------|------|
-| NOTIF-01 ~ NOTIF-07 | 邮件/站内/SMS/Push/偏好/重试 | P0–P2 | ❌ 全部未实现 |
-
-### 3.8 召回 UI（UI）
-
-| ID | 需求 | 优先级 | 状态 | 说明 |
-|----|------|--------|------|------|
-| UI-01 | 召回列表（筛选） | P1 | ❌ | 无独立浏览页 |
-| UI-02 | 召回详情 + FDA 链接 | P0 | ⚠️ | 结果卡片展示字段；**无**详情路由与 `fda.gov` 深链 |
-| UI-03 | 「我的药箱受影响」 | P0 | ❌ | — |
-| UI-04 | 查询三态结果页 | P1 | 🔶 ✅ | `recalled` / `possible` / `not_found` |
-| UI-05 | 免责声明 | P0 | ⚠️ | `Disclaimer.tsx` 有；**与结果页文案冲突**，见 [§4.2](#42-合规文案冲突leg-05) |
-
-### 3.9 管理后台（ADMIN）
-
-| ID | 需求 | 优先级 | 状态 | 说明 |
-|----|------|--------|------|------|
-| ADM-01 | 同步监控 | P0 | ⚠️ | `sync_runs` 表 + `/api/meta`；无 Admin UI、**无失败告警** |
-| ADM-02 | 手动触发同步 | P1 | ✅ | `GET/POST /api/sync` + `CRON_SECRET` |
-| ADM-03 | 匹配规则/黑名单 | P2 | ➖ | — |
-| ADM-04 | 用户与通知审计 | P1 | ⚠️ | 仅有 `query_logs`（匿名查询），非用户级审计 |
-
-### 3.10 药物相互作用（DDI）
-
-| ID | 状态 |
-|----|------|
-| DDI-01 ~ DDI-03 | ❌ / ➖ 符合 V2 规划 |
-
-### 3.11 非功能需求（NFR）
-
-| ID | 需求 | 优先级 | 状态 | 说明 |
-|----|------|--------|------|------|
-| NFR-01 | 可用性 SLA | P1 | ➖ | 未定义 |
-| NFR-02 | 性能指标 | P1 | ➖ | 未压测文档 |
-| NFR-03 | 安全（账号加密等） | P0 | ⚠️ | HTTPS 依赖部署；**无用户账号体系** |
-| NFR-04 | 隐私政策 | P0 | ❌ | 无独立页面 |
-| NFR-05 | 删除/导出 | P0 | ❌ | — |
-| NFR-06 | WCAG | P2 | ➖ | — |
-| NFR-07 | en-US | P1 | ⚠️ | **UI 中文**，与需求默认语言不一致 |
-| NFR-08 | 可观测性/告警 | P0 | ⚠️ | `sync_runs`、`query_logs`；无 Pager/邮件告警 |
-| NFR-09 | openFDA 限流 | P0 | ✅ | `OPENFDA_API_KEY` |
-| NFR-10 | 灾备 | P1 | ➖ | 依赖 Supabase 平台 |
-
-### 3.12 合规（LEG）
-
-| ID | 状态 | 说明 |
-|----|------|------|
-| LEG-01 SaMD 边界 | ⚠️ | 定位为查询工具，但未做法务归档 |
-| LEG-02 HIPAA | ❌ | 无账户与 PHI 存储设计 |
-| LEG-03 隐私政策/ToS | ❌ | — |
-| LEG-04 人口统计 | ➖ | 未收集 |
-| LEG-05 通知/结果文案 | ⚠️ | **结果页含「立即停止使用」**，见 [§4.2](#42-合规文案冲突leg-05) |
+**阶段一模块完成度（加权估算）：约 88%**
 
 ---
 
-## 4. 偏差与风险（重点）
+## 4. 阶段二对照（V2、SUB；ADM-02 已剔除）
 
-以下条目为 **「已实现但与 REQUIREMENTS 不一致」** 或 **「易引发误解/合规风险」** 的部分，评审与排期时应优先处理。
+> **有效阶段二工时**：原 **73h** − ADM-02 **13h** = **60h**（客户确认不做管理后台）。
 
-### 4.1 MATCH-03：仅 NDC、无批号
+| 模块 | 状态 | 实现位置 / 说明 |
+|------|------|-----------------|
+| **V2-4** 家庭成员药箱 | ✅ | `family_members`、`member_id`、`app/(app)/family`、`FamilyMembersList` |
+| **V2-6** 批号解析增强 | ✅ | `lib/lot-match.ts` + `lot-match.test.ts`，用于 `check-recall` |
+| **V2-7** 召回公告浏览 | ✅ | `/recalls`、`RecallBrowser`、`/api/recalls`、详情页含 fda.gov 链接 |
+| **V2-8** 通知偏好 | ⚠️ | `PreferencesForm`、`/api/preferences` ✅；过滤逻辑在 **dispatcher** 中，**未接入发送链路** |
+| **V2-9** 短信 | 🔧 | `lib/sms.ts`、偏好 opt-in ✅；**dispatcher 未调用**；需 Twilio 环境变量 |
+| **V2-10** 数据导出 | ✅ | `GET /api/me/export`、`app/(app)/settings/data` |
+| **ADM-02** 管理后台 | ➖ | **客户确认不交付**；运营见 [§2.3](#23-无管理后台时的运营方式) |
+| **SUB-03** 订阅与计费 | ❌ | `profiles.plan` + 占位 `POST /api/upgrade`；migration `0015` 预留；**无 Stripe/Webhook** |
+| **V2-INT** 集成联调 | ⚠️ | 部分模块可联调；**支付 Webhook、短信/邮件生产验证**未完成 |
+| **V2-12** 最终验收 | ➖ | 依赖 SUB-03、邮件/SMS 闭环及 UAT |
 
-**需求（REQUIREMENTS）**：NDC 命中但无批号时，应提示用户 **「可能涉及，请核对瓶身批号」**（偏保守、避免过度确信）。
-
-**实现（`lib/check-recall.ts`）**：
-
-- 有 NDC、召回命中、**未提供批号** → 状态为 **`recalled`**（高置信召回）。
-- 有 NDC、有批号、批号不在 `code_info` → **`possible`**（合理）。
-
-**影响**：用户在只扫到 NDC（或不知道批号）时，会看到「已被召回」而非「可能涉及」，与需求保守策略 **不一致**；可能放大恐慌或法律文案风险。
-
-**建议**：
-
-- 无 `lotNumber` 时改为 `possible`，或 `recalled` + 醒目副文案要求核对批号；
-- Class II/III 单独弱化主标题（见 4.2）。
+**阶段二模块完成度（有效范围 60h，加权估算）：约 80–85%**
 
 ---
 
-### 4.2 合规文案冲突（LEG-05）
+## 5. MVP / 最终验收清单打勾
 
-**需求**：不提供用药/停药建议；Class II/III 应引用 FDA 原文，避免「必须停药」。
+### 5.1 阶段一 MVP（§3.2）
+
+| # | 验收项 | 状态 | 备注 |
+|---|--------|------|------|
+| 1 | 召回数据可同步并显示更新时间 | ✅ | `/api/meta`、结果页与 Dashboard |
+| 2 | 注册含必填资料；Google 登录 | ⚠️ | 缺年龄/性别/种族 |
+| 3 | 未登录仅 2 次查询 | ✅ | |
+| 4 | 药箱手动；最多 2 免费；删除后不追踪 | ✅ | 软删除后 `scanAllActiveItems` 仅 `active` |
+| 5 | 未知厂商「无法追踪」 | ❌ | 可手填任意厂商，无提示 |
+| 6 | 匹配召回可收邮件与站内 | ⚠️ | 站内 ✅；邮件需 SMTP + 接线 |
+| 7 | 即时查询（无扫码/拍照/SMS/Push） | ✅ | |
+| 8 | 法律静态页与 Cookie | ✅ | `CookieBanner` |
+| 9 | MVP 稳定、同步按日执行 | ✅ | `vercel.json` Cron `0 17 * * *` |
+
+**MVP 清单：约 7/9 项可演示，2 项部分/未过**
+
+### 5.2 阶段二最终验收（§4.2，已剔除 ADM-02 相关项）
+
+| # | 验收项 | 状态 | 备注 |
+|---|--------|------|------|
+| 1 | 订阅支付可用；支付失败停权 | ❌ | |
+| 2 | 取消用到账期结束；升级立即生效 | ❌ | 当前 UI 为立即升降级占位 |
+| 3 | 付费时地址必填 | ❌ | |
+| 4 | 通知偏好 + Class 过滤；SMS opt-in | ⚠️ | UI ✅；发送链路未接 |
+| 5 | 家庭药箱 + Class 分样式 | ✅ | |
+| 6 | 批号增强、召回浏览、导出 | ✅ | |
+| 7 | ~~管理后台可查看业务数据~~ | ➖ | **ADM-02 已取消**；改用 §2.3 运营替代 |
+| 8 | 全站无扫码/拍照入口 | ✅ | |
+| 9 | 完整 Web 生产上线 | ⚠️ | 待 SUB-03、邮件/SMS + UAT |
+
+**有效验收项：8 项（原 9 项去掉管理后台）**
+
+---
+
+## 6. 订阅与计费（§五）对照
+
+| 规则 / 项 | 合同要求 | 实现 |
+|-----------|----------|------|
+| 免费 2 药 | ✅ | `QUOTAS.free.meds = 2` |
+| 个人 $4.99/mo · $49.99/yr | UI 展示 | `PlanCards.tsx` |
+| 家庭 $9.99/mo · $99.99/yr | UI 展示 | 同上 |
+| 阶梯定价 | 待定 | ➖ |
+| 支付服务商 | 待客户确认 | 占位升级，无真实扣款 |
+| 取消用到账期结束 | §五 | ❌ `PlanCards` 文案为立即降级 |
+| 升级立即生效 | §五 | ⚠️ 占位可即时改 plan，无计费 |
+| 支付失败立即停止 | §五 | ❌ |
+| 付费时地址必填 | §五 | ❌ |
+
+---
+
+## 7. 偏差与风险
+
+### 7.1 邮件：每日 Digest vs 即时分级邮件（M7）
+
+**合同**：召回命中发邮件（药名、厂商、等级、原因、FDA 链接）。
 
 **实现**：
 
-| 位置 | 内容 | 问题 |
-|------|------|------|
-| `components/Disclaimer.tsx` | 「不构成医疗建议」、以 FDA/药师为准 | ✅ 与需求一致 |
-| `components/ResultPanel.tsx`（`recalled`） | 「请**立即停止使用**并联系药师/医生」 | ❌ 与 Disclaimer、LEG-05 **直接冲突** |
-| 同上 | 未按 Class II/III 区分是否建议继续用药 | ❌ 与 FDA 常见表述不符 |
+- **路径 A（已接入）**：`sendDailyDigests` — 每用户每天最多一封，汇总未发邮件的 notifications。  
+- **路径 B（未接入）**：`dispatchPendingEmails` — 使用 `emails/recall-alert.html`，按 Class 模板即时发送，并处理 SMS。
 
-**风险**：对外产品若沿用该文案，可能被认定为 **医疗建议**，与 Non-Goals 及 LEG-05 冲突。
+**风险**：若客户按 M7「测试邮箱可收到**单条召回邮件**」验收，仅 Digest 可能被认为不符合；且 SLA「24 小时内」依赖 Cron 频率（当前**每日**一次，通常满足，但非即时）。
 
-**建议**：
+**建议**：在 `runSync` 末尾（及/或 cabinet POST 后）调用 `dispatchPendingEmails`；配置 `SMTP_*` 与 `NEXT_PUBLIC_APP_URL`。
 
-- `recalled` 页改为：展示召回原因 + 链到 FDA 官方说明 +「请咨询药师/医生，勿自行停药」；
-- Class II/III 使用琥珀色说明块，引用 enforcement 原文摘要。
+### 7.2 合规文案（§二-5）
 
----
+**合同**：不提供用药/停药建议。
 
-### 4.3 UI-02：缺少 FDA 官方深链
+**实现**：`components/ResultPanel.tsx` 在 `recalled` 时仍含 *「Stop using it and contact your pharmacist or physician」*，与 `Disclaimer.tsx` 及合同 **不一致**。
 
-**需求**：召回详情含 **FDA 原文/官方链接**（P0）。
+**建议**：改为展示召回事实 + FDA 链接 +「请咨询专业人士，勿自行停药」；按 Class 区分语气。
 
-**实现**：展示 `recall_number`、`code_info`、原因等，**无**跳转 `https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts` 或按 `recall_number` 构造的 Enforcement Report URL。
+### 7.3 注册资料（M4）
 
-**影响**：用户无法一键核验官方信息，削弱「信息聚合」可信度。
+缺少年龄、性别、种族字段及 DB 列；Google OAuth 用户亦未强制补全。
 
----
+### 7.4 未知厂商（M3）
 
-### 4.4 NFR-07：界面语言
+Typeahead 来自 NDC 目录，但允许自由文本提交；加药后无「厂商未在目录 → 监控可靠性降低/无法追踪」提示。
 
-**需求**：MVP 仅 **en-US**。
+### 7.5 订阅占位与合同规则
 
-**实现**：Class 标签、按钮、三态说明等为 **中文**（如「已被召回」「可能匹配」）。
+`PlanCards` 底部标注 *Placeholder mode*；取消/降级行为与 §五「账期结束仍可用」冲突，上线 Stripe 前需重写业务逻辑。
 
-**影响**：若目标用户为美国英语用户，与 REQUIREMENTS 及市场定位不一致（可作为独立产品决策，但需在 REQUIREMENTS 或 OQ 中显式修订）。
+### 7.6 签约文档与有效范围不一致
 
----
+[REQUIREMENTS-CLIENT.md](./REQUIREMENTS-CLIENT.md) v4.2 正文仍含 **ADM-02**、§4.2 管理后台验收项及 **175h / $17,500** 总价。客户已决定不做管理后台时，建议：
 
-### 4.5 产品边界：SPEC 排除项 vs REQUIREMENTS P0
+- 修订签约文档（如 **v4.3**）：删除 ADM-02、更新 §4.2 与阶段二工时/金额；或  
+- 保留总价，将节省的 **13h** 记入缓冲/其他模块（需书面确认）。
 
-| 能力 | SPEC | REQUIREMENTS Phase 1 |
-|------|------|----------------------|
-| 用户账户 | **不包含** | **P0 必须** |
-| 移动 App | **不包含** | Phase 3 |
-| 主动通知 | 无 | **P0 必须** |
+本文档按 **「ADM-02 不交付」** 评估完成度；与未修订的 v4.2 PDF 并列使用时以**最新书面范围**为准。
 
-**风险**：若对外宣称「Notification MVP 已交付」，与事实不符。应在路线图标明：**Recall Checker = 子系统已完成**。
+### 7.7 内部 README 过时
+
+根目录 [README.md](../README.md) 仍描述「Recall Checker M7 + OCR/扫码」，与 **v4.2 签约范围**及当前代码不一致，易误导评审；建议单独更新（本文档不自动改 README）。
 
 ---
 
-### 4.6 DATA-05：批号解析深度
+## 8. 建议收尾工作（按优先级）
 
-**实现**：`code_info` 整段存储；匹配用 `code.includes(lot)`（大小写不敏感）。
+### P0 — 阻塞有效范围验收
 
-**局限**：
+| 项 | 关联模块 | 动作 |
+|----|----------|------|
+| Stripe（或确认后的支付商）Checkout + Webhook + 订阅表 | SUB-03 | 替换 `/api/upgrade`；实现 §五 取消/失败/地址规则 |
+| 邮件生产闭环 | M7、M13 | 配置 SMTP；`runSync` 调用 `dispatchPendingEmails`；端到端测试 |
+| MVP 验收补项 | M4、M3 | 年龄/性别/种族；未知厂商提示 |
 
-- 无法处理「Lot A through C」等范围描述；
-- 易因子串误命中（短 lot 串）；
-- 未满足需求中「结构化 lot 列表」的 P1 目标。
+### P1 — 阶段二完整验收（有效范围）
 
-**建议**：后续增加 `parsed_lots[]` 字段与规范化 pipeline，并维护黄金测试用例。
+| 项 | 模块 | 动作 |
+|----|------|------|
+| SMS | V2-9 | Twilio 配置 + dispatcher 接入 |
+| 通知偏好生效 | V2-8 | 与 dispatcher 联调验证 |
+| 合规文案 | M10 | 修订 `ResultPanel` |
+| UAT / 部署记录 | M14、V2-12 | 按 §3.2、§4.2（剔除 ADM）签字清单 |
+| 运营手册（替代 ADM-02） | — | Supabase/Stripe/SMTP 入口 + 常用 SQL；低工时交付物 |
 
----
+### P2 — 文档与清理
 
-### 4.7 MATCH-04 / 05 / 06：监控闭环缺失
-
-**需求**：召回入库 → 扫描所有/active 用户药箱 → 去重 → 通知。
-
-**实现**：仅 Cron 同步 + 用户主动调用 `check-recall`。
-
-**影响**：**G-01**、**M-01**（同步到通知延迟）、**M-04**（邮件送达）均无法验收。
-
----
-
-### 4.8 实现超前（非偏差，但影响排期认知）
-
-以下在 REQUIREMENTS 中属 **V1.1 / P1**，已实现：
-
-- 扫码（SCAN-01~03）
-- 拍照 OCR（客户端 Tesseract）
-- 查询三态 UI（UI-04）
-
-团队文档中 Phase 1 写「不含扫码」已与 **现状不符**，建议更新 [REQUIREMENTS.md §8](./REQUIREMENTS.md#8-发布阶段) 或在本对比文档中标注 **「已由 Recall Checker 提前交付」**。
+| 项 | 动作 |
+|----|------|
+| README | 改为 FDA Notification 全产品描述 |
+| 移除 `expected_stop_date` 产品行为 | 与 M6 对齐（可选迁移） |
+| 英文操作说明 | M15 交付物 |
 
 ---
 
-## 5. Phase 1 MVP 完成度
+## 9. 关键代码索引
 
-依据 [REQUIREMENTS.md §8 Phase 1](./REQUIREMENTS.md#8-发布阶段) 所列 **必须项**：
-
-| Phase 1 必须模块 | 完成情况 |
-|------------------|----------|
-| AUTH-01/02 | ❌ 0% |
-| MED-01/02/05/06 | ❌ 0% |
-| DATA-01~07 | ⚠️ ~85%（缺 FDA 深链、code_info 结构化） |
-| MATCH-01/03~06 | ⚠️ ~25%（仅单次查询 MATCH-01；03 有偏差；04~06 无） |
-| NOTIF-01/02/03 | ❌ 0% |
-| UI-02/03/05 | ⚠️ ~40% |
-| ADM-01 | ⚠️ ~50% |
-| NFR-03/04/05/08/09 | ⚠️ ~40% |
-
-**Phase 1 MVP（全产品）整体：约 30–35%**  
-
-**可标记为「已完成」的子系统**：Recall Checker（查询 + 数据同步 + 识别），约 **85–90%**（相对 SPEC M1–M7）。
-
----
-
-## 6. 建议的后续工作
-
-### 6.1 文档
-
-1. 在 [REQUIREMENTS.md](./REQUIREMENTS.md) 增加 **「子系统：Recall Checker（已完成）」** 章节，引用本文。
-2. 将 Phase 1「不含扫码」改为「扫码由 Recall Checker 提供，Notification 复用 API」。
-
-### 6.2 短期修复（可在现有仓库内完成）
-
-| 优先级 | 项 | 关联 |
-|--------|-----|------|
-| P0 | 统一 `ResultPanel` 与 `Disclaimer` 文案 | §4.2 |
-| P0 | 召回结果增加 FDA Enforcement 链接 | §4.3 |
-| P1 | 无批号时 MATCH-03 策略调整 | §4.1 |
-| P1 | UI 语言策略（en-US 或中英切换） | §4.4 |
-
-### 6.3 Notification MVP 增量（新 Epic）
-
-1. Supabase Auth + `user_medications` 表  
-2. 召回 sync 后 job：`match_users_for_recall`（复用 `checkRecall`）  
-3. 邮件 + 站内 `notifications` 表  
-4. 页面：药箱、受影响列表、通知中心  
+| 能力 | 路径 |
+|------|------|
+| 召回同步 + 匹配 + Digest | `lib/sync.ts` |
+| 单次/药箱匹配 | `lib/check-recall.ts`、`lib/matching.ts` |
+| 即时邮件 + SMS 派发 | `lib/notification-dispatcher.ts` |
+| 每日邮件汇总 | `lib/daily-digest.ts` |
+| SMTP | `lib/mailer.ts`、`.env.example` |
+| Twilio SMS | `lib/sms.ts` |
+| 计划限额 | `lib/plan.ts`、`app/api/upgrade/route.ts`（占位） |
+| 访客配额 | `lib/quick-check-quota.ts` |
+| 批号增强 | `lib/lot-match.ts` |
+| Auth UI | `components/auth/*`、`app/(auth)/*` |
+| 药箱 | `app/(app)/cabinet/*`、`app/api/cabinet/*` |
+| 站内通知 | `app/(app)/notifications/*` |
+| 家庭 | `app/(app)/family/*` |
+| 召回浏览 | `app/(public)/recalls/*` |
+| 定价 | `app/(public)/pricing/page.tsx`、`components/billing/*` |
+| 数据导出 | `app/api/me/export/route.ts` |
+| DB 迁移（应用表） | `supabase/migrations/0013_app_schema.sql` 起 |
 
 ---
 
-## 7. 修订记录
+## 10. 修订记录
 
 | 版本 | 日期 | 说明 |
 |------|------|------|
-| 0.1 | 2026-05-19 | 初版：对照 Recall Checking System M7 与 REQUIREMENTS v0.1 |
+| 0.1 | 2026-05-19 | 初版：对照旧 Recall Checker 子系统与 REQUIREMENTS.md v0.1 |
+| 1.0 | 2026-05-19 | **重写**：对照 [REQUIREMENTS-CLIENT.md](./REQUIREMENTS-CLIENT.md) v4.2 与当前全栈实现；更新完成度与 P0 缺口 |
+| 1.1 | 2026-05-19 | 客户确认 **不交付 ADM-02**；更新有效范围、完成度、验收清单与运营替代方案 |
 
 ---
 
 ## 相关文档
 
-- [REQUIREMENTS.md](./REQUIREMENTS.md) — 全产品需求基线  
-- [FDA Recall Checking System README](../FDA%20Recall%20Checking%20System/README.md) — 实现验收与 API  
-- [FDA Recall Checking System SPEC](../FDA%20Recall%20Checking%20System/SPEC.md) — 子系统范围（不含账户）
+- [REQUIREMENTS-CLIENT.md](./REQUIREMENTS-CLIENT.md) — **客户签约范围（主对照）**  
+- [REQUIREMENTS-CLIENT-EN.md](./REQUIREMENTS-CLIENT-EN.md) — 英文签约版  
+- [REQUIREMENTS.md](./REQUIREMENTS.md) — 内部全产品需求（非签约附件）  
+- [SPEC.md](../SPEC.md) — 历史查询子系统任务书（部分能力已合并入现仓库）
