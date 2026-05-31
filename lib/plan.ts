@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getEffectivePlan } from "./stripe-billing";
 
 export type Plan = "free" | "personal" | "family";
 
@@ -23,7 +24,7 @@ export const PLAN_LABEL: Record<Plan, string> = {
 export function upgradeTargetForMeds(current: Plan): Plan | null {
   if (current === "free") return "personal";
   if (current === "personal") return "family";
-  return null; // family is the top tier
+  return null;
 }
 
 export function upgradeTargetForFamily(current: Plan): Plan | null {
@@ -58,14 +59,7 @@ export async function getUserPlan(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<Plan> {
-  const { data } = await supabase
-    .from("profiles")
-    .select("plan")
-    .eq("id", userId)
-    .maybeSingle();
-  const raw = (data?.plan as string | undefined) ?? "free";
-  if (raw === "personal" || raw === "family") return raw;
-  return "free";
+  return getEffectivePlan(supabase, userId);
 }
 
 /** Throws QuotaExceededError if adding a med would exceed the user's plan. */

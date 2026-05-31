@@ -108,8 +108,9 @@ export function ResultPanel({ result, onReset }: Props) {
       <div className="rounded-lg border-2 border-error bg-error-container p-6 text-on-error-container">
         <h2 className="font-display text-headline-sm">⚠ Recall match found</h2>
         <p className="mt-2 text-body-md">
-          This medication (or its NDC) is in the FDA recall database. Stop using
-          it and contact your pharmacist or physician.
+          This medication (or its NDC) appears in the FDA recall database. Review
+          the details below and consult your pharmacist or physician — do not
+          change or stop medication on your own.
         </p>
       </div>
     ) : status === "possible" ? (

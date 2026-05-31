@@ -193,12 +193,13 @@ export async function sendDailyDigests(
 
     const { data: prefs } = await supabase
       .from("notification_preferences")
-      .select("email_enabled, last_digest_sent_at")
+      .select("email_enabled, email_digest_enabled, last_digest_sent_at")
       .eq("user_id", userId)
       .maybeSingle();
 
-    const emailEnabled = prefs?.email_enabled ?? true;
-    if (!emailEnabled) {
+    const masterEmail = prefs?.email_enabled ?? true;
+    const digestOn = prefs?.email_digest_enabled ?? true;
+    if (!masterEmail || !digestOn) {
       stats.skipped++;
       continue;
     }

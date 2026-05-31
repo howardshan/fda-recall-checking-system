@@ -10,10 +10,8 @@ type Cycle = "monthly" | "annual";
 type PlanCard = {
   id: Plan;
   name: string;
-  /** Display price for monthly view. Empty string for Free. */
   monthlyPrimary: string;
   monthlySecondary: string | null;
-  /** Display price for annual view. */
   annualPrimary: string;
   annualSecondary: string | null;
   featured: boolean;
@@ -32,7 +30,7 @@ const PLANS: PlanCard[] = [
     bullets: [
       "Track 2 medications",
       "Daily recall digest",
-      "Basic email alerts",
+      "Instant + digest email options",
     ],
   },
   {
@@ -45,10 +43,9 @@ const PLANS: PlanCard[] = [
     featured: true,
     bullets: [
       "Track up to 20 medications",
-      "Priority alerts",
+      "Instant recall alerts",
       "Lot-number tracking",
-      "Faster monitoring",
-      "Future cosmetic + food monitoring",
+      "SMS opt-in (Class I & II)",
     ],
   },
   {
@@ -61,10 +58,9 @@ const PLANS: PlanCard[] = [
     featured: false,
     bullets: [
       "Up to 5 family members",
-      "Shared monitoring dashboard",
       "Up to 50 tracked products",
-      "Parent / child medication management",
-      "Cosmetic + food alerts (coming soon)",
+      "Shared monitoring dashboard",
+      "All Personal Pro features",
     ],
   },
 ];
@@ -74,10 +70,29 @@ function priceForCycle(p: PlanCard, cycle: Cycle): { primary: string; secondary:
   return { primary: p.monthlyPrimary, secondary: p.monthlySecondary };
 }
 
+async function startCheckout(plan: Plan, cycle: Cycle): Promise<{ ok: boolean; url?: string; error?: string }> {
+  const res = await fetch("/api/stripe/checkout", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ plan, cycle }),
+  });
+  const json = (await res.json().catch(() => ({}))) as {
+    url?: string;
+    error?: string;
+    upgraded?: boolean;
+  };
+  if (!res.ok) return { ok: false, error: json.error ?? `Failed (${res.status})` };
+  if (json.url) {
+    window.location.href = json.url;
+    return { ok: true };
+  }
+  return { ok: true };
+}
+
 export function PlanCards({ currentPlan }: { currentPlan: Plan | null }) {
   const router = useRouter();
   const [cycle, setCycle] = useState<Cycle>("monthly");
-  const [busy, setBusy] = useState<Plan | "cancel" | null>(null);
+  const [busy, setBusy] = useState<Plan | "cancel" | "portal" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function switchTo(plan: Plan) {
@@ -87,33 +102,46 @@ export function PlanCards({ currentPlan }: { currentPlan: Plan | null }) {
     }
     if (plan === currentPlan) return;
 
-    const isDowngrade =
-      (currentPlan === "family" && plan !== "family") ||
-      (currentPlan === "personal" && plan === "free");
     const target = PLANS.find((p) => p.id === plan)!;
     const billed = priceForCycle(target, cycle).primary;
 
+    if (plan === "free") {
+      const msg =
+        "Cancel your subscription? You will keep paid features until the end of the current billing period, then return to Free.";
+      if (!window.confirm(msg)) return;
+      setBusy("cancel");
+      setError(null);
+      try {
+        const res = await fetch("/api/stripe/cancel", { method: "POST" });
+        const json = (await res.json().catch(() => ({}))) as { error?: string };
+        if (!res.ok) {
+          setError(json.error ?? `Failed (${res.status})`);
+          return;
+        }
+        router.refresh();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Network error");
+      } finally {
+        setBusy(null);
+      }
+      return;
+    }
+
+    const isDowngrade = currentPlan === "family" && plan === "personal";
     const msg = isDowngrade
-      ? `Downgrade to ${target.name} now? You'll lose features immediately. No prorated refund for the rest of your current cycle.`
-      : plan === "free"
-      ? `Switch to Free now? No refund.`
-      : `Upgrade to ${target.name} now and pay ${billed}? Your previous plan ends immediately — we don't credit or refund unused time.`;
+      ? `Change to ${target.name} (${billed})? Upgrades apply immediately; downgrades follow Stripe proration rules.`
+      : `Subscribe to ${target.name} at ${billed}?`;
     if (!window.confirm(msg)) return;
 
     setBusy(plan);
     setError(null);
     try {
-      const res = await fetch("/api/upgrade", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ plan }),
-      });
-      const json = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) {
-        setError(json.error ?? `Failed (${res.status})`);
+      const result = await startCheckout(plan, cycle);
+      if (!result.ok) {
+        setError(result.error ?? "Checkout failed");
         return;
       }
-      router.refresh();
+      if (!result.url) router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Network error");
     } finally {
@@ -121,28 +149,17 @@ export function PlanCards({ currentPlan }: { currentPlan: Plan | null }) {
     }
   }
 
-  async function cancelSubscription() {
-    if (
-      !window.confirm(
-        "Cancel your subscription? Your account will switch to Free immediately. You'll lose paid features now and won't be charged again — no refund for the rest of the current billing cycle.",
-      )
-    ) {
-      return;
-    }
-    setBusy("cancel");
+  async function openPortal() {
+    setBusy("portal");
     setError(null);
     try {
-      const res = await fetch("/api/upgrade", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ plan: "free" }),
-      });
-      const json = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) {
-        setError(json.error ?? `Failed (${res.status})`);
+      const res = await fetch("/api/stripe/portal", { method: "POST" });
+      const json = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+      if (!res.ok || !json.url) {
+        setError(json.error ?? "Could not open billing portal");
         return;
       }
-      router.refresh();
+      window.location.href = json.url;
     } catch (e) {
       setError(e instanceof Error ? e.message : "Network error");
     } finally {
@@ -154,7 +171,6 @@ export function PlanCards({ currentPlan }: { currentPlan: Plan | null }) {
 
   return (
     <div className="space-y-6">
-      {/* Cycle toggle */}
       <div className="flex flex-col items-center gap-2">
         <div className="inline-flex rounded-full border border-primary/20 bg-surface-container-low p-1 text-label-md">
           <button
@@ -227,10 +243,10 @@ export function PlanCards({ currentPlan }: { currentPlan: Plan | null }) {
                     disabled={busy !== null}
                   >
                     {busy === p.id
-                      ? "Switching…"
+                      ? "Processing…"
                       : p.id === "free"
                       ? "Downgrade to Free"
-                      : `Switch to ${p.name}`}
+                      : `Subscribe — ${p.name}`}
                   </button>
                 ) : (
                   <Link
@@ -251,32 +267,34 @@ export function PlanCards({ currentPlan }: { currentPlan: Plan | null }) {
       {error ? <p className="text-center text-label-md text-error">{error}</p> : null}
 
       <p className="text-center text-label-sm text-on-surface-variant">
-        Upgrades and downgrades take effect immediately. We don&rsquo;t prorate, credit, or refund
-        the unused portion of your previous plan.
+        Upgrades take effect immediately. Cancellations keep access until the end of the
+        current billing period. Payment failures suspend paid features right away.
       </p>
 
       {showCancel ? (
         <div className="card mx-auto max-w-md space-y-3 text-center">
-          <h3 className="font-display text-headline-sm text-on-surface">Cancel subscription</h3>
+          <h3 className="font-display text-headline-sm text-on-surface">Manage billing</h3>
           <p className="text-body-sm text-on-surface-variant">
-            Currently on <strong>{currentPlan ? PLAN_LABEL[currentPlan] : ""}</strong>. Cancelling
-            switches you back to Free immediately. No refund for the rest of the billing cycle.
+            Currently on <strong>{currentPlan ? PLAN_LABEL[currentPlan] : ""}</strong>.
+            Update payment method or cancel via Stripe.
           </p>
           <button
             type="button"
-            onClick={cancelSubscription}
+            onClick={openPortal}
+            disabled={busy !== null}
+            className="btn-secondary w-full"
+          >
+            {busy === "portal" ? "Opening…" : "Stripe billing portal"}
+          </button>
+          <button
+            type="button"
+            onClick={() => switchTo("free")}
             disabled={busy !== null}
             className="btn-secondary w-full text-error hover:bg-error-container"
           >
-            {busy === "cancel" ? "Cancelling…" : "Cancel subscription"}
+            {busy === "cancel" ? "Cancelling…" : "Cancel at period end"}
           </button>
         </div>
-      ) : null}
-
-      {currentPlan ? (
-        <p className="text-center text-label-sm text-on-surface-variant">
-          Placeholder mode — plan changes are free and instant during the beta.
-        </p>
       ) : null}
     </div>
   );

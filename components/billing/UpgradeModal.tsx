@@ -15,7 +15,6 @@ export type QuotaError = {
 type Props = {
   error: QuotaError;
   onClose: () => void;
-  /** Called after a successful upgrade so the parent can retry the original action. */
   onUpgraded?: (newPlan: Plan) => void;
 };
 
@@ -26,7 +25,7 @@ const COPY: Record<
   meds: {
     free: {
       title: "Upgrade to Personal Pro",
-      body: "Free accounts can track up to 2 medications. Upgrade to Personal Pro to monitor up to 20 medications with priority alerts and lot-number tracking.",
+      body: "Free accounts can track up to 2 medications. Subscribe to Personal Pro for up to 20 medications with instant alerts.",
     },
     personal: {
       title: "Upgrade to Family Protection",
@@ -40,11 +39,11 @@ const COPY: Record<
   familyMembers: {
     free: {
       title: "Upgrade to Family Protection",
-      body: "Family members are part of the Family Protection plan. Upgrade to add up to 5 members with a shared monitoring dashboard.",
+      body: "Family members are part of the Family Protection plan. Subscribe to add up to 5 members.",
     },
     personal: {
       title: "Upgrade to Family Protection",
-      body: "Personal Pro is for one person. Upgrade to Family Protection to add up to 5 family members and 50 tracked products.",
+      body: "Personal Pro is for one person. Upgrade to Family Protection for family members and 50 tracked products.",
     },
     family: {
       title: "Plan limit reached",
@@ -64,21 +63,30 @@ export function UpgradeModal({ error, onClose, onUpgraded }: Props) {
     setBusy(true);
     setErr(null);
     try {
-      const res = await fetch("/api/upgrade", {
+      const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ plan: error.upgradeTo }),
+        body: JSON.stringify({ plan: error.upgradeTo, cycle: "monthly" }),
       });
       const json = (await res.json().catch(() => ({}))) as {
+        url?: string;
         error?: string;
+        upgraded?: boolean;
         plan?: Plan;
       };
-      if (!res.ok || !json.plan) {
+      if (!res.ok) {
         setErr(json.error ?? `Failed (${res.status})`);
         return;
       }
-      onUpgraded?.(json.plan);
+      if (json.url) {
+        window.location.href = json.url;
+        return;
+      }
+      if (json.upgraded && json.plan) {
+        onUpgraded?.(json.plan);
+      }
       router.refresh();
+      onClose();
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Network error");
     } finally {
@@ -111,11 +119,7 @@ export function UpgradeModal({ error, onClose, onUpgraded }: Props) {
               {QUOTAS[target].familyMembers > 0 ? (
                 <li>{QUOTAS[target].familyMembers} family members</li>
               ) : null}
-              <li>Priority alerts</li>
             </ul>
-            <p className="mt-2 text-label-sm text-on-surface-variant">
-              Placeholder mode — no payment will be charged.
-            </p>
           </div>
         ) : null}
 
@@ -132,7 +136,7 @@ export function UpgradeModal({ error, onClose, onUpgraded }: Props) {
               onClick={upgrade}
               disabled={busy}
             >
-              {busy ? "Upgrading…" : `Upgrade to ${target ? PLAN_LABEL[target] : ""}`}
+              {busy ? "Redirecting…" : `Subscribe — ${target ? PLAN_LABEL[target] : ""}`}
             </button>
           ) : null}
           <Link

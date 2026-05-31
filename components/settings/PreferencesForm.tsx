@@ -4,6 +4,8 @@ import { useState } from "react";
 
 export type Preferences = {
   email_enabled: boolean;
+  email_instant_enabled: boolean;
+  email_digest_enabled: boolean;
   sms_enabled: boolean;
   phone_number: string | null;
   alert_on_class_i: boolean;
@@ -13,6 +15,8 @@ export type Preferences = {
 
 const DEFAULT_PREFS: Preferences = {
   email_enabled: true,
+  email_instant_enabled: true,
+  email_digest_enabled: true,
   sms_enabled: false,
   phone_number: null,
   alert_on_class_i: true,
@@ -94,10 +98,26 @@ export function PreferencesForm({ initial }: { initial: Preferences | null }) {
         <div className="mt-4 divide-y divide-primary/10">
           <Toggle
             label="Email"
-            description="Sent to the address on your account. Always recommended."
+            description="Master switch for all email from SafeTrack."
             checked={prefs.email_enabled}
             onChange={(v) => set("email_enabled", v)}
           />
+          {prefs.email_enabled ? (
+            <>
+              <Toggle
+                label="Instant recall alerts"
+                description="Class-styled email as soon as we detect a match for your cabinet."
+                checked={prefs.email_instant_enabled}
+                onChange={(v) => set("email_instant_enabled", v)}
+              />
+              <Toggle
+                label="Daily digest"
+                description="One summary per day — includes matches or an all-clear check."
+                checked={prefs.email_digest_enabled}
+                onChange={(v) => set("email_digest_enabled", v)}
+              />
+            </>
+          ) : null}
           <Toggle
             label="SMS"
             description="Phase 2 — requires phone verification. Class I + II only (short message limit)."

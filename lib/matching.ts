@@ -9,6 +9,7 @@ export type CabinetItem = {
   product_ndc: string | null;
   lot_number: string | null;
   expected_stop_date: string | null;
+  manufacturer_unverified?: boolean;
 };
 
 /**
@@ -42,6 +43,8 @@ export async function notifyMatchesForItem(
   supabase: SupabaseClient,
   item: CabinetItem,
 ): Promise<number> {
+  if (item.manufacturer_unverified) return 0;
+
   const matches = await findRecallsForItem(supabase, item);
   if (matches.length === 0) return 0;
 
@@ -79,7 +82,9 @@ export async function scanAllActiveItems(
 ): Promise<{ scanned: number; newNotifications: number }> {
   const { data, error } = await supabase
     .from("medication_items")
-    .select("id, user_id, product_name, manufacturer, product_ndc, lot_number, expected_stop_date")
+    .select(
+      "id, user_id, product_name, manufacturer, product_ndc, lot_number, expected_stop_date, manufacturer_unverified",
+    )
     .eq("status", "active");
   if (error) {
     console.error("[matching] scan failed:", error.message);

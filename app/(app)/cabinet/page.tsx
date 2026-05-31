@@ -10,13 +10,16 @@ type Item = {
   product_ndc: string | null;
   lot_number: string | null;
   added_at: string;
+  manufacturer_unverified: boolean;
 };
 
 async function getItems(): Promise<Item[]> {
   const supabase = await getServerAuthSupabase();
   const { data } = await supabase
     .from("medication_items")
-    .select("id, product_name, manufacturer, product_ndc, lot_number, added_at")
+    .select(
+      "id, product_name, manufacturer, product_ndc, lot_number, added_at, manufacturer_unverified",
+    )
     .eq("status", "active")
     .order("added_at", { ascending: false });
   return (data ?? []) as Item[];
@@ -98,7 +101,11 @@ export default async function CabinetPage() {
                         {item.manufacturer}
                       </p>
                     </div>
-                    {unread > 0 ? (
+                    {item.manufacturer_unverified ? (
+                      <span className="chip bg-surface-container-high text-on-surface shrink-0">
+                        Not monitored
+                      </span>
+                    ) : unread > 0 ? (
                       <span className="chip chip-i shrink-0">
                         {unread} alert{unread === 1 ? "" : "s"}
                       </span>
@@ -108,6 +115,11 @@ export default async function CabinetPage() {
                       </span>
                     )}
                   </div>
+                  {item.manufacturer_unverified ? (
+                    <p className="mt-2 text-label-sm text-on-surface-variant">
+                      Unknown manufacturer — recall monitoring is disabled for this entry.
+                    </p>
+                  ) : null}
                   <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-label-sm text-on-surface-variant">
                     <div>
                       <dt className="opacity-70">NDC</dt>
