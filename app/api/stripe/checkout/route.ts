@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { getServerAuthSupabase } from "@/lib/auth";
 import { getServerSupabase } from "@/lib/supabase";
 import { appBaseUrl, getStripe, stripePriceId, type BillingCycle } from "@/lib/stripe";
-import { ensureStripeCustomer } from "@/lib/stripe-billing";
+import {
+  ensureStripeCustomer,
+  resolveActiveSubscriptionId,
+  syncSubscriptionFromStripe,
+} from "@/lib/stripe-billing";
 import type { Plan } from "@/lib/plan";
 
 export const runtime = "nodejs";
@@ -39,28 +43,20 @@ export async function POST(req: Request) {
   try {
     const stripe = getStripe();
     const admin = getServerSupabase();
+    const userId = userData.user.id;
     const customerId = await ensureStripeCustomer(
       admin,
       stripe,
-      userData.user.id,
+      userId,
       userData.user.email,
     );
 
     const priceId = stripePriceId(plan, cycle);
     const base = appBaseUrl();
 
-    const { data: subRow } = await admin
-      .from("stripe_subscriptions")
-      .select("stripe_subscription_id, status")
-      .eq("user_id", userData.user.id)
-      .maybeSingle();
+    const existingSubId = await resolveActiveSubscriptionId(stripe, admin, userId);
 
-    const existingSubId = subRow?.stripe_subscription_id as string | undefined;
-    const active =
-      existingSubId &&
-      (subRow?.status === "active" || subRow?.status === "trialing");
-
-    if (active && existingSubId) {
+    if (existingSubId) {
       const existing = await stripe.subscriptions.retrieve(existingSubId);
       const itemId = existing.items.data[0]?.id;
       if (!itemId) {
@@ -70,11 +66,10 @@ export async function POST(req: Request) {
         items: [{ id: itemId, price: priceId }],
         proration_behavior: "always_invoice",
         cancel_at_period_end: false,
-        metadata: { user_id: userData.user.id, plan, cycle },
+        metadata: { user_id: userId, plan, cycle },
       });
-      const { syncSubscriptionFromStripe } = await import("@/lib/stripe-billing");
-      await syncSubscriptionFromStripe(admin, userData.user.id, updated);
-      return NextResponse.json({ ok: true, upgraded: true, plan });
+      await syncSubscriptionFromStripe(admin, userId, updated);
+      return NextResponse.json({ ok: true, upgraded: true, plan, cycle });
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -86,13 +81,13 @@ export async function POST(req: Request) {
       billing_address_collection: "required",
       allow_promotion_codes: true,
       metadata: {
-        user_id: userData.user.id,
+        user_id: userId,
         plan,
         cycle,
       },
       subscription_data: {
         metadata: {
-          user_id: userData.user.id,
+          user_id: userId,
           plan,
           cycle,
         },

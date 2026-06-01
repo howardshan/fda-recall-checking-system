@@ -5,6 +5,139 @@ import { planFromStripePrice, type BillingCycle } from "./stripe";
 
 export type { BillingCycle };
 
+const BILLABLE_STATUSES = new Set(["active", "trialing"]);
+
+/** Stripe Basil+ stores billing period on subscription items; older APIs use the subscription root. */
+type PeriodFields = { current_period_end?: number | null };
+
+export function subscriptionPeriodEndUnix(
+  subscription: Stripe.Subscription,
+): number | null {
+  const top = (subscription as Stripe.Subscription & PeriodFields).current_period_end;
+  if (typeof top === "number" && top > 0) return top;
+
+  const item = subscription.items.data[0] as PeriodFields | undefined;
+  const fromItem = item?.current_period_end;
+  if (typeof fromItem === "number" && fromItem > 0) return fromItem;
+
+  return null;
+}
+
+export function subscriptionPeriodEndIso(
+  subscription: Stripe.Subscription,
+): string | null {
+  const unix = subscriptionPeriodEndUnix(subscription);
+  return unix ? new Date(unix * 1000).toISOString() : null;
+}
+
+function isWithinPaidPeriod(subscription: Stripe.Subscription): boolean {
+  const end = subscriptionPeriodEndUnix(subscription);
+  return end !== null && end * 1000 > Date.now();
+}
+
+export function isStripeSubscriptionBillable(status: string): boolean {
+  return BILLABLE_STATUSES.has(status);
+}
+
+/**
+ * After Checkout the subscription can briefly stay `incomplete` while payment
+ * settles. Retry a few times before writing stale state to the database.
+ */
+export async function retrieveSubscriptionWhenReady(
+  stripe: Stripe,
+  subscriptionId: string,
+  maxAttempts = 4,
+): Promise<Stripe.Subscription> {
+  let sub = await stripe.subscriptions.retrieve(subscriptionId);
+
+  for (let attempt = 1; attempt < maxAttempts; attempt++) {
+    if (isStripeSubscriptionBillable(sub.status)) return sub;
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    sub = await stripe.subscriptions.retrieve(subscriptionId);
+  }
+
+  return sub;
+}
+
+/** Resolve app user id from subscription metadata or existing DB rows. */
+export async function resolveUserIdForSubscription(
+  supabase: SupabaseClient,
+  subscription: Stripe.Subscription,
+): Promise<string | null> {
+  const fromMeta = subscription.metadata?.user_id;
+  if (fromMeta) return fromMeta;
+
+  const { data: bySub } = await supabase
+    .from("stripe_subscriptions")
+    .select("user_id")
+    .eq("stripe_subscription_id", subscription.id)
+    .maybeSingle();
+  if (bySub?.user_id) return bySub.user_id as string;
+
+  const customerId =
+    typeof subscription.customer === "string"
+      ? subscription.customer
+      : subscription.customer?.id;
+  if (!customerId) return null;
+
+  const { data: byCustomer } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("stripe_customer_id", customerId)
+    .maybeSingle();
+  return (byCustomer?.id as string | undefined) ?? null;
+}
+
+/**
+ * Returns an active Stripe subscription id for the user. Re-fetches from Stripe
+ * when the local row is stale (e.g. status stuck at `incomplete` after payment).
+ */
+export async function resolveActiveSubscriptionId(
+  stripe: Stripe,
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<string | null> {
+  const { data: subRow } = await supabase
+    .from("stripe_subscriptions")
+    .select("stripe_subscription_id, status, current_period_end")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  const subId = subRow?.stripe_subscription_id as string | undefined;
+  if (!subId) return null;
+
+  const live = await stripe.subscriptions.retrieve(subId);
+  if (isStripeSubscriptionBillable(live.status)) {
+    const needsSync =
+      subRow?.status !== live.status || !subRow?.current_period_end;
+    if (needsSync) {
+      await syncSubscriptionFromStripe(supabase, userId, live);
+    }
+    return subId;
+  }
+
+  return null;
+}
+
+export async function syncSubscriptionFromEvent(
+  stripe: Stripe,
+  supabase: SupabaseClient,
+  subscriptionId: string,
+  userIdHint?: string | null,
+): Promise<void> {
+  const sub = await retrieveSubscriptionWhenReady(stripe, subscriptionId);
+  const userId =
+    userIdHint ?? (await resolveUserIdForSubscription(supabase, sub));
+  if (!userId) {
+    console.warn(
+      "[stripe-billing] sync skipped — no user for subscription",
+      subscriptionId,
+    );
+    return;
+  }
+  await syncSubscriptionFromStripe(supabase, userId, sub);
+}
+
 export type SubscriptionRow = {
   user_id: string;
   stripe_customer_id: string;
@@ -42,7 +175,9 @@ export async function getEffectivePlan(
 ): Promise<Plan> {
   const { data: sub } = await supabase
     .from("stripe_subscriptions")
-    .select("status, plan, current_period_end, cancel_at_period_end")
+    .select(
+      "status, plan, current_period_end, cancel_at_period_end, stripe_subscription_id",
+    )
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -73,6 +208,9 @@ export async function getEffectivePlan(
     if (status === "canceled" && periodEnd > now && (plan === "personal" || plan === "family")) {
       return plan;
     }
+
+    // Row exists but is not billable (e.g. incomplete) — do not trust profiles.plan.
+    return "free";
   }
 
   const { data: profile } = await supabase
@@ -96,16 +234,14 @@ export async function syncSubscriptionFromStripe(
   const cycle = mapped?.cycle ?? null;
 
   const status = subscription.status;
-  const periodEnd = subscription.current_period_end
-    ? new Date(subscription.current_period_end * 1000).toISOString()
-    : null;
+  const periodEnd = subscriptionPeriodEndIso(subscription);
 
   let effectivePlan: Plan = "free";
   if (status === "active" || status === "trialing") {
     effectivePlan = plan;
   } else if (
     (status === "canceled" || subscription.cancel_at_period_end) &&
-    subscription.current_period_end * 1000 > Date.now()
+    isWithinPaidPeriod(subscription)
   ) {
     effectivePlan = plan;
   }
