@@ -57,12 +57,7 @@ export function MedicationForm({ mode, initial, itemId, familyOptions = [] }: Pr
     setValues((cur) => ({ ...cur, manufacturer: m.labelerName }));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!values.productName.trim() || !values.manufacturer.trim()) {
-      setError("Product name and manufacturer are required.");
-      return;
-    }
+  async function submitMedication(confirmUnverified = false) {
     setSubmitting(true);
     setError(null);
     try {
@@ -77,15 +72,29 @@ export function MedicationForm({ mode, initial, itemId, familyOptions = [] }: Pr
           productNdc: values.productNdc.trim() || null,
           lotNumber: values.lotNumber.trim() || null,
           memberId: values.memberId,
+          confirmUnverified,
         }),
       });
       const json = (await res.json()) as {
         error?: string;
+        message?: string;
         resource?: "meds" | "familyMembers";
         currentPlan?: "free" | "personal" | "family";
         limit?: number;
         upgradeTo?: "free" | "personal" | "family" | null;
       };
+      if (res.status === 409 && json.error === "MANUFACTURER_UNVERIFIED") {
+        const ok = window.confirm(
+          json.message ??
+            "This manufacturer is not in our directory. The medication will be saved but will NOT be monitored for recalls. Continue?",
+        );
+        if (ok) {
+          await submitMedication(true);
+        } else {
+          setSubmitting(false);
+        }
+        return;
+      }
       if (res.status === 402 && json.error === "QUOTA_EXCEEDED" && json.resource && json.currentPlan && typeof json.limit === "number") {
         setQuotaError({
           resource: json.resource,
@@ -96,13 +105,22 @@ export function MedicationForm({ mode, initial, itemId, familyOptions = [] }: Pr
         setSubmitting(false);
         return;
       }
-      if (!res.ok) throw new Error(json.error ?? "Save failed");
+      if (!res.ok) throw new Error(json.error ?? json.message ?? "Save failed");
       router.push("/cabinet");
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Save failed");
       setSubmitting(false);
     }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!values.productName.trim() || !values.manufacturer.trim()) {
+      setError("Product name and manufacturer are required.");
+      return;
+    }
+    await submitMedication(false);
   }
 
   async function handleDelete() {

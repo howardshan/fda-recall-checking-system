@@ -23,6 +23,8 @@ export async function GET() {
 
 type PatchBody = {
   email_enabled?: boolean;
+  email_instant_enabled?: boolean;
+  email_digest_enabled?: boolean;
   sms_enabled?: boolean;
   phone_number?: string | null;
   alert_on_class_i?: boolean;
@@ -46,6 +48,8 @@ export async function PATCH(req: Request) {
   const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
   for (const key of [
     "email_enabled",
+    "email_instant_enabled",
+    "email_digest_enabled",
     "sms_enabled",
     "phone_number",
     "alert_on_class_i",

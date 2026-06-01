@@ -3,6 +3,8 @@ import { getServerAuthSupabase } from "@/lib/auth";
 import { getServerSupabase } from "@/lib/supabase";
 import { notifyMatchesForItem, type CabinetItem } from "@/lib/matching";
 import { enforceMedQuota, QuotaExceededError } from "@/lib/plan";
+import { isManufacturerKnown } from "@/lib/manufacturer-verify";
+import { dispatchAfterMatch } from "@/lib/dispatch-after-match";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,7 +13,9 @@ export async function GET() {
   const supabase = await getServerAuthSupabase();
   const { data, error } = await supabase
     .from("medication_items")
-    .select("id, product_name, manufacturer, product_ndc, lot_number, status, added_at")
+    .select(
+      "id, product_name, manufacturer, product_ndc, lot_number, status, added_at, manufacturer_unverified",
+    )
     .eq("status", "active")
     .order("added_at", { ascending: false });
   if (error) {
@@ -26,6 +30,8 @@ type CreateBody = {
   productNdc?: string | null;
   lotNumber?: string | null;
   memberId?: number | null;
+  /** Client already confirmed unknown-manufacturer warning. */
+  confirmUnverified?: boolean;
 };
 
 export async function POST(req: Request) {
@@ -59,6 +65,22 @@ export async function POST(req: Request) {
     throw e;
   }
 
+  const admin = getServerSupabase();
+  const known = await isManufacturerKnown(admin, productName, manufacturer);
+  const manufacturerUnverified = !known;
+
+  if (manufacturerUnverified && !body.confirmUnverified) {
+    return NextResponse.json(
+      {
+        error: "MANUFACTURER_UNVERIFIED",
+        message:
+          "This manufacturer is not in our FDA drug directory. We cannot monitor recalls for this entry. You can still save it, but you will not receive alerts.",
+        manufacturerUnverified: true,
+      },
+      { status: 409 },
+    );
+  }
+
   const { data: inserted, error: insertErr } = await authSupabase
     .from("medication_items")
     .insert({
@@ -68,8 +90,11 @@ export async function POST(req: Request) {
       product_ndc: body.productNdc?.trim() || null,
       lot_number: body.lotNumber?.trim() || null,
       member_id: body.memberId ?? null,
+      manufacturer_unverified: manufacturerUnverified,
     })
-    .select("id, user_id, product_name, manufacturer, product_ndc, lot_number")
+    .select(
+      "id, user_id, product_name, manufacturer, product_ndc, lot_number, manufacturer_unverified",
+    )
     .single();
   if (insertErr || !inserted) {
     return NextResponse.json(
@@ -78,17 +103,16 @@ export async function POST(req: Request) {
     );
   }
 
-  // Fire-and-forget: scan this new item against the recall database. Uses the
-  // service-role client so the matching write isn't blocked by RLS (the row
-  // it inserts is owned by the user we authenticated above).
-  void (async () => {
-    try {
-      const admin = getServerSupabase();
-      await notifyMatchesForItem(admin, inserted as CabinetItem);
-    } catch (e) {
-      console.error("[cabinet POST] matching failed:", e);
-    }
-  })();
+  if (!manufacturerUnverified) {
+    void (async () => {
+      try {
+        await notifyMatchesForItem(admin, inserted as CabinetItem);
+        await dispatchAfterMatch(admin);
+      } catch (e) {
+        console.error("[cabinet POST] matching/dispatch failed:", e);
+      }
+    })();
+  }
 
   return NextResponse.json({ item: inserted }, { status: 201 });
 }

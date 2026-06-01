@@ -26,6 +26,7 @@ type PendingRow = {
   profiles: { email: string; full_name: string | null } | null;
   notification_preferences: {
     email_enabled: boolean;
+    email_instant_enabled: boolean;
     sms_enabled: boolean;
     phone_number: string | null;
     alert_on_class_i: boolean;
@@ -166,7 +167,7 @@ export async function dispatchPendingEmails(
       medication_items!inner(id, product_name, manufacturer, status, expected_stop_date),
       recalls!inner(recall_number, reason_for_recall, recall_initiation_date),
       profiles!inner(email, full_name),
-      notification_preferences(email_enabled, sms_enabled, phone_number, alert_on_class_i, alert_on_class_ii, alert_on_class_iii, alert_after_stop_date)
+      notification_preferences(email_enabled, email_instant_enabled, sms_enabled, phone_number, alert_on_class_i, alert_on_class_ii, alert_on_class_iii, alert_after_stop_date)
       `,
     )
     .or("email_sent_at.is.null,sms_sent_at.is.null")
@@ -218,10 +219,11 @@ export async function dispatchPendingEmails(
       continue;
     }
 
-    // Email channel ------------------------------------------------------
+    // Email channel — instant recall alerts --------------------------------
     if (!row.email_sent_at && row.profiles?.email) {
-      const emailEnabled = prefs?.email_enabled ?? true;
-      if (emailEnabled) {
+      const masterEmail = prefs?.email_enabled ?? true;
+      const instantOn = prefs?.email_instant_enabled ?? true;
+      if (masterEmail && instantOn) {
         const banner = classTemplateTokens(tier);
         const userName =
           row.profiles.full_name?.trim() || row.profiles.email.split("@")[0];

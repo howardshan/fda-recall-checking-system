@@ -1,31 +1,51 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { getServerSupabase } from "@/lib/supabase";
+import {
+  getCurrentBillingCycle,
+  getEffectivePlan,
+  type BillingCycle,
+} from "@/lib/stripe-billing";
 import { PlanCards } from "@/components/billing/PlanCards";
 import type { Plan } from "@/lib/plan";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Plans & Pricing | SafeTrack" };
 
-async function loadCurrentPlan(): Promise<{ plan: Plan; signedIn: boolean }> {
+async function loadSubscriptionContext(): Promise<{
+  plan: Plan;
+  billingCycle: BillingCycle | null;
+  signedIn: boolean;
+}> {
   const user = await getCurrentUser();
-  if (!user) return { plan: "free", signedIn: false };
+  if (!user) return { plan: "free", billingCycle: null, signedIn: false };
   const supabase = getServerSupabase();
-  const { data } = await supabase
-    .from("profiles")
-    .select("plan")
-    .eq("id", user.id)
-    .maybeSingle();
-  const raw = (data?.plan as string | undefined) ?? "free";
-  const plan: Plan = raw === "personal" || raw === "family" ? raw : "free";
-  return { plan, signedIn: true };
+  const [plan, billingCycle] = await Promise.all([
+    getEffectivePlan(supabase, user.id),
+    getCurrentBillingCycle(supabase, user.id),
+  ]);
+  return { plan, billingCycle, signedIn: true };
 }
 
-export default async function PricingPage() {
-  const { plan, signedIn } = await loadCurrentPlan();
+export default async function PricingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ checkout?: string }>;
+}) {
+  const { plan, billingCycle, signedIn } = await loadSubscriptionContext();
+  const { checkout } = await searchParams;
 
   return (
     <div className="space-y-10">
+      {checkout === "success" ? (
+        <div className="rounded-lg border border-primary/20 bg-primary-container px-4 py-3 text-center text-body-sm text-on-primary-container">
+          Payment successful — your plan is now active. Thank you!
+        </div>
+      ) : checkout === "cancel" ? (
+        <div className="rounded-lg border border-outline-variant bg-surface-container-low px-4 py-3 text-center text-body-sm text-on-surface-variant">
+          Checkout was cancelled. You can try again whenever you&apos;re ready.
+        </div>
+      ) : null}
       <div className="text-center">
         <h1 className="font-display text-headline-md text-primary">
           Pick the plan that fits your household
@@ -43,7 +63,10 @@ export default async function PricingPage() {
         ) : null}
       </div>
 
-      <PlanCards currentPlan={signedIn ? plan : null} />
+      <PlanCards
+        currentPlan={signedIn ? plan : null}
+        currentBillingCycle={signedIn ? billingCycle : null}
+      />
 
       <div className="card text-center">
         <h2 className="font-display text-headline-sm text-primary">FAQ</h2>
@@ -51,15 +74,15 @@ export default async function PricingPage() {
           <div>
             <dt className="font-medium text-on-surface">Will I be charged today?</dt>
             <dd className="mt-1 text-body-sm text-on-surface-variant">
-              No. Payment is not wired up yet — upgrades take effect immediately for free during
-              the beta.
+              Paid plans are billed through Stripe (test mode in staging). You will enter
+              payment details on Stripe&apos;s secure checkout page.
             </dd>
           </div>
           <div>
-            <dt className="font-medium text-on-surface">Can I downgrade?</dt>
+            <dt className="font-medium text-on-surface">Can I cancel?</dt>
             <dd className="mt-1 text-body-sm text-on-surface-variant">
-              Yes — pick Free or Personal on this page to switch. If you exceed the new
-              plan&apos;s limit, you&apos;ll be asked to remove items.
+              Yes — cancel anytime. Paid features remain until the end of your current
+              billing period, then your account returns to Free.
             </dd>
           </div>
           <div>
