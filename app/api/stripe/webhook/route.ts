@@ -2,10 +2,30 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { getServerSupabase } from "@/lib/supabase";
 import { getStripe } from "@/lib/stripe";
-import { revokePaidAccess, syncSubscriptionFromStripe } from "@/lib/stripe-billing";
+import {
+  resolveUserIdForSubscription,
+  revokePaidAccess,
+  syncSubscriptionFromEvent,
+  syncSubscriptionFromStripe,
+} from "@/lib/stripe-billing";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+async function syncSubscriptionObject(
+  stripe: Stripe,
+  admin: ReturnType<typeof getServerSupabase>,
+  sub: Stripe.Subscription,
+  userIdHint?: string | null,
+): Promise<void> {
+  const userId =
+    userIdHint ?? (await resolveUserIdForSubscription(admin, sub));
+  if (!userId) {
+    console.warn("[stripe/webhook] no user for subscription", sub.id);
+    return;
+  }
+  await syncSubscriptionFromStripe(admin, userId, sub);
+}
 
 export async function POST(req: Request) {
   const stripe = getStripe();
@@ -40,26 +60,31 @@ export async function POST(req: Request) {
           typeof session.subscription === "string"
             ? session.subscription
             : session.subscription?.id;
-        if (userId && subId) {
-          const sub = await stripe.subscriptions.retrieve(subId);
-          await syncSubscriptionFromStripe(admin, userId, sub);
+        if (subId) {
+          await syncSubscriptionFromEvent(stripe, admin, subId, userId);
         }
         break;
       }
       case "customer.subscription.created":
       case "customer.subscription.updated": {
         const sub = event.data.object as Stripe.Subscription;
-        const userId = sub.metadata?.user_id;
-        if (userId) {
-          await syncSubscriptionFromStripe(admin, userId, sub);
-        }
+        await syncSubscriptionObject(stripe, admin, sub);
         break;
       }
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
-        const userId = sub.metadata?.user_id;
-        if (userId) {
-          await revokePaidAccess(admin, userId);
+        const userId = await resolveUserIdForSubscription(admin, sub);
+        if (userId) await revokePaidAccess(admin, userId);
+        break;
+      }
+      case "invoice.payment_succeeded": {
+        const invoice = event.data.object as Stripe.Invoice;
+        const subId =
+          typeof invoice.subscription === "string"
+            ? invoice.subscription
+            : invoice.subscription?.id;
+        if (subId) {
+          await syncSubscriptionFromEvent(stripe, admin, subId);
         }
         break;
       }
@@ -71,7 +96,7 @@ export async function POST(req: Request) {
             : invoice.subscription?.id;
         if (subId) {
           const sub = await stripe.subscriptions.retrieve(subId);
-          const userId = sub.metadata?.user_id;
+          const userId = await resolveUserIdForSubscription(admin, sub);
           if (userId) await revokePaidAccess(admin, userId);
         }
         break;

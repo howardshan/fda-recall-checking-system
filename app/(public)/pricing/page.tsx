@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { getServerSupabase } from "@/lib/supabase";
+import { getStripe } from "@/lib/stripe";
 import {
   getCurrentBillingCycle,
   getEffectivePlan,
+  resolveActiveSubscriptionId,
   type BillingCycle,
 } from "@/lib/stripe-billing";
 import { PlanCards } from "@/components/billing/PlanCards";
@@ -20,6 +22,14 @@ async function loadSubscriptionContext(): Promise<{
   const user = await getCurrentUser();
   if (!user) return { plan: "free", billingCycle: null, signedIn: false };
   const supabase = getServerSupabase();
+
+  try {
+    const stripe = getStripe();
+    await resolveActiveSubscriptionId(stripe, supabase, user.id);
+  } catch (e) {
+    console.warn("[pricing] stripe reconcile skipped:", e);
+  }
+
   const [plan, billingCycle] = await Promise.all([
     getEffectivePlan(supabase, user.id),
     getCurrentBillingCycle(supabase, user.id),

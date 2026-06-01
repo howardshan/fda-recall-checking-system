@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { getServerAuthSupabase } from "@/lib/auth";
 import { getServerSupabase } from "@/lib/supabase";
 import { getStripe } from "@/lib/stripe";
-import { syncSubscriptionFromStripe } from "@/lib/stripe-billing";
+import {
+  subscriptionPeriodEndIso,
+  syncSubscriptionFromStripe,
+} from "@/lib/stripe-billing";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,9 +39,7 @@ export async function POST() {
     return NextResponse.json({
       ok: true,
       cancel_at_period_end: updated.cancel_at_period_end,
-      current_period_end: updated.current_period_end
-        ? new Date(updated.current_period_end * 1000).toISOString()
-        : null,
+      current_period_end: subscriptionPeriodEndIso(updated),
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Cancel failed";
