@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import type { BillingCycle } from "@/lib/stripe-billing";
 import { PLAN_LABEL, type Plan } from "@/lib/plan";
 
-type Cycle = "monthly" | "annual";
+type Cycle = BillingCycle;
 
 type PlanCard = {
   id: Plan;
@@ -90,12 +91,59 @@ async function startCheckout(plan: Plan, cycle: Cycle): Promise<{ ok: boolean; u
   return { ok: true };
 }
 
-export function PlanCards({ currentPlan }: { currentPlan: Plan | null }) {
+function cycleLabel(cycle: Cycle): string {
+  return cycle === "annual" ? "annual" : "monthly";
+}
+
+export function PlanCards({
+  currentPlan,
+  currentBillingCycle,
+}: {
+  currentPlan: Plan | null;
+  currentBillingCycle?: BillingCycle | null;
+}) {
   const router = useRouter();
-  const [cycle, setCycle] = useState<Cycle>("monthly");
+  const [cycle, setCycle] = useState<Cycle>(currentBillingCycle ?? "monthly");
   const [busy, setBusy] = useState<Plan | "cancel" | "portal" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cycleSwitchDialog, setCycleSwitchDialog] = useState<{
+    plan: Plan;
+    planName: string;
+    billed: string;
+    cycle: Cycle;
+  } | null>(null);
+
+  function isCurrentPlanAndCycle(plan: Plan): boolean {
+    if (currentPlan !== plan) return false;
+    if (plan === "free") return true;
+    return currentBillingCycle === cycle;
+  }
+
+  function isBillingCycleSwitch(plan: Plan): boolean {
+    if (currentPlan !== plan) return false;
+    if (plan === "free") return false;
+    if (!currentBillingCycle) return false;
+    return currentBillingCycle !== cycle;
+  }
+
+  async function executeCheckout(plan: Plan) {
+    setBusy(plan);
+    setError(null);
+    try {
+      const result = await startCheckout(plan, cycle);
+      if (!result.ok) {
+        setError(result.error ?? "Checkout failed");
+        return;
+      }
+      setCycleSwitchDialog(null);
+      if (!result.url) router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Network error");
+    } finally {
+      setBusy(null);
+    }
+  }
 
   async function executeCancel() {
     setBusy("cancel");
@@ -121,27 +169,28 @@ export function PlanCards({ currentPlan }: { currentPlan: Plan | null }) {
       router.push(`/signup?next=/pricing`);
       return;
     }
-    if (plan === currentPlan) return;
 
     if (plan === "free") {
       setCancelDialogOpen(true);
       return;
     }
 
-    setBusy(plan);
-    setError(null);
-    try {
-      const result = await startCheckout(plan, cycle);
-      if (!result.ok) {
-        setError(result.error ?? "Checkout failed");
-        return;
-      }
-      if (!result.url) router.refresh();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Network error");
-    } finally {
-      setBusy(null);
+    if (isCurrentPlanAndCycle(plan)) return;
+
+    const target = PLANS.find((p) => p.id === plan)!;
+    const { primary: billed } = priceForCycle(target, cycle);
+
+    if (isBillingCycleSwitch(plan)) {
+      setCycleSwitchDialog({
+        plan,
+        planName: target.name,
+        billed,
+        cycle,
+      });
+      return;
     }
+
+    await executeCheckout(plan);
   }
 
   async function openPortal() {
@@ -178,6 +227,31 @@ export function PlanCards({ currentPlan }: { currentPlan: Plan | null }) {
         onCancel={() => setCancelDialogOpen(false)}
       />
 
+      <ConfirmDialog
+        open={cycleSwitchDialog !== null}
+        title={
+          cycleSwitchDialog
+            ? `Switch to ${cycleLabel(cycleSwitchDialog.cycle)} billing?`
+            : ""
+        }
+        description={
+          cycleSwitchDialog
+            ? `Your ${cycleSwitchDialog.planName} plan will move to ${cycleLabel(cycleSwitchDialog.cycle)} billing at ${cycleSwitchDialog.billed}. Changes apply immediately; Stripe may charge or credit a prorated amount.`
+            : ""
+        }
+        confirmLabel={
+          cycleSwitchDialog
+            ? `Switch to ${cycleLabel(cycleSwitchDialog.cycle)}`
+            : "Confirm"
+        }
+        cancelLabel="Not now"
+        busy={cycleSwitchDialog !== null && busy === cycleSwitchDialog.plan}
+        onConfirm={() => {
+          if (cycleSwitchDialog) void executeCheckout(cycleSwitchDialog.plan);
+        }}
+        onCancel={() => setCycleSwitchDialog(null)}
+      />
+
     <div className="space-y-6">
       <div className="flex flex-col items-center gap-2">
         <div className="inline-flex rounded-full border border-primary/20 bg-surface-container-low p-1 text-label-md">
@@ -211,7 +285,8 @@ export function PlanCards({ currentPlan }: { currentPlan: Plan | null }) {
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {PLANS.map((p) => {
-          const isCurrent = currentPlan === p.id;
+          const isCurrent = isCurrentPlanAndCycle(p.id);
+          const cycleSwitch = isBillingCycleSwitch(p.id);
           const { primary, secondary } = priceForCycle(p, cycle);
           return (
             <div
@@ -243,6 +318,17 @@ export function PlanCards({ currentPlan }: { currentPlan: Plan | null }) {
                   <span className="btn-secondary block w-full cursor-default text-center">
                     Current plan
                   </span>
+                ) : cycleSwitch ? (
+                  <button
+                    type="button"
+                    className={p.featured ? "btn-primary w-full" : "btn-secondary w-full"}
+                    onClick={() => switchTo(p.id)}
+                    disabled={busy !== null}
+                  >
+                    {busy === p.id
+                      ? "Processing…"
+                      : `Switch to ${cycleLabel(cycle)} — ${primary}`}
+                  </button>
                 ) : currentPlan ? (
                   <button
                     type="button"
@@ -283,8 +369,14 @@ export function PlanCards({ currentPlan }: { currentPlan: Plan | null }) {
         <div className="card mx-auto max-w-md space-y-3 text-center">
           <h3 className="font-display text-headline-sm text-on-surface">Manage billing</h3>
           <p className="text-body-sm text-on-surface-variant">
-            Currently on <strong>{currentPlan ? PLAN_LABEL[currentPlan] : ""}</strong>.
-            Update payment method or cancel via Stripe.
+            Currently on <strong>{currentPlan ? PLAN_LABEL[currentPlan] : ""}</strong>
+            {currentBillingCycle ? (
+              <>
+                {" "}
+                · <strong>{cycleLabel(currentBillingCycle)}</strong> billing
+              </>
+            ) : null}
+            . Update payment method or cancel via Stripe.
           </p>
           <button
             type="button"

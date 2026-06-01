@@ -1,19 +1,30 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { getServerSupabase } from "@/lib/supabase";
-import { getEffectivePlan } from "@/lib/stripe-billing";
+import {
+  getCurrentBillingCycle,
+  getEffectivePlan,
+  type BillingCycle,
+} from "@/lib/stripe-billing";
 import { PlanCards } from "@/components/billing/PlanCards";
 import type { Plan } from "@/lib/plan";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Plans & Pricing | SafeTrack" };
 
-async function loadCurrentPlan(): Promise<{ plan: Plan; signedIn: boolean }> {
+async function loadSubscriptionContext(): Promise<{
+  plan: Plan;
+  billingCycle: BillingCycle | null;
+  signedIn: boolean;
+}> {
   const user = await getCurrentUser();
-  if (!user) return { plan: "free", signedIn: false };
+  if (!user) return { plan: "free", billingCycle: null, signedIn: false };
   const supabase = getServerSupabase();
-  const plan = await getEffectivePlan(supabase, user.id);
-  return { plan, signedIn: true };
+  const [plan, billingCycle] = await Promise.all([
+    getEffectivePlan(supabase, user.id),
+    getCurrentBillingCycle(supabase, user.id),
+  ]);
+  return { plan, billingCycle, signedIn: true };
 }
 
 export default async function PricingPage({
@@ -21,7 +32,7 @@ export default async function PricingPage({
 }: {
   searchParams: Promise<{ checkout?: string }>;
 }) {
-  const { plan, signedIn } = await loadCurrentPlan();
+  const { plan, billingCycle, signedIn } = await loadSubscriptionContext();
   const { checkout } = await searchParams;
 
   return (
@@ -52,7 +63,10 @@ export default async function PricingPage({
         ) : null}
       </div>
 
-      <PlanCards currentPlan={signedIn ? plan : null} />
+      <PlanCards
+        currentPlan={signedIn ? plan : null}
+        currentBillingCycle={signedIn ? billingCycle : null}
+      />
 
       <div className="card text-center">
         <h2 className="font-display text-headline-sm text-primary">FAQ</h2>

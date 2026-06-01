@@ -1,7 +1,9 @@
 import type Stripe from "stripe";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { type Plan } from "./plan";
-import { planFromStripePrice } from "./stripe";
+import { planFromStripePrice, type BillingCycle } from "./stripe";
+
+export type { BillingCycle };
 
 export type SubscriptionRow = {
   user_id: string;
@@ -13,6 +15,25 @@ export type SubscriptionRow = {
   current_period_end: string | null;
   cancel_at_period_end: boolean;
 };
+
+/** Active billing cycle for paid subscribers, if known. */
+export async function getCurrentBillingCycle(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<BillingCycle | null> {
+  const plan = await getEffectivePlan(supabase, userId);
+  if (plan !== "personal" && plan !== "family") return null;
+
+  const { data: sub } = await supabase
+    .from("stripe_subscriptions")
+    .select("billing_cycle")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  const raw = sub?.billing_cycle as string | undefined;
+  if (raw === "monthly" || raw === "annual") return raw;
+  return null;
+}
 
 /** Effective paid plan from stripe_subscriptions + profiles fallback. */
 export async function getEffectivePlan(
