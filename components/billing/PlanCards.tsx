@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { PLAN_LABEL, type Plan } from "@/lib/plan";
 
 type Cycle = "monthly" | "annual";
@@ -94,6 +95,26 @@ export function PlanCards({ currentPlan }: { currentPlan: Plan | null }) {
   const [cycle, setCycle] = useState<Cycle>("monthly");
   const [busy, setBusy] = useState<Plan | "cancel" | "portal" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+
+  async function executeCancel() {
+    setBusy("cancel");
+    setError(null);
+    try {
+      const res = await fetch("/api/stripe/cancel", { method: "POST" });
+      const json = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        setError(json.error ?? `Failed (${res.status})`);
+        return;
+      }
+      setCancelDialogOpen(false);
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Network error");
+    } finally {
+      setBusy(null);
+    }
+  }
 
   async function switchTo(plan: Plan) {
     if (!currentPlan) {
@@ -102,36 +123,10 @@ export function PlanCards({ currentPlan }: { currentPlan: Plan | null }) {
     }
     if (plan === currentPlan) return;
 
-    const target = PLANS.find((p) => p.id === plan)!;
-    const billed = priceForCycle(target, cycle).primary;
-
     if (plan === "free") {
-      const msg =
-        "Cancel your subscription? You will keep paid features until the end of the current billing period, then return to Free.";
-      if (!window.confirm(msg)) return;
-      setBusy("cancel");
-      setError(null);
-      try {
-        const res = await fetch("/api/stripe/cancel", { method: "POST" });
-        const json = (await res.json().catch(() => ({}))) as { error?: string };
-        if (!res.ok) {
-          setError(json.error ?? `Failed (${res.status})`);
-          return;
-        }
-        router.refresh();
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Network error");
-      } finally {
-        setBusy(null);
-      }
+      setCancelDialogOpen(true);
       return;
     }
-
-    const isDowngrade = currentPlan === "family" && plan === "personal";
-    const msg = isDowngrade
-      ? `Change to ${target.name} (${billed})? Upgrades apply immediately; downgrades follow Stripe proration rules.`
-      : `Subscribe to ${target.name} at ${billed}?`;
-    if (!window.confirm(msg)) return;
 
     setBusy(plan);
     setError(null);
@@ -170,6 +165,19 @@ export function PlanCards({ currentPlan }: { currentPlan: Plan | null }) {
   const showCancel = currentPlan === "personal" || currentPlan === "family";
 
   return (
+    <>
+      <ConfirmDialog
+        open={cancelDialogOpen}
+        title="Cancel subscription?"
+        description="You will keep paid features until the end of your current billing period, then your account returns to the Free plan. You will not be charged again."
+        confirmLabel="Cancel subscription"
+        cancelLabel="Keep my plan"
+        variant="danger"
+        busy={busy === "cancel"}
+        onConfirm={() => void executeCancel()}
+        onCancel={() => setCancelDialogOpen(false)}
+      />
+
     <div className="space-y-6">
       <div className="flex flex-col items-center gap-2">
         <div className="inline-flex rounded-full border border-primary/20 bg-surface-container-low p-1 text-label-md">
@@ -297,5 +305,6 @@ export function PlanCards({ currentPlan }: { currentPlan: Plan | null }) {
         </div>
       ) : null}
     </div>
+    </>
   );
 }
