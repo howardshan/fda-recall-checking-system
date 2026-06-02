@@ -80,7 +80,7 @@ export default async function PricingPage({
 
       <div className="card text-center">
         <h2 className="font-display text-headline-sm text-primary">FAQ</h2>
-        <dl className="mt-4 grid grid-cols-1 gap-6 text-left md:grid-cols-3">
+        <dl className="mt-4 grid grid-cols-1 gap-6 text-left md:grid-cols-2">
           <div>
             <dt className="font-medium text-on-surface">Will I be charged today?</dt>
             <dd className="mt-1 text-body-sm text-on-surface-variant">
@@ -93,6 +93,15 @@ export default async function PricingPage({
             <dd className="mt-1 text-body-sm text-on-surface-variant">
               Yes — cancel anytime. Paid features remain until the end of your current
               billing period, then your account returns to Free.
+            </dd>
+          </div>
+          <div>
+            <dt className="font-medium text-on-surface">Cancellation, balance &amp; refunds</dt>
+            <dd className="mt-1 text-body-sm text-on-surface-variant">
+              Cancelling takes effect at the end of your billing period, not immediately.
+              Credit from plan changes may be used toward upcoming monthly charges first.
+              When your subscription ends, any unused account credit is automatically
+              refunded to your original payment method (usually within 5–10 business days).
             </dd>
           </div>
           <div>
