@@ -8,6 +8,7 @@ import {
   syncSubscriptionFromEvent,
   syncSubscriptionFromStripe,
 } from "@/lib/stripe-billing";
+import { handleSubscriptionDeleted } from "@/lib/subscription-ended";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -73,8 +74,7 @@ export async function POST(req: Request) {
       }
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
-        const userId = await resolveUserIdForSubscription(admin, sub);
-        if (userId) await revokePaidAccess(admin, userId);
+        await handleSubscriptionDeleted(admin, sub, event.id, stripe);
         break;
       }
       case "invoice.payment_succeeded": {

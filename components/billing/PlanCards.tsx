@@ -287,7 +287,7 @@ export function PlanCards({
       <ConfirmDialog
         open={cancelDialogOpen}
         title="Cancel subscription?"
-        description="You will keep paid features until the end of your current billing period, then your account returns to the Free plan. You will not be charged again."
+        description="You will keep paid features until the end of your current billing period, then your account returns to the Free plan. You will not be charged again. If you have account credit from a plan change, it may be applied to monthly charges before your period ends; any unused credit after your subscription ends will be refunded automatically to your original payment method (typically within 5–10 business days). Cancellation is not immediate."
         confirmLabel="Cancel subscription"
         cancelLabel="Keep my plan"
         variant="danger"
