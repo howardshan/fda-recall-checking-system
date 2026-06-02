@@ -20,6 +20,37 @@ type PlanCard = {
   bullets: string[];
 };
 
+type PlanChangePreview = {
+  hasActiveSubscription: boolean;
+  current?: {
+    plan: string | null;
+    cycle: string | null;
+    priceId: string;
+    amountCents: number;
+    currency: string;
+    interval: string | null;
+  };
+  target: {
+    plan: Plan;
+    cycle: Cycle;
+    priceId: string;
+    amountCents?: number;
+    currency?: string;
+    interval?: string | null;
+  };
+  estimate: {
+    amountDueNowCents: number;
+    totalCents: number;
+    subtotalCents?: number;
+    prorationCents: number;
+    lineItems: Array<{
+      description: string;
+      amountCents: number;
+      proration: boolean;
+    }>;
+  };
+};
+
 const PLANS: PlanCard[] = [
   {
     id: "free",
@@ -95,6 +126,34 @@ function cycleLabel(cycle: Cycle): string {
   return cycle === "annual" ? "annual" : "monthly";
 }
 
+function prettyCycle(cycle: string | null | undefined): string {
+  if (cycle === "annual" || cycle === "year") return "Annual";
+  return "Monthly";
+}
+
+function formatMoney(cents: number, currency = "usd"): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: currency.toUpperCase(),
+  }).format((cents ?? 0) / 100);
+}
+
+async function previewPlanChange(
+  plan: Plan,
+  cycle: Cycle,
+): Promise<{ ok: boolean; data?: PlanChangePreview; error?: string }> {
+  const res = await fetch("/api/stripe/preview", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ plan, cycle }),
+  });
+  const json = (await res.json().catch(() => ({}))) as PlanChangePreview & {
+    error?: string;
+  };
+  if (!res.ok) return { ok: false, error: json.error ?? `Failed (${res.status})` };
+  return { ok: true, data: json };
+}
+
 export function PlanCards({
   currentPlan,
   currentBillingCycle,
@@ -105,13 +164,15 @@ export function PlanCards({
   const router = useRouter();
   const [cycle, setCycle] = useState<Cycle>(currentBillingCycle ?? "monthly");
   const [busy, setBusy] = useState<Plan | "cancel" | "portal" | null>(null);
+  const [previewBusy, setPreviewBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
-  const [cycleSwitchDialog, setCycleSwitchDialog] = useState<{
+  const [changeDialog, setChangeDialog] = useState<{
     plan: Plan;
     planName: string;
     billed: string;
     cycle: Cycle;
+    preview?: PlanChangePreview;
   } | null>(null);
 
   function isCurrentPlanAndCycle(plan: Plan): boolean {
@@ -136,7 +197,7 @@ export function PlanCards({
         setError(result.error ?? "Checkout failed");
         return;
       }
-      setCycleSwitchDialog(null);
+      setChangeDialog(null);
       if (!result.url) router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Network error");
@@ -179,18 +240,26 @@ export function PlanCards({
 
     const target = PLANS.find((p) => p.id === plan)!;
     const { primary: billed } = priceForCycle(target, cycle);
-
-    if (isBillingCycleSwitch(plan)) {
-      setCycleSwitchDialog({
+    setPreviewBusy(true);
+    setError(null);
+    try {
+      const preview = await previewPlanChange(plan, cycle);
+      if (!preview.ok) {
+        setError(preview.error ?? "Could not preview billing change");
+        return;
+      }
+      setChangeDialog({
         plan,
         planName: target.name,
         billed,
         cycle,
+        preview: preview.data,
       });
-      return;
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Network error");
+    } finally {
+      setPreviewBusy(false);
     }
-
-    await executeCheckout(plan);
   }
 
   async function openPortal() {
@@ -228,28 +297,84 @@ export function PlanCards({
       />
 
       <ConfirmDialog
-        open={cycleSwitchDialog !== null}
-        title={
-          cycleSwitchDialog
-            ? `Switch to ${cycleLabel(cycleSwitchDialog.cycle)} billing?`
-            : ""
-        }
-        description={
-          cycleSwitchDialog
-            ? `Your ${cycleSwitchDialog.planName} plan will move to ${cycleLabel(cycleSwitchDialog.cycle)} billing at ${cycleSwitchDialog.billed}. Changes apply immediately; Stripe may charge or credit a prorated amount.`
-            : ""
+        open={changeDialog !== null}
+        title={changeDialog ? "Confirm plan change" : ""}
+        description="Changes apply immediately. Final billing is calculated by Stripe at confirmation time."
+        size="lg"
+        details={
+          changeDialog ? (
+            <div className="space-y-4">
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="rounded-lg border border-outline-variant bg-surface-container-low p-4">
+                  <p className="text-label-sm text-on-surface-variant">Current</p>
+                  <p className="mt-1 font-display text-headline-sm text-on-surface">
+                    {currentPlan ? PLAN_LABEL[currentPlan] : "Unknown"}
+                  </p>
+                  <p className="mt-1 text-body-sm text-on-surface-variant">
+                    {prettyCycle(currentBillingCycle)}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-primary/30 bg-primary-container/20 p-4">
+                  <p className="text-label-sm text-on-surface-variant">After change</p>
+                  <p className="mt-1 font-display text-headline-sm text-on-surface">
+                    {changeDialog.planName}
+                  </p>
+                  <p className="mt-1 text-body-sm text-on-surface-variant">
+                    {prettyCycle(changeDialog.cycle)} · {changeDialog.billed}
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-primary/20 bg-surface-container p-4">
+                <div className="flex items-baseline justify-between gap-3">
+                  <p className="text-label-sm text-on-surface-variant">Estimated due now</p>
+                  <p className="font-display text-headline-sm text-primary">
+                    {formatMoney(
+                      changeDialog.preview?.estimate.amountDueNowCents ?? 0,
+                      changeDialog.preview?.current?.currency ??
+                        changeDialog.preview?.target.currency ??
+                        "usd",
+                    )}
+                  </p>
+                </div>
+                <p className="mt-1 text-body-sm text-on-surface-variant">
+                  Includes prorated credits/charges where applicable.
+                </p>
+                {(changeDialog.preview?.estimate.lineItems?.length ?? 0) > 0 ? (
+                  <div className="mt-3 space-y-2 rounded-md border border-outline-variant p-3">
+                    {changeDialog.preview?.estimate.lineItems.map((line, idx) => (
+                      <div key={`${line.description}-${idx}`} className="flex justify-between gap-3 text-body-sm">
+                        <span className="text-on-surface-variant">
+                          {line.description}
+                          {line.proration ? " (proration)" : ""}
+                        </span>
+                        <span className={line.amountCents < 0 ? "text-tertiary" : "text-on-surface"}>
+                          {formatMoney(
+                            line.amountCents,
+                            changeDialog.preview?.current?.currency ??
+                              changeDialog.preview?.target.currency ??
+                              "usd",
+                          )}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          ) : null
         }
         confirmLabel={
-          cycleSwitchDialog
-            ? `Switch to ${cycleLabel(cycleSwitchDialog.cycle)}`
+          changeDialog
+            ? `Confirm — ${changeDialog.planName} ${prettyCycle(changeDialog.cycle)}`
             : "Confirm"
         }
         cancelLabel="Not now"
-        busy={cycleSwitchDialog !== null && busy === cycleSwitchDialog.plan}
+        busy={changeDialog !== null && busy === changeDialog.plan}
         onConfirm={() => {
-          if (cycleSwitchDialog) void executeCheckout(cycleSwitchDialog.plan);
+          if (changeDialog) void executeCheckout(changeDialog.plan);
         }}
-        onCancel={() => setCycleSwitchDialog(null)}
+        onCancel={() => setChangeDialog(null)}
       />
 
     <div className="space-y-6">
@@ -323,10 +448,12 @@ export function PlanCards({
                     type="button"
                     className={p.featured ? "btn-primary w-full" : "btn-secondary w-full"}
                     onClick={() => switchTo(p.id)}
-                    disabled={busy !== null}
+                    disabled={busy !== null || previewBusy}
                   >
                     {busy === p.id
                       ? "Processing…"
+                      : previewBusy
+                      ? "Calculating…"
                       : `Switch to ${cycleLabel(cycle)} — ${primary}`}
                   </button>
                 ) : currentPlan ? (
@@ -334,10 +461,12 @@ export function PlanCards({
                     type="button"
                     className={p.featured ? "btn-primary w-full" : "btn-secondary w-full"}
                     onClick={() => switchTo(p.id)}
-                    disabled={busy !== null}
+                    disabled={busy !== null || previewBusy}
                   >
                     {busy === p.id
                       ? "Processing…"
+                      : previewBusy
+                      ? "Calculating…"
                       : p.id === "free"
                       ? "Downgrade to Free"
                       : `Subscribe — ${p.name}`}
