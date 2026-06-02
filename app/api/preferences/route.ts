@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerAuthSupabase } from "@/lib/auth";
+import { getServerSupabase } from "@/lib/supabase";
+import { canReceiveInstantEmail, getUserPlan } from "@/lib/plan";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,8 +27,6 @@ type PatchBody = {
   email_enabled?: boolean;
   email_instant_enabled?: boolean;
   email_digest_enabled?: boolean;
-  sms_enabled?: boolean;
-  phone_number?: string | null;
   alert_on_class_i?: boolean;
   alert_on_class_ii?: boolean;
   alert_on_class_iii?: boolean;
@@ -45,13 +45,24 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
+  const admin = getServerSupabase();
+  const plan = await getUserPlan(admin, userData.user.id);
+
+  if (
+    body.email_instant_enabled === true &&
+    !canReceiveInstantEmail(plan)
+  ) {
+    return NextResponse.json(
+      { error: "Instant recall emails require a Personal Pro or Family Protection plan." },
+      { status: 400 },
+    );
+  }
+
   const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
   for (const key of [
     "email_enabled",
     "email_instant_enabled",
     "email_digest_enabled",
-    "sms_enabled",
-    "phone_number",
     "alert_on_class_i",
     "alert_on_class_ii",
     "alert_on_class_iii",

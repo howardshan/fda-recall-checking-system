@@ -19,8 +19,7 @@
     "nodemailer": "^6.9.16",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "stripe": "^17.7.0",
-    "twilio": "^5.3.5"
+    "stripe": "^17.7.0"
   },
   "devDependencies": {
     "@swc/helpers": "^0.5.21",

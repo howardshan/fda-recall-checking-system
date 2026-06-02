@@ -62,8 +62,8 @@ const PLANS: PlanCard[] = [
     featured: false,
     bullets: [
       "Track 2 medications",
-      "Daily recall digest",
-      "Instant + digest email options",
+      "Daily recall digest email",
+      "In-app recall alerts",
     ],
   },
   {
@@ -76,9 +76,9 @@ const PLANS: PlanCard[] = [
     featured: true,
     bullets: [
       "Track up to 20 medications",
-      "Instant recall alerts",
+      "Instant recall emails",
       "Lot-number tracking",
-      "SMS opt-in (Class I & II)",
+      "In-app recall alerts",
     ],
   },
   {
@@ -92,7 +92,7 @@ const PLANS: PlanCard[] = [
     bullets: [
       "Up to 5 family members",
       "Up to 50 tracked products",
-      "Shared monitoring dashboard",
+      "Per-member medicine cabinets",
       "All Personal Pro features",
     ],
   },

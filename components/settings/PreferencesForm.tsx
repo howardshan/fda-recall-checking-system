@@ -1,13 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
+import { canReceiveInstantEmail, type Plan } from "@/lib/plan";
 
 export type Preferences = {
   email_enabled: boolean;
   email_instant_enabled: boolean;
   email_digest_enabled: boolean;
-  sms_enabled: boolean;
-  phone_number: string | null;
   alert_on_class_i: boolean;
   alert_on_class_ii: boolean;
   alert_on_class_iii: boolean;
@@ -17,8 +17,6 @@ const DEFAULT_PREFS: Preferences = {
   email_enabled: true,
   email_instant_enabled: true,
   email_digest_enabled: true,
-  sms_enabled: false,
-  phone_number: null,
   alert_on_class_i: true,
   alert_on_class_ii: true,
   alert_on_class_iii: false,
@@ -56,8 +54,21 @@ function Toggle({
   );
 }
 
-export function PreferencesForm({ initial }: { initial: Preferences | null }) {
-  const [prefs, setPrefs] = useState<Preferences>(initial ?? DEFAULT_PREFS);
+export function PreferencesForm({
+  initial,
+  currentPlan = "free",
+}: {
+  initial: Preferences | null;
+  currentPlan?: Plan;
+}) {
+  const instantAllowed = canReceiveInstantEmail(currentPlan);
+  const [prefs, setPrefs] = useState<Preferences>(() => {
+    const base = initial ?? DEFAULT_PREFS;
+    if (!instantAllowed && base.email_instant_enabled) {
+      return { ...base, email_instant_enabled: false };
+    }
+    return base;
+  });
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -104,12 +115,28 @@ export function PreferencesForm({ initial }: { initial: Preferences | null }) {
           />
           {prefs.email_enabled ? (
             <>
-              <Toggle
-                label="Instant recall alerts"
-                description="Class-styled email as soon as we detect a match for your cabinet."
-                checked={prefs.email_instant_enabled}
-                onChange={(v) => set("email_instant_enabled", v)}
-              />
+              {instantAllowed ? (
+                <Toggle
+                  label="Instant recall alerts"
+                  description="Class-styled email as soon as we detect a match for your cabinet."
+                  checked={prefs.email_instant_enabled}
+                  onChange={(v) => set("email_instant_enabled", v)}
+                />
+              ) : (
+                <div className="py-3">
+                  <p className="text-label-md text-on-surface">Instant recall alerts</p>
+                  <p className="mt-1 text-label-sm text-on-surface-variant">
+                    Available on Personal Pro and Family Protection. Free accounts receive a
+                    daily digest instead.
+                  </p>
+                  <Link
+                    href="/pricing"
+                    className="mt-2 inline-block text-label-md text-secondary hover:underline"
+                  >
+                    View plans →
+                  </Link>
+                </div>
+              )}
               <Toggle
                 label="Daily digest"
                 description="One summary per day — includes matches or an all-clear check."
@@ -117,27 +144,6 @@ export function PreferencesForm({ initial }: { initial: Preferences | null }) {
                 onChange={(v) => set("email_digest_enabled", v)}
               />
             </>
-          ) : null}
-          <Toggle
-            label="SMS"
-            description="Phase 2 — requires phone verification. Class I + II only (short message limit)."
-            checked={prefs.sms_enabled}
-            onChange={(v) => set("sms_enabled", v)}
-          />
-          {prefs.sms_enabled ? (
-            <div className="py-3">
-              <label className="flex flex-col gap-2">
-                <span className="text-label-md text-on-surface-variant">Phone number</span>
-                <input
-                  type="tel"
-                  inputMode="tel"
-                  className="input bg-surface-container-low font-mono"
-                  placeholder="+1 555 555 5555"
-                  value={prefs.phone_number ?? ""}
-                  onChange={(e) => set("phone_number", e.target.value || null)}
-                />
-              </label>
-            </div>
           ) : null}
         </div>
       </section>

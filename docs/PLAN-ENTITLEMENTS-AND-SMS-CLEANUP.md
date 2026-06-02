@@ -1,7 +1,8 @@
 # 订阅权益对齐 & SMS 移除 — 改动清单
 
-**版本**：1.0  
+**版本**：1.1  
 **日期**：2026-06-02  
+**实施状态**：已完成（2026-06-02）
 **背景**：对照 [REQUIREMENTS-CLIENT.md](./REQUIREMENTS-CLIENT.md) 与 `components/billing/PlanCards.tsx` 卖点；当前仅 **药品数 / 家庭成员数** 按 plan 强制，即时邮件、批号、SMS 等未分层。产品已决定 **现阶段不提供 SMS**，需从前端与后端清理残留。
 
 ---
@@ -17,7 +18,7 @@
 | D5 | **Family「共享看板」** | Dashboard 按成员分组 + 未读计数 | 仅加导航入口 + 药箱列表显示成员名 |
 | D6 | **定价页 FAQ「化妆品/食品」** | 删除或改为「不在当前版本」 | 保留 Coming soon |
 
-**推荐**：D1→方案 A，D3→方案 A，D4→方案 A（符合合同「支付失败立即停止监控」），D5→方案 B（最小可行），D6→删除误导性 FAQ。
+**已确认（2026-06-02）**：全部采用方案 A（D5 为方案 B：导航 + 药箱成员名，无 Dashboard 按成员汇总）。
 
 ---
 
@@ -197,3 +198,25 @@ flowchart TD
 | 版本 | 日期 | 说明 |
 |------|------|------|
 | 1.0 | 2026-06-02 | 初版：权益对齐 + SMS 清理清单 |
+| 1.1 | 2026-06-02 | 代码已落地；见 `lib/plan.ts`、`lib/plan-monitoring.ts`、SMS 已移除 |
+
+---
+
+## 7. 实施后验收（勾选）
+
+### 订阅
+
+- [x] Free 用户第 3 个药 402 + UpgradeModal
+- [x] Personal 最多 20 药；Family 50 药 + 5 成员
+- [x] Free 无法开启 instant（UI + API）
+- [x] Personal/Family 可收 instant 邮件（需 SMTP 配置）
+- [x] 支付失败 / 订阅结束 → `revokePaidAccess` + `syncMonitoringQuota`
+- [x] 取消订阅账期内仍为付费 plan（既有 Stripe 逻辑）
+
+### SMS 已移除
+
+- [x] `/settings/notifications` 无 SMS / 电话
+- [x] `/pricing` Personal 无 SMS 文案
+- [x] `/privacy` 无 SMS 表述
+- [x] `npm run build` 通过（无 twilio）
+- [x] dispatcher 不发送短信

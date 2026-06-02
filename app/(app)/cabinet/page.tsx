@@ -11,18 +11,40 @@ type Item = {
   lot_number: string | null;
   added_at: string;
   manufacturer_unverified: boolean;
+  member_id: number | null;
+  family_members: { display_name: string } | { display_name: string }[] | null;
 };
 
-async function getItems(): Promise<Item[]> {
+function memberDisplayName(
+  ref: Item["family_members"],
+): string | null {
+  if (!ref) return null;
+  if (Array.isArray(ref)) return ref[0]?.display_name ?? null;
+  return ref.display_name ?? null;
+}
+
+async function getActiveItems(): Promise<Item[]> {
   const supabase = await getServerAuthSupabase();
   const { data } = await supabase
     .from("medication_items")
     .select(
-      "id, product_name, manufacturer, product_ndc, lot_number, added_at, manufacturer_unverified",
+      "id, product_name, manufacturer, product_ndc, lot_number, added_at, manufacturer_unverified, member_id, family_members(display_name)",
     )
     .eq("status", "active")
     .order("added_at", { ascending: false });
-  return (data ?? []) as Item[];
+  return (data ?? []) as unknown as Item[];
+}
+
+async function getPausedItems(): Promise<Item[]> {
+  const supabase = await getServerAuthSupabase();
+  const { data } = await supabase
+    .from("medication_items")
+    .select(
+      "id, product_name, manufacturer, product_ndc, lot_number, added_at, manufacturer_unverified, member_id, family_members(display_name)",
+    )
+    .eq("status", "paused")
+    .order("added_at", { ascending: false });
+  return (data ?? []) as unknown as Item[];
 }
 
 async function getUnreadByItem(): Promise<Map<number, number>> {
@@ -52,8 +74,89 @@ function formatDate(iso: string | null): string {
   }
 }
 
+function memberLabel(item: Item): string | null {
+  const name = memberDisplayName(item.family_members);
+  if (name) return name;
+  if (item.member_id != null) return "Family member";
+  return null;
+}
+
+function MedCard({
+  item,
+  unread,
+  dimmed,
+}: {
+  item: Item;
+  unread: number;
+  dimmed?: boolean;
+}) {
+  const forLabel = memberLabel(item);
+  return (
+    <Link
+      href={`/cabinet/${item.id}/edit`}
+      className={`card block transition hover:bg-surface-container-low ${
+        unread > 0 ? "border-error/40" : ""
+      } ${dimmed ? "opacity-80" : ""}`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="font-display text-headline-sm text-primary truncate">
+            {item.product_name}
+          </h3>
+          <p className="text-body-md text-on-surface-variant truncate">
+            {item.manufacturer}
+          </p>
+          {forLabel ? (
+            <p className="mt-1 text-label-sm text-secondary">For: {forLabel}</p>
+          ) : null}
+        </div>
+        {item.manufacturer_unverified ? (
+          <span className="chip bg-surface-container-high text-on-surface shrink-0">
+            Not monitored
+          </span>
+        ) : dimmed ? (
+          <span className="chip bg-surface-container-high text-on-surface shrink-0">
+            Paused
+          </span>
+        ) : unread > 0 ? (
+          <span className="chip chip-i shrink-0">
+            {unread} alert{unread === 1 ? "" : "s"}
+          </span>
+        ) : (
+          <span className="chip bg-surface-container-high text-on-surface shrink-0">
+            Monitored
+          </span>
+        )}
+      </div>
+      {item.manufacturer_unverified ? (
+        <p className="mt-2 text-label-sm text-on-surface-variant">
+          Unknown manufacturer — recall monitoring is disabled for this entry.
+        </p>
+      ) : null}
+      <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-label-sm text-on-surface-variant">
+        <div>
+          <dt className="opacity-70">NDC</dt>
+          <dd className="font-mono">{item.product_ndc ?? "—"}</dd>
+        </div>
+        <div>
+          <dt className="opacity-70">Lot</dt>
+          <dd className="font-mono">{item.lot_number ?? "—"}</dd>
+        </div>
+        <div>
+          <dt className="opacity-70">Added</dt>
+          <dd>{formatDate(item.added_at)}</dd>
+        </div>
+      </dl>
+    </Link>
+  );
+}
+
 export default async function CabinetPage() {
-  const [items, unreadByItem] = await Promise.all([getItems(), getUnreadByItem()]);
+  const [items, pausedItems, unreadByItem] = await Promise.all([
+    getActiveItems(),
+    getPausedItems(),
+    getUnreadByItem(),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -69,7 +172,7 @@ export default async function CabinetPage() {
         </Link>
       </div>
 
-      {items.length === 0 ? (
+      {items.length === 0 && pausedItems.length === 0 ? (
         <div className="card flex flex-col items-center gap-4 py-16 text-center">
           <h2 className="font-display text-headline-sm text-primary">Your cabinet is empty</h2>
           <p className="max-w-md text-body-md text-on-surface-variant">
@@ -81,64 +184,47 @@ export default async function CabinetPage() {
           </Link>
         </div>
       ) : (
-        <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {items.map((item) => {
-            const unread = unreadByItem.get(item.id) ?? 0;
-            return (
-              <li key={item.id}>
-                <Link
-                  href={`/cabinet/${item.id}/edit`}
-                  className={`card block transition hover:bg-surface-container-low ${
-                    unread > 0 ? "border-error/40" : ""
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h3 className="font-display text-headline-sm text-primary truncate">
-                        {item.product_name}
-                      </h3>
-                      <p className="text-body-md text-on-surface-variant truncate">
-                        {item.manufacturer}
-                      </p>
-                    </div>
-                    {item.manufacturer_unverified ? (
-                      <span className="chip bg-surface-container-high text-on-surface shrink-0">
-                        Not monitored
-                      </span>
-                    ) : unread > 0 ? (
-                      <span className="chip chip-i shrink-0">
-                        {unread} alert{unread === 1 ? "" : "s"}
-                      </span>
-                    ) : (
-                      <span className="chip bg-surface-container-high text-on-surface shrink-0">
-                        Monitored
-                      </span>
-                    )}
-                  </div>
-                  {item.manufacturer_unverified ? (
-                    <p className="mt-2 text-label-sm text-on-surface-variant">
-                      Unknown manufacturer — recall monitoring is disabled for this entry.
-                    </p>
-                  ) : null}
-                  <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-label-sm text-on-surface-variant">
-                    <div>
-                      <dt className="opacity-70">NDC</dt>
-                      <dd className="font-mono">{item.product_ndc ?? "—"}</dd>
-                    </div>
-                    <div>
-                      <dt className="opacity-70">Lot</dt>
-                      <dd className="font-mono">{item.lot_number ?? "—"}</dd>
-                    </div>
-                    <div>
-                      <dt className="opacity-70">Added</dt>
-                      <dd>{formatDate(item.added_at)}</dd>
-                    </div>
-                  </dl>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        <>
+          {items.length > 0 ? (
+            <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {items.map((item) => (
+                <li key={item.id}>
+                  <MedCard item={item} unread={unreadByItem.get(item.id) ?? 0} />
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
+          {pausedItems.length > 0 ? (
+            <section className="space-y-4">
+              <div>
+                <h2 className="font-display text-headline-sm text-primary">
+                  Monitoring paused
+                </h2>
+                <p className="mt-2 text-body-md text-on-surface-variant">
+                  These medications are saved in your cabinet but are not being checked for
+                  recalls. This usually happens when your plan limit is exceeded or your
+                  subscription ended.{" "}
+                  <Link href="/pricing" className="text-secondary hover:underline">
+                    Upgrade your plan
+                  </Link>{" "}
+                  to resume monitoring (oldest entries are prioritized).
+                </p>
+              </div>
+              <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {pausedItems.map((item) => (
+                  <li key={item.id}>
+                    <MedCard
+                      item={item}
+                      unread={unreadByItem.get(item.id) ?? 0}
+                      dimmed
+                    />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+        </>
       )}
     </div>
   );

@@ -2,7 +2,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { sendEmailQuietly } from "./mailer";
-import { sendSmsQuietly } from "./sms";
+import { canReceiveInstantEmail } from "./plan";
+import { getEffectivePlan } from "./stripe-billing";
 
 type PendingRow = {
   id: number;
@@ -10,7 +11,6 @@ type PendingRow = {
   classification: string | null;
   created_at: string;
   email_sent_at: string | null;
-  sms_sent_at: string | null;
   medication_items: {
     id: number;
     product_name: string;
@@ -27,8 +27,6 @@ type PendingRow = {
   notification_preferences: {
     email_enabled: boolean;
     email_instant_enabled: boolean;
-    sms_enabled: boolean;
-    phone_number: string | null;
     alert_on_class_i: boolean;
     alert_on_class_ii: boolean;
     alert_on_class_iii: boolean;
@@ -92,13 +90,12 @@ function shouldNotifyByClass(
   prefs: PendingRow["notification_preferences"],
 ): boolean {
   if (!prefs) {
-    // No preferences row — default to alert I+II.
     return tier !== "III";
   }
   if (tier === "I") return prefs.alert_on_class_i;
   if (tier === "II") return prefs.alert_on_class_ii;
   if (tier === "III") return prefs.alert_on_class_iii;
-  return prefs.alert_on_class_i; // unknown — treat conservatively
+  return prefs.alert_on_class_i;
 }
 
 function isPastStopDate(stopDate: string | null): boolean {
@@ -117,7 +114,6 @@ async function loadTemplate(): Promise<string> {
 }
 
 function render(template: string, vars: Record<string, string>): string {
-  // Minimal mustache-style: {{var}} substitutions + {{#if x}}...{{/if}} sections.
   let out = template;
   out = out.replace(/\{\{#if\s+(\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g, (_, name, body) =>
     vars[name] ? body : "",
@@ -127,35 +123,15 @@ function render(template: string, vars: Record<string, string>): string {
 }
 
 /**
- * Dispatch pending notifications:
- *   1. fetch notifications where email_sent_at is null AND status='unread'
- *   2. join with med item + recall + profile + prefs
- *   3. filter by class preferences + stop-date rules (Class I always notifies)
- *   4. send email, set email_sent_at
- *
- * Use a service-role Supabase client (so RLS doesn't get in the way).
+ * Dispatch pending instant recall emails for unread notifications.
+ * Use a service-role Supabase client (RLS bypass).
  */
-/**
- * Build a short SMS body for a Class I / II recall. ~160 chars target so
- * single-segment SMS is preferred.
- */
-function smsBodyFor(
-  tier: ClassTier,
-  productName: string,
-  recallNumber: string,
-  appUrl: string,
-): string {
-  const tag = tier === "unknown" ? "FDA recall" : `FDA Class ${tier}`;
-  return `${tag}: ${productName} — recall #${recallNumber}. Details: ${appUrl}/notifications`;
-}
-
 export async function dispatchPendingEmails(
   supabase: SupabaseClient,
   appUrl: string,
 ): Promise<{
   considered: number;
   emailsSent: number;
-  smsSent: number;
   skipped: number;
   failed: number;
 }> {
@@ -163,49 +139,52 @@ export async function dispatchPendingEmails(
     .from("notifications")
     .select(
       `
-      id, user_id, classification, created_at, email_sent_at, sms_sent_at,
+      id, user_id, classification, created_at, email_sent_at,
       medication_items!inner(id, product_name, manufacturer, status, expected_stop_date),
       recalls!inner(recall_number, reason_for_recall, recall_initiation_date),
       profiles!inner(email, full_name),
-      notification_preferences(email_enabled, email_instant_enabled, sms_enabled, phone_number, alert_on_class_i, alert_on_class_ii, alert_on_class_iii, alert_after_stop_date)
+      notification_preferences(email_enabled, email_instant_enabled, alert_on_class_i, alert_on_class_ii, alert_on_class_iii, alert_after_stop_date)
       `,
     )
-    .or("email_sent_at.is.null,sms_sent_at.is.null")
+    .is("email_sent_at", null)
     .eq("status", "unread")
     .limit(200);
 
   if (error) {
     console.error("[dispatcher] fetch pending failed:", error.message);
-    return { considered: 0, emailsSent: 0, smsSent: 0, skipped: 0, failed: 0 };
+    return { considered: 0, emailsSent: 0, skipped: 0, failed: 0 };
   }
   const rows = (data ?? []) as unknown as PendingRow[];
   const template = await loadTemplate();
 
   let emailsSent = 0;
-  let smsSent = 0;
   let skipped = 0;
   let failed = 0;
+  const planCache = new Map<string, Awaited<ReturnType<typeof getEffectivePlan>>>();
+
+  async function planForUser(userId: string) {
+    let p = planCache.get(userId);
+    if (!p) {
+      p = await getEffectivePlan(supabase, userId);
+      planCache.set(userId, p);
+    }
+    return p;
+  }
 
   for (const row of rows) {
     const tier = classify(row.classification);
     const prefs = row.notification_preferences;
 
-    // Stop-date rule: if past expected_stop_date AND user opted out AND not Class I
-    // (Class I always notifies regardless of stop-date opt-out — safety default).
     const past = isPastStopDate(row.medication_items?.expected_stop_date ?? null);
     const stopOptOut = !(prefs?.alert_after_stop_date ?? false);
     const stopOutsideClassI = past && stopOptOut && tier !== "I";
 
     const classAllowed = shouldNotifyByClass(tier, prefs);
     if (!classAllowed || stopOutsideClassI) {
-      // Class/stop-date rules skip both channels. Mark both processed.
       skipped++;
       await supabase
         .from("notifications")
-        .update({
-          email_sent_at: row.email_sent_at ?? new Date().toISOString(),
-          sms_sent_at: row.sms_sent_at ?? new Date().toISOString(),
-        })
+        .update({ email_sent_at: row.email_sent_at ?? new Date().toISOString() })
         .eq("id", row.id);
       continue;
     }
@@ -219,11 +198,13 @@ export async function dispatchPendingEmails(
       continue;
     }
 
-    // Email channel — instant recall alerts --------------------------------
     if (!row.email_sent_at && row.profiles?.email) {
+      const userPlan = await planForUser(row.user_id);
       const masterEmail = prefs?.email_enabled ?? true;
       const instantOn = prefs?.email_instant_enabled ?? true;
-      if (masterEmail && instantOn) {
+      const planAllowsInstant = canReceiveInstantEmail(userPlan);
+
+      if (masterEmail && instantOn && planAllowsInstant) {
         const banner = classTemplateTokens(tier);
         const userName =
           row.profiles.full_name?.trim() || row.profiles.email.split("@")[0];
@@ -254,46 +235,14 @@ export async function dispatchPendingEmails(
           failed++;
         }
       } else {
-        // Email disabled — mark processed so we don't reconsider it
+        // Free plan, prefs off, or instant disabled — mark processed (digest may cover later).
         await supabase
           .from("notifications")
           .update({ email_sent_at: new Date().toISOString() })
           .eq("id", row.id);
       }
     }
-
-    // SMS channel — only Class I and Class II, only when explicitly opted in
-    // with a phone number on file.
-    if (!row.sms_sent_at) {
-      const smsEnabled = prefs?.sms_enabled ?? false;
-      const phone = prefs?.phone_number?.trim();
-      const smsClassOk = tier === "I" || tier === "II";
-      if (smsEnabled && phone && smsClassOk) {
-        const body = smsBodyFor(
-          tier,
-          row.medication_items.product_name,
-          row.recalls.recall_number,
-          appUrl,
-        );
-        const ok = await sendSmsQuietly({ to: phone, body });
-        if (ok) {
-          smsSent++;
-          await supabase
-            .from("notifications")
-            .update({ sms_sent_at: new Date().toISOString() })
-            .eq("id", row.id);
-        } else {
-          failed++;
-        }
-      } else {
-        // SMS not applicable — mark processed.
-        await supabase
-          .from("notifications")
-          .update({ sms_sent_at: new Date().toISOString() })
-          .eq("id", row.id);
-      }
-    }
   }
 
-  return { considered: rows.length, emailsSent, smsSent, skipped, failed };
+  return { considered: rows.length, emailsSent, skipped, failed };
 }

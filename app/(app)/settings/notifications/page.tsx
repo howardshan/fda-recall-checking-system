@@ -1,4 +1,6 @@
 import { getServerAuthSupabase } from "@/lib/auth";
+import { getServerSupabase } from "@/lib/supabase";
+import { getUserPlan, type Plan } from "@/lib/plan";
 import { PreferencesForm, type Preferences } from "@/components/settings/PreferencesForm";
 
 export const dynamic = "force-dynamic";
@@ -8,15 +10,21 @@ export default async function NotificationSettingsPage() {
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData.user?.id;
   let prefs: Preferences | null = null;
+  let currentPlan: Plan = "free";
   if (userId) {
+    const admin = getServerSupabase();
+    currentPlan = await getUserPlan(admin, userId);
     const { data } = await supabase
       .from("notification_preferences")
       .select(
-        "email_enabled, email_instant_enabled, email_digest_enabled, sms_enabled, phone_number, alert_on_class_i, alert_on_class_ii, alert_on_class_iii",
+        "email_enabled, email_instant_enabled, email_digest_enabled, alert_on_class_i, alert_on_class_ii, alert_on_class_iii",
       )
       .eq("user_id", userId)
       .maybeSingle();
     prefs = (data as Preferences | null) ?? null;
+    if (prefs && currentPlan === "free" && prefs.email_instant_enabled) {
+      prefs = { ...prefs, email_instant_enabled: false };
+    }
   }
 
   return (
@@ -27,7 +35,7 @@ export default async function NotificationSettingsPage() {
           Choose how and when we alert you to FDA recalls.
         </p>
       </div>
-      <PreferencesForm initial={prefs} />
+      <PreferencesForm initial={prefs} currentPlan={currentPlan} />
     </div>
   );
 }
