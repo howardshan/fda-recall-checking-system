@@ -189,7 +189,8 @@ flowchart TD
 | 匹配扫描 | `lib/matching.ts` |
 | 通知设置 UI | `components/settings/PreferencesForm.tsx` |
 | 定价卖点 | `components/billing/PlanCards.tsx` |
-| SMS 实现（待删） | `lib/sms.ts` |
+| 监控配额同步 | `lib/plan-monitoring.ts` |
+| 手工 UAT 清单 | [QA-PLAN-ENTITLEMENTS.md](./QA-PLAN-ENTITLEMENTS.md) |
 
 ---
 
@@ -220,3 +221,9 @@ flowchart TD
 - [x] `/privacy` 无 SMS 表述
 - [x] `npm run build` 通过（无 twilio）
 - [x] dispatcher 不发送短信
+
+---
+
+## 相关文档
+
+- [QA-PLAN-ENTITLEMENTS.md](./QA-PLAN-ENTITLEMENTS.md) — 手工 UAT 测试清单（可打印勾选）
