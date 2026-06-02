@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useId } from "react";
+import { useEffect, useId, type ReactNode } from "react";
 
 type Props = {
   open: boolean;
   title: string;
-  description: string;
+  description?: string;
+  details?: ReactNode;
   confirmLabel: string;
   cancelLabel?: string;
   /** Destructive actions (e.g. cancel subscription) use error styling on confirm. */
   variant?: "default" | "danger";
+  size?: "md" | "lg";
   busy?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
@@ -19,9 +21,11 @@ export function ConfirmDialog({
   open,
   title,
   description,
+  details,
   confirmLabel,
   cancelLabel = "Not now",
   variant = "default",
+  size = "md",
   busy = false,
   onConfirm,
   onCancel,
@@ -49,6 +53,7 @@ export function ConfirmDialog({
     variant === "danger"
       ? "btn-primary bg-error text-on-error hover:opacity-90"
       : "btn-primary";
+  const widthClass = size === "lg" ? "max-w-3xl" : "max-w-md";
 
   return (
     <div
@@ -57,7 +62,7 @@ export function ConfirmDialog({
       onClick={busy ? undefined : onCancel}
     >
       <div
-        className="card w-full max-w-md space-y-5 shadow-xl"
+        className={`card w-full space-y-5 shadow-xl ${widthClass}`}
         role="alertdialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -71,10 +76,13 @@ export function ConfirmDialog({
           >
             {title}
           </h2>
-          <p id={descId} className="text-body-md text-on-surface-variant">
-            {description}
-          </p>
+          {description ? (
+            <p id={descId} className="text-body-md text-on-surface-variant">
+              {description}
+            </p>
+          ) : null}
         </div>
+        {details ? <div className="space-y-3">{details}</div> : null}
 
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button
