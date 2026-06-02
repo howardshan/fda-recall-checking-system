@@ -75,6 +75,17 @@ order by added_at;
 
 ---
 
+## C0. 注册与邮箱确认（Supabase Auth）
+
+| # | 步骤 | 预期结果 | 通过 |
+|---|------|----------|------|
+| C0.1 | 新邮箱注册（Confirm email 开启） | 显示 **Check your inbox**，非 “Sign up did not complete” | [ ] |
+| C0.2 | 收件箱 | 收到 SafeTrack 品牌确认邮件（若已按 `docs/SUPABASE-EMAIL-TEMPLATES.md` 配置模板） | [ ] |
+| C0.3 | 点击确认链接 | 跳转 `/auth/callback` 并登录成功 | [ ] |
+| C0.4 | 验证页 **Resend** | 60s 倒计时后可重发；成功有提示 | [ ] |
+
+---
+
 ## C. Free 计划
 
 （2 药上限 · 仅 Daily digest · 无 Instant 邮件 · 站内通知可用）
