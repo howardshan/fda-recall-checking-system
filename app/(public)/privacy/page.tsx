@@ -11,13 +11,12 @@ export default function PrivacyPage() {
         <p>
           SafeTrack (&ldquo;we&rdquo;) collects only the information you provide
           when creating an account and adding medications to your cabinet:
-          name (optional), email address, optional phone number, and the
-          medication details you enter.
+          name (optional), email address, and the medication details you enter.
         </p>
         <h2 className="font-display text-headline-sm text-primary">How we use your data</h2>
         <ul className="list-disc pl-6">
           <li>To match your medications against FDA recall records.</li>
-          <li>To send you email (and optionally SMS) notifications.</li>
+          <li>To send you email and in-app recall notifications.</li>
           <li>To operate and improve the service.</li>
         </ul>
         <h2 className="font-display text-headline-sm text-primary">What we don&apos;t do</h2>

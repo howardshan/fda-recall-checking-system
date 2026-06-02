@@ -104,13 +104,6 @@ export default async function PricingPage({
               refunded to your original payment method (usually within 5–10 business days).
             </dd>
           </div>
-          <div>
-            <dt className="font-medium text-on-surface">What about cosmetics and food?</dt>
-            <dd className="mt-1 text-body-sm text-on-surface-variant">
-              Coming next. Family Protection subscribers will get cosmetic + food recall
-              monitoring as soon as it ships.
-            </dd>
-          </div>
         </dl>
       </div>
     </div>

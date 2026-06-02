@@ -1,6 +1,7 @@
 import type Stripe from "stripe";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { type Plan } from "./plan";
+import { medQuota, type Plan } from "./plan";
+import { syncMonitoringQuota } from "./plan-monitoring";
 import { planFromStripePrice, type BillingCycle } from "./stripe";
 
 export type { BillingCycle };
@@ -228,6 +229,8 @@ export async function syncSubscriptionFromStripe(
   userId: string,
   subscription: Stripe.Subscription,
 ): Promise<void> {
+  const previousPlan = await getEffectivePlan(supabase, userId);
+
   const priceId = subscription.items.data[0]?.price?.id ?? "";
   const mapped = planFromStripePrice(priceId);
   const plan: Plan = mapped?.plan ?? "free";
@@ -271,6 +274,12 @@ export async function syncSubscriptionFromStripe(
       updated_at: new Date().toISOString(),
     })
     .eq("id", userId);
+
+  const prevQuota = medQuota(previousPlan);
+  const nextQuota = medQuota(effectivePlan);
+  if (nextQuota !== prevQuota) {
+    await syncMonitoringQuota(supabase, userId, effectivePlan);
+  }
 }
 
 export async function revokePaidAccess(
@@ -290,6 +299,8 @@ export async function revokePaidAccess(
     .from("profiles")
     .update({ plan: "free", updated_at: new Date().toISOString() })
     .eq("id", userId);
+
+  await syncMonitoringQuota(supabase, userId, "free");
 }
 
 export async function ensureStripeCustomer(

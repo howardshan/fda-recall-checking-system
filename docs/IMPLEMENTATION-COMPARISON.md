@@ -1,7 +1,7 @@
 # 客户需求 vs 实现对比（FDA Notification Web）
 
-**文档版本**：1.1  
-**更新日期**：2026-05-19  
+**文档版本**：1.2  
+**更新日期**：2026-06-02  
 **对照基准**：[REQUIREMENTS-CLIENT.md](./REQUIREMENTS-CLIENT.md)（v4.2；**ADM-02 管理后台已按客户书面决定从交付范围剔除**，见 [§1.1](#11-范围说明)）  
 **实现范围**：仓库根目录 Next.js 应用（`app/`、`lib/`、`components/`、`supabase/migrations/`）  
 **内部需求**（可选参考）：[REQUIREMENTS.md](./REQUIREMENTS.md)（全产品规划，非签约附件）
@@ -39,7 +39,7 @@
 
 **客户为控制成本，书面确认不交付 ADM-02（客户只读管理后台）。**
 
-- **对用户侧功能无影响**：注册、药箱、匹配、站内/邮件/SMS 通知、订阅等不依赖 Admin UI。  
+- **对用户侧功能无影响**：注册、药箱、匹配、站内/邮件通知、订阅等不依赖 Admin UI。  
 - **本文档有效验收范围** = REQUIREMENTS-CLIENT v4.2 **减去 ADM-02（原 13 人时）**；签约 PDF 若仍含管理后台，建议同步修订为 v4.3。  
 - **运营替代**：见 [§2.3 无管理后台时的运营方式](#23-无管理后台时的运营方式)。
 
@@ -50,13 +50,13 @@
 | **对照有效范围（v4.2 − ADM-02）整体** | 约 **82–86%** |
 | **阶段一 MVP（§三，102h）** | 约 **88%**（不变） |
 | **阶段二完整 Web（§四，原 73h → 有效 60h）** | 约 **80–85%** |
-| **可对客户最终验收** | **尚未** — 仍缺 **SUB-03 真实支付**、**邮件/SMS 生产闭环**；**不含**管理后台 |
-| **团队感知「只剩邮件 + Stripe」** | **基本准确**（在剔除 ADM-02 后） |
+| **可对客户最终验收** | **接近** — **SUB-03 Stripe** 已接入；**邮件**需 SMTP 生产配置；**SMS 本期不交付**（已从产品移除） |
+| **团队感知「只剩邮件 + Stripe」** | **基本准确**（SMTP 配置 + UAT） |
 
 **主要缺口（P0）**
 
-1. **SUB-03**：订阅支付 — `/api/upgrade` 为占位，直接改 `profiles.plan`，无 Checkout / Webhook。  
-2. **M7 / V2-8 / V2-9 触达**：`lib/notification-dispatcher.ts`（分级邮件 + SMS）**已实现但未接入** Cron；当前 sync 仅调用 `sendDailyDigests`（每日汇总邮件）。需配置 SMTP / Twilio 并完成接线。  
+1. **M7 邮件生产**：`dispatchPendingEmails` 与 `sendDailyDigests` 均已接入 `/api/sync`；需 **SMTP 环境变量** 端到端验证。  
+2. **M4 / M3 等**：见下文未变项（注册资料、未知厂商提示等）。  
 
 **已明确不在交付范围**
 
@@ -79,10 +79,10 @@
 
 | 项目 | REQUIREMENTS-CLIENT v4.2 | 当前实现 |
 |------|--------------------------|----------|
-| 核心旅程 | 注册 → 药箱 → 后台匹配 → 邮件/站内/SMS 通知 | ✅ 主链路已通；邮件/SMS 待接线与配置 |
+| 核心旅程 | 注册 → 药箱 → 后台匹配 → 邮件/站内通知 | ✅ 主链路已通；邮件待 SMTP 配置 |
 | 即时查询 | 未登录 2 次 → 注册；手动 / NDC | ✅ `RecallChecker` + `/api/check-recall` |
 | 扫码 / OCR | **明确不含** | ✅ 前端无 Photo/Barcode Tab（旧 SPEC 能力已移除出 UI） |
-| 订阅 | 支付服务商待确认；Stripe 等为示例 | ⚠️ 定价 UI 完整；**支付占位** |
+| 订阅 | Stripe Checkout / Webhook / 门户 | ✅ `app/api/stripe/*`；计划权益见 `lib/plan.ts` |
 | 管理后台 ADM-02 | v4.2 原文含；**客户已确认不做** | ➖ **不在交付范围**；无 Admin UI（符合决策） |
 | Web Push | **不含** | ✅ 未实现 |
 
@@ -157,7 +157,7 @@ flowchart TB
 | **M4** 用户账户与资料 | ⚠️ | 邮箱注册/登录/重置 ✅；`GoogleButton` ✅；**缺必填：年龄、性别、种族**（仅 username → `profiles.full_name`） |
 | **M5** 个人药箱 | ✅ | `medication_items`、药名中心列表、`/api/cabinet`；软删除 `status=deleted` |
 | **M6** 监控启停 | ⚠️ | 删除即停 ✅；库表仍有 `expected_stop_date`，dispatcher 仍读取（合同要求不设停药日期） |
-| **M7** 邮件通知 | 🔧 | `lib/mailer.ts`、`emails/recall-alert.html`、`lib/notification-dispatcher.ts` ✅；**sync 未调用 dispatcher**；当前为 `lib/daily-digest.ts` 每日汇总；需 **SMTP 环境变量** |
+| **M7** 邮件通知 | 🔧 | `dispatchPendingEmails` + `sendDailyDigests` 均在 `lib/sync.ts`；Free 仅 digest，付费可 instant；需 **SMTP** |
 | **M8** 站内通知中心 | ✅ | `notifications` 表、`app/(app)/notifications`、`NotificationsList`、已读/忽略 |
 | **M9** 分级通知文案 | ✅ | UI `chip-i/ii/iii`；邮件模板按 Class 分色（dispatcher 内） |
 | **M10** 用户界面 | ✅ | Dashboard、药箱、召回详情、Disclaimer；Logo 组件待客户素材 |
@@ -182,10 +182,10 @@ flowchart TB
 | **V2-6** 批号解析增强 | ✅ | `lib/lot-match.ts` + `lot-match.test.ts`，用于 `check-recall` |
 | **V2-7** 召回公告浏览 | ✅ | `/recalls`、`RecallBrowser`、`/api/recalls`、详情页含 fda.gov 链接 |
 | **V2-8** 通知偏好 | ⚠️ | `PreferencesForm`、`/api/preferences` ✅；过滤逻辑在 **dispatcher** 中，**未接入发送链路** |
-| **V2-9** 短信 | 🔧 | `lib/sms.ts`、偏好 opt-in ✅；**dispatcher 未调用**；需 Twilio 环境变量 |
+| **V2-9** 短信 | ➖ | **本期不交付**；UI/代码已移除（2026-06-02） |
 | **V2-10** 数据导出 | ✅ | `GET /api/me/export`、`app/(app)/settings/data` |
 | **ADM-02** 管理后台 | ➖ | **客户确认不交付**；运营见 [§2.3](#23-无管理后台时的运营方式) |
-| **SUB-03** 订阅与计费 | ❌ | `profiles.plan` + 占位 `POST /api/upgrade`；migration `0015` 预留；**无 Stripe/Webhook** |
+| **SUB-03** 订阅与计费 | ✅ | Stripe Checkout、Webhook、`stripe_subscriptions`；降权时 `syncMonitoringQuota` |
 | **V2-INT** 集成联调 | ⚠️ | 部分模块可联调；**支付 Webhook、短信/邮件生产验证**未完成 |
 | **V2-12** 最终验收 | ➖ | 依赖 SUB-03、邮件/SMS 闭环及 UAT |
 
@@ -215,10 +215,10 @@ flowchart TB
 
 | # | 验收项 | 状态 | 备注 |
 |---|--------|------|------|
-| 1 | 订阅支付可用；支付失败停权 | ❌ | |
-| 2 | 取消用到账期结束；升级立即生效 | ❌ | 当前 UI 为立即升降级占位 |
-| 3 | 付费时地址必填 | ❌ | |
-| 4 | 通知偏好 + Class 过滤；SMS opt-in | ⚠️ | UI ✅；发送链路未接 |
+| 1 | 订阅支付可用；支付失败停权 | ✅ | Webhook `invoice.payment_failed` → `revokePaidAccess` + 监控配额 |
+| 2 | 取消用到账期结束；升级立即生效 | ✅ | `cancel_at_period_end`；已有订阅 `subscriptions.update` |
+| 3 | 付费时地址必填 | ✅ | Checkout `billing_address_collection: required` |
+| 4 | 通知偏好 + Class 过滤 | ✅ | dispatcher + 计划门禁（Free 无 instant 邮件） |
 | 5 | 家庭药箱 + Class 分样式 | ✅ | |
 | 6 | 批号增强、召回浏览、导出 | ✅ | |
 | 7 | ~~管理后台可查看业务数据~~ | ➖ | **ADM-02 已取消**；改用 §2.3 运营替代 |
@@ -237,11 +237,11 @@ flowchart TB
 | 个人 $4.99/mo · $49.99/yr | UI 展示 | `PlanCards.tsx` |
 | 家庭 $9.99/mo · $99.99/yr | UI 展示 | 同上 |
 | 阶梯定价 | 待定 | ➖ |
-| 支付服务商 | 待客户确认 | 占位升级，无真实扣款 |
-| 取消用到账期结束 | §五 | ❌ `PlanCards` 文案为立即降级 |
-| 升级立即生效 | §五 | ⚠️ 占位可即时改 plan，无计费 |
-| 支付失败立即停止 | §五 | ❌ |
-| 付费时地址必填 | §五 | ❌ |
+| 支付服务商 | Stripe | ✅ |
+| 取消用到账期结束 | §五 | ✅ `/api/stripe/cancel` |
+| 升级立即生效 | §五 | ✅ 已有订阅 proration update |
+| 支付失败立即停止 | §五 | ✅ `revokePaidAccess` + 仅配额内 active 监控 |
+| 付费时地址必填 | §五 | ✅ Checkout |
 
 ---
 
@@ -331,11 +331,11 @@ Typeahead 来自 NDC 目录，但允许自由文本提交；加药后无「厂�
 |------|------|
 | 召回同步 + 匹配 + Digest | `lib/sync.ts` |
 | 单次/药箱匹配 | `lib/check-recall.ts`、`lib/matching.ts` |
-| 即时邮件 + SMS 派发 | `lib/notification-dispatcher.ts` |
+| 即时邮件派发 | `lib/notification-dispatcher.ts` |
 | 每日邮件汇总 | `lib/daily-digest.ts` |
 | SMTP | `lib/mailer.ts`、`.env.example` |
-| Twilio SMS | `lib/sms.ts` |
-| 计划限额 | `lib/plan.ts`、`app/api/upgrade/route.ts`（占位） |
+| 计划限额与权益 | `lib/plan.ts`、`lib/plan-monitoring.ts` |
+| Stripe 计费 | `lib/stripe-billing.ts`、`app/api/stripe/*` |
 | 访客配额 | `lib/quick-check-quota.ts` |
 | 批号增强 | `lib/lot-match.ts` |
 | Auth UI | `components/auth/*`、`app/(auth)/*` |
@@ -356,6 +356,7 @@ Typeahead 来自 NDC 目录，但允许自由文本提交；加药后无「厂�
 | 0.1 | 2026-05-19 | 初版：对照旧 Recall Checker 子系统与 REQUIREMENTS.md v0.1 |
 | 1.0 | 2026-05-19 | **重写**：对照 [REQUIREMENTS-CLIENT.md](./REQUIREMENTS-CLIENT.md) v4.2 与当前全栈实现；更新完成度与 P0 缺口 |
 | 1.1 | 2026-05-19 | 客户确认 **不交付 ADM-02**；更新有效范围、完成度、验收清单与运营替代方案 |
+| 1.2 | 2026-06-02 | SUB-03 Stripe 已实现；SMS 移除；订阅权益与 `paused` 监控配额对齐 |
 
 ---
 

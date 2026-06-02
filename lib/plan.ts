@@ -20,6 +20,22 @@ export const PLAN_LABEL: Record<Plan, string> = {
   family: "Family Protection",
 };
 
+export function hasPaidPlan(plan: Plan): boolean {
+  return plan === "personal" || plan === "family";
+}
+
+export function canReceiveInstantEmail(plan: Plan): boolean {
+  return hasPaidPlan(plan);
+}
+
+export function canManageFamily(plan: Plan): boolean {
+  return plan === "family";
+}
+
+export function medQuota(plan: Plan): number {
+  return QUOTAS[plan].meds;
+}
+
 /** Cheapest plan that satisfies the requested resource, given the user's current plan. */
 export function upgradeTargetForMeds(current: Plan): Plan | null {
   if (current === "free") return "personal";

@@ -20,7 +20,6 @@ export type SyncResult = {
   dispatch: {
     considered: number;
     emailsSent: number;
-    smsSent: number;
     skipped: number;
     failed: number;
   };
@@ -46,7 +45,7 @@ async function notifyOpsOfFailure(reason: string): Promise<void> {
 /**
  * Run an incremental sync of recall records from OpenFDA, then trigger
  * matching against all active cabinet items and dispatch any pending
- * notification emails / SMS. Failure to sync is logged to OPS_ALERT_EMAIL.
+ * notification emails. Failure to sync is logged to OPS_ALERT_EMAIL.
  *
  * Called from:
  *   - /api/sync           (Vercel Cron, CRON_SECRET-protected)
@@ -102,7 +101,7 @@ export async function runSync(lookbackDays: number): Promise<SyncResult> {
 
     const dispatchResult = await dispatchPendingEmails(supabase, appUrl).catch((e) => {
       console.error("[sync] instant dispatch failed:", e);
-      return { considered: 0, emailsSent: 0, smsSent: 0, skipped: 0, failed: 0 };
+      return { considered: 0, emailsSent: 0, skipped: 0, failed: 0 };
     });
 
     const digestResult = await sendDailyDigests(supabase, appUrl).catch((e) => {

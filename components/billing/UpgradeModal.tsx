@@ -25,7 +25,7 @@ const COPY: Record<
   meds: {
     free: {
       title: "Upgrade to Personal Pro",
-      body: "Free accounts can track up to 2 medications. Subscribe to Personal Pro for up to 20 medications with instant alerts.",
+      body: "Free accounts can track up to 2 medications and receive a daily digest. Subscribe to Personal Pro for up to 20 medications with instant recall emails.",
     },
     personal: {
       title: "Upgrade to Family Protection",

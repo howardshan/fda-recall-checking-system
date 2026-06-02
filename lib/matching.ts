@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { checkRecall, type RecallMatch } from "./check-recall";
+import { isItemMonitored } from "./plan-monitoring";
 
 export type CabinetItem = {
   id: number;
@@ -44,6 +45,9 @@ export async function notifyMatchesForItem(
   item: CabinetItem,
 ): Promise<number> {
   if (item.manufacturer_unverified) return 0;
+
+  const monitored = await isItemMonitored(supabase, item.user_id, item.id);
+  if (!monitored) return 0;
 
   const matches = await findRecallsForItem(supabase, item);
   if (matches.length === 0) return 0;
