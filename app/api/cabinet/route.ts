@@ -30,7 +30,6 @@ type CreateBody = {
   manufacturer?: string;
   productNdc?: string | null;
   lotNumber?: string | null;
-  memberId?: number | null;
   /** Client already confirmed unknown-manufacturer warning. */
   confirmUnverified?: boolean;
 };
@@ -90,7 +89,6 @@ export async function POST(req: Request) {
       manufacturer,
       product_ndc: body.productNdc?.trim() || null,
       lot_number: body.lotNumber?.trim() || null,
-      member_id: body.memberId ?? null,
       manufacturer_unverified: manufacturerUnverified,
     })
     .select(

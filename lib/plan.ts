@@ -5,13 +5,12 @@ export type Plan = "free" | "personal" | "family";
 
 export type Quota = {
   meds: number;
-  familyMembers: number;
 };
 
 export const QUOTAS: Record<Plan, Quota> = {
-  free: { meds: 2, familyMembers: 0 },
-  personal: { meds: 20, familyMembers: 0 },
-  family: { meds: 50, familyMembers: 5 },
+  free: { meds: 2 },
+  personal: { meds: 20 },
+  family: { meds: 50 },
 };
 
 export const PLAN_LABEL: Record<Plan, string> = {
@@ -28,10 +27,6 @@ export function canReceiveInstantEmail(plan: Plan): boolean {
   return hasPaidPlan(plan);
 }
 
-export function canManageFamily(plan: Plan): boolean {
-  return plan === "family";
-}
-
 export function medQuota(plan: Plan): number {
   return QUOTAS[plan].meds;
 }
@@ -43,15 +38,10 @@ export function upgradeTargetForMeds(current: Plan): Plan | null {
   return null;
 }
 
-export function upgradeTargetForFamily(current: Plan): Plan | null {
-  if (current === "free" || current === "personal") return "family";
-  return null;
-}
-
 /** Quota check error. Shape mirrors the JSON the API returns. */
 export class QuotaExceededError extends Error {
   constructor(
-    public readonly resource: "meds" | "familyMembers",
+    public readonly resource: "meds",
     public readonly currentPlan: Plan,
     public readonly limit: number,
     public readonly upgradeTo: Plan | null,
@@ -92,26 +82,5 @@ export async function enforceMedQuota(
     .eq("status", "active");
   if ((count ?? 0) >= limit) {
     throw new QuotaExceededError("meds", plan, limit, upgradeTargetForMeds(plan));
-  }
-}
-
-/** Throws QuotaExceededError if adding a family member would exceed the user's plan. */
-export async function enforceFamilyQuota(
-  supabase: SupabaseClient,
-  userId: string,
-): Promise<void> {
-  const plan = await getUserPlan(supabase, userId);
-  const limit = QUOTAS[plan].familyMembers;
-  const { count } = await supabase
-    .from("family_members")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", userId);
-  if ((count ?? 0) >= limit) {
-    throw new QuotaExceededError(
-      "familyMembers",
-      plan,
-      limit,
-      upgradeTargetForFamily(plan),
-    );
   }
 }
