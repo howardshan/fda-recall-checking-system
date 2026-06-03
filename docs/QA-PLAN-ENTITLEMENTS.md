@@ -102,13 +102,13 @@ order by added_at;
 
 | #   | 步骤                                                           | 预期结果                                                  | 通过  |
 | --- | ------------------------------------------------------------ | ----------------------------------------------------- | --- |
-| C1  | Free 账号添加第 1、2 个药                                            | 成功，`status=active`                                    | [ ] |
-| C2  | 尝试添加第 3 个药                                                   | **402**，UpgradeModal 引导 Personal Pro                  | [ ] |
-| C3  | `/settings/notifications`                                    | **无** Instant 开关；有说明 +「View plans →」；Daily digest 可开关 | [ ] |
-| C4  | PATCH `/api/preferences` 设 `email_instant_enabled: true`     | **400**，提示需付费计划                                       | [ ] |
+| C1  | Free 账号添加第 1、2 个药                                            | 成功，`status=active`                                    | [x] |
+| C2  | 尝试添加第 3 个药                                                   | **402**，UpgradeModal 引导 Personal Pro                  | [x] |
+| C3  | `/settings/notifications`                                    | **无** Instant 开关；有说明 +「View plans →」；Daily digest 可开关 | [x] |
+| C4  | PATCH `/api/preferences` 设 `email_instant_enabled: true`     | **400**，提示需付费计划                                       | [x] |
 | C5  | 触发召回匹配（加药命中或 sync 后）                                         | **站内通知**有；**不应**收到单条 Class 样式即时邮件                     | [ ] |
 | C6  | 触发 `/api/sync`（`Authorization: Bearer <CRON_SECRET>`）或等 Cron | 若开启 digest，可收到**每日汇总**邮件                              | [ ] |
-| C7  | `/pricing`                                                   | 显示当前计划为 Free                                          | [ ] |
+| C7  | `/pricing`                                                   | 显示当前计划为 Free                                          | [x] |
 
 
 ---
@@ -173,8 +173,8 @@ order by added_at;
 
 | #   | 步骤                              | 预期结果                                         | 通过  |
 | --- | ------------------------------- | -------------------------------------------- | --- |
-| G1  | 已有订阅时切换 plan 或月/年               | 预览费用 → 确认后**立即**变更；`profiles.plan` 更新        | [ ] |
-| G2  | Plan 页 Cancel subscription      | `cancel_at_period_end=true`；**账期内**仍为付费 plan | [ ] |
+| G1  | 已有订阅时切换 plan 或月/年               | 预览费用 → 确认后**立即**变更；`profiles.plan` 更新        | [x] |
+| G2  | Plan 页 Cancel subscription      | `cancel_at_period_end=true`；**账期内**仍为付费 plan | [x] |
 | G3  | 账期结束或测试时钟推进                     | 变 Free；监控配额同步为 2 药                           | [ ] |
 | G4  | `invoice.payment_failed`        | plan=free；仅 2 药继续监控                          | [ ] |
 | G5  | `customer.subscription.deleted` | 同上；可选收到订阅结束邮件 / 退款（Plan B）                   | [ ] |
@@ -248,12 +248,14 @@ order by added_at;
 
 ### A.1 填表说明
 
-| 字段 | 必填 | 怎么填 |
-|------|------|--------|
-| **Product name** | 是 | 输入 2+ 字母，**必须从下拉建议里点选**（连 `ndc_products` 目录） |
-| **Manufacturer** | 是 | 先选好药名，再点 Manufacturer 字段，**从下拉里选**（与该产品关联的厂商） |
-| **NDC** | 否 | 可留空；要测 NDC 匹配时再填 |
-| **Lot number** | 否 | 可留空；要测批号匹配时再填 |
+
+| 字段               | 必填  | 怎么填                                           |
+| ---------------- | --- | --------------------------------------------- |
+| **Product name** | 是   | 输入 2+ 字母，**必须从下拉建议里点选**（连 `ndc_products` 目录）  |
+| **Manufacturer** | 是   | 先选好药名，再点 Manufacturer 字段，**从下拉里选**（与该产品关联的厂商） |
+| **NDC**          | 否   | 可留空；要测 NDC 匹配时再填                              |
+| **Lot number**   | 否   | 可留空；要测批号匹配时再填                                 |
+
 
 若 Product name 输入后**没有下拉建议**，说明 NDC 目录可能未导入，需先执行：
 
@@ -265,52 +267,62 @@ npm run seed:ndc
 
 ### A.2 Free 计划（C1–C2）：先加 2 条
 
-| # | Product name（输入后点选） | Manufacturer（点选） | NDC | Lot | 用途 |
-|---|--------------------------|----------------------|-----|-----|------|
-| 1 | `IBUPROFEN` 或 `Ibuprofen` | 列表中任一项（如 **Teva Pharmaceuticals USA**） | 留空 | 留空 | C1 第 1 药 |
-| 2 | `METFORMIN` 或 `Metformin Hydrochloride` | 列表中任一项（如 **Teva** / **Mylan**） | 留空 | 留空 | C1 第 2 药 |
+
+| #   | Product name（输入后点选）                     | Manufacturer（点选）                       | NDC | Lot | 用途       |
+| --- | --------------------------------------- | -------------------------------------- | --- | --- | -------- |
+| 1   | `IBUPROFEN` 或 `Ibuprofen`               | 列表中任一项（如 **Teva Pharmaceuticals USA**） | 留空  | 留空  | C1 第 1 药 |
+| 2   | `METFORMIN` 或 `Metformin Hydrochloride` | 列表中任一项（如 **Teva** / **Mylan**）         | 留空  | 留空  | C1 第 2 药 |
+
 
 **C2**（第 3 个药，预期 402）：
 
-| Product name | Manufacturer | 预期 |
-|--------------|--------------|------|
-| `LISINOPRIL` | 下拉任选 | 402 + UpgradeModal |
+
+| Product name | Manufacturer | 预期                 |
+| ------------ | ------------ | ------------------ |
+| `LISINOPRIL` | 下拉任选         | 402 + UpgradeModal |
+
 
 ### A.3 批号 / NDC 测试（D7、lot 匹配）
 
-| # | Product name | Manufacturer | NDC（示例） | Lot（示例） |
-|---|--------------|--------------|-------------|-------------|
-| 3 | `ACETAMINOPHEN` | 下拉任选 | `0093-4155-01` | `AB1234` |
-| 4 | `OMEPRAZOLE` | 下拉任选 | `68180-421-01` | `LOT2024A` |
-| 5 | `AMLODIPINE` 或 `Amlodipine Besylate` | 下拉任选 | 留空 | `12345` |
+
+| #   | Product name                         | Manufacturer | NDC（示例）        | Lot（示例）    |
+| --- | ------------------------------------ | ------------ | -------------- | ---------- |
+| 3   | `ACETAMINOPHEN`                      | 下拉任选         | `0093-4155-01` | `AB1234`   |
+| 4   | `OMEPRAZOLE`                         | 下拉任选         | `68180-421-01` | `LOT2024A` |
+| 5   | `AMLODIPINE` 或 `Amlodipine Besylate` | 下拉任选         | 留空             | `12345`    |
+
 
 ### A.4 未知厂商（可选）
 
-| Product name | Manufacturer | 说明 |
-|--------------|--------------|------|
+
+| Product name      | Manufacturer                           | 说明                        |
+| ----------------- | -------------------------------------- | ------------------------- |
 | 从下拉选 `GABAPENTIN` | **手打** `Unknown Test Manufacturer Inc` | 应提示厂商未验证 / 无法可靠监控，需确认后才保存 |
+
 
 ### A.5 Personal Pro 凑满 20 药（D5–D6）
 
 以下名称在 OpenFDA NDC 中较常见；**Manufacturer 从下拉选第一项即可**，NDC/Lot 可全留空。
 
-| # | Product name（输入关键词） |
-|---|---------------------------|
-| 6 | `ATORVASTATIN` |
-| 7 | `LOSARTAN` |
-| 8 | `SIMVASTATIN` |
-| 9 | `LEVOTHYROXINE` |
-| 10 | `AMOXICILLIN` |
-| 11 | `SERTRALINE` |
-| 12 | `PREDNISONE` |
-| 13 | `HYDROCHLOROTHIAZIDE` |
-| 14 | `GABAPENTIN` |
-| 15 | `CIPROFLOXACIN` |
-| 16 | `ALBUTEROL` |
-| 17 | `FLUOXETINE` |
-| 18 | `WARFARIN` |
-| 19 | `CLONAZEPAM` |
-| 20 | `PANTOPRAZOLE` |
+
+| #   | Product name（输入关键词）   |
+| --- | --------------------- |
+| 6   | `ATORVASTATIN`        |
+| 7   | `LOSARTAN`            |
+| 8   | `SIMVASTATIN`         |
+| 9   | `LEVOTHYROXINE`       |
+| 10  | `AMOXICILLIN`         |
+| 11  | `SERTRALINE`          |
+| 12  | `PREDNISONE`          |
+| 13  | `HYDROCHLOROTHIAZIDE` |
+| 14  | `GABAPENTIN`          |
+| 15  | `CIPROFLOXACIN`       |
+| 16  | `ALBUTEROL`           |
+| 17  | `FLUOXETINE`          |
+| 18  | `WARFARIN`            |
+| 19  | `CLONAZEPAM`          |
+| 20  | `PANTOPRAZOLE`        |
+
 
 **D6**：第 21 条用 `ROSUVASTATIN` + 下拉厂商 → 预期 402，引导 Family。
 
@@ -320,7 +332,7 @@ npm run seed:ndc
 
 优先从**你们环境已有数据**中选，步骤：
 
-1. 打开 **`/recalls`**，找 **Class I / II** 召回；
+1. 打开 `**/recalls`**，找 **Class I / II** 召回；
 2. 记下详情中的药品名、厂商（recalling firm）；
 3. 加药时 Product name 与 typeahead 建议一致，Manufacturer 选最接近 recalling firm 的项。
 
@@ -330,7 +342,7 @@ npm run seed:ndc
 - Metformin Hydrochloride
 - Ranitidine / Valsartan（若库中有历史数据）
 
-加药后触发 **`/api/sync`**（`Authorization: Bearer <CRON_SECRET>`）或等 Cron：
+加药后触发 `**/api/sync`**（`Authorization: Bearer <CRON_SECRET>`）或等 Cron：
 
 - **Free**：站内通知应有；**不应**有 instant 单封邮件（C5）
 - **Personal**：Instant 邮件应有（D4，需 SMTP）
@@ -342,14 +354,16 @@ npm run seed:ndc
 
 ### A.8 与 QA 章节对照
 
-| QA 项 | 建议用的药 |
-|-------|-----------|
-| C1 | A.2 #1、#2 |
-| C2 | A.2 第 3 条（LISINOPRIL） |
-| C5 | A.6 从 `/recalls` 选的真实召回药 |
-| D5–D6 | A.2 + A.3 + A.5 凑 20 条，第 21 条 ROSUVASTATIN |
-| D7 | A.3 任一条（带 Lot） |
+
+| QA 项  | 建议用的药                                                  |
+| ----- | ------------------------------------------------------ |
+| C1    | A.2 #1、#2                                              |
+| C2    | A.2 第 3 条（LISINOPRIL）                                  |
+| C5    | A.6 从 `/recalls` 选的真实召回药                               |
+| D5–D6 | A.2 + A.3 + A.5 凑 20 条，第 21 条 ROSUVASTATIN             |
+| D7    | A.3 任一条（带 Lot）                                         |
 | F1 降权 | Personal 加满后降 Free，观察 Monitoring paused（需 >2 条 active） |
+
 
 ### A.9 下拉无建议时
 
@@ -365,6 +379,6 @@ npm run seed:ndc
 | 版本  | 日期         | 说明                  |
 | --- | ---------- | ------------------- |
 | 1.0 | 2026-06-02 | 初版：对应权益对齐与 SMS 移除实施 |
-| 1.1 | 2026-06-02 | 新增附录 A：加药测试药品清单 |
+| 1.1 | 2026-06-02 | 新增附录 A：加药测试药品清单     |
 
 
