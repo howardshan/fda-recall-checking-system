@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { UserMenu } from "@/components/UserMenu";
 import { getCurrentUser } from "@/lib/auth";
-import { canManageFamily, getUserPlan } from "@/lib/plan";
 import { getServerSupabase } from "@/lib/supabase";
 
 async function getUnreadCount(userId: string): Promise<number> {
@@ -18,9 +17,6 @@ async function getUnreadCount(userId: string): Promise<number> {
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
   const unread = user ? await getUnreadCount(user.id) : 0;
-  const showFamilyNav =
-    user &&
-    (await getUserPlan(getServerSupabase(), user.id).then((p) => canManageFamily(p)));
   const displayName =
     (user?.user_metadata?.full_name as string | undefined) ??
     user?.email?.split("@")[0] ??
@@ -47,14 +43,6 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
             >
               Medicine Cabinet
             </Link>
-            {showFamilyNav ? (
-              <Link
-                href="/family"
-                className="hidden md:inline text-label-md text-on-surface-variant hover:text-secondary"
-              >
-                Family
-              </Link>
-            ) : null}
             <Link
               href="/notifications"
               className="relative inline-flex items-center gap-1 text-label-md text-on-surface-variant hover:text-secondary"

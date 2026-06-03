@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
-  canManageFamily,
   canReceiveInstantEmail,
   hasPaidPlan,
   medQuota,
   QUOTAS,
+  upgradeTargetForMeds,
 } from "./plan";
 
 describe("plan capabilities", () => {
@@ -26,9 +26,9 @@ describe("plan capabilities", () => {
     expect(canReceiveInstantEmail("family")).toBe(true);
   });
 
-  it("canManageFamily only for family", () => {
-    expect(canManageFamily("free")).toBe(false);
-    expect(canManageFamily("personal")).toBe(false);
-    expect(canManageFamily("family")).toBe(true);
+  it("upgradeTargetForMeds walks the ladder", () => {
+    expect(upgradeTargetForMeds("free")).toBe("personal");
+    expect(upgradeTargetForMeds("personal")).toBe("family");
+    expect(upgradeTargetForMeds("family")).toBeNull();
   });
 });

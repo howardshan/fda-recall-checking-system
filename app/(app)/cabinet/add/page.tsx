@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { MedicationForm, type FamilyOption } from "@/components/cabinet/MedicationForm";
-import { getServerAuthSupabase } from "@/lib/auth";
+import { MedicationForm } from "@/components/cabinet/MedicationForm";
 
 export const metadata = {
   title: "Add Medication | SafeTrack",
@@ -8,14 +7,7 @@ export const metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function AddMedicationPage() {
-  const supabase = await getServerAuthSupabase();
-  const { data } = await supabase
-    .from("family_members")
-    .select("id, display_name")
-    .order("created_at", { ascending: true });
-  const familyOptions = (data ?? []) as FamilyOption[];
-
+export default function AddMedicationPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <Link href="/cabinet" className="text-label-md text-secondary hover:underline">
@@ -28,7 +20,7 @@ export default async function AddMedicationPage() {
         </p>
       </div>
       <div className="card">
-        <MedicationForm mode="create" familyOptions={familyOptions} />
+        <MedicationForm mode="create" />
       </div>
     </div>
   );

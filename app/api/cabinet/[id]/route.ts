@@ -15,7 +15,6 @@ type UpdateBody = {
   manufacturer?: string;
   productNdc?: string | null;
   lotNumber?: string | null;
-  memberId?: number | null;
   status?: "active" | "paused" | "deleted";
   confirmUnverified?: boolean;
 };
@@ -66,7 +65,6 @@ export async function PATCH(req: Request, ctx: Params) {
   if (typeof body.manufacturer === "string") patch.manufacturer = body.manufacturer.trim();
   if (body.productNdc !== undefined) patch.product_ndc = body.productNdc?.trim() || null;
   if (body.lotNumber !== undefined) patch.lot_number = body.lotNumber?.trim() || null;
-  if (body.memberId !== undefined) patch.member_id = body.memberId;
   if (body.status) patch.status = body.status;
 
   const nextProduct =

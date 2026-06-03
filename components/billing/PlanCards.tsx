@@ -90,10 +90,11 @@ const PLANS: PlanCard[] = [
     annualSecondary: "≈ $8.33/mo",
     featured: false,
     bullets: [
-      "Up to 5 family members",
-      "Up to 50 tracked products",
-      "Per-member medicine cabinets",
-      "All Personal Pro features",
+      "Track up to 50 medications",
+      "Priority alerts",
+      "Lot-number tracking",
+      "Faster monitoring",
+      "Future cosmetic + food monitoring",
     ],
   },
 ];

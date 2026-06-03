@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   MedicationForm,
-  type FamilyOption,
   type MedicationFormValues,
 } from "@/components/cabinet/MedicationForm";
 import { getServerAuthSupabase } from "@/lib/auth";
@@ -15,7 +14,6 @@ type ItemRow = {
   manufacturer: string;
   product_ndc: string | null;
   lot_number: string | null;
-  member_id: number | null;
   status: string;
 };
 
@@ -31,25 +29,18 @@ export default async function EditMedicationPage({
   const supabase = await getServerAuthSupabase();
   const { data, error } = await supabase
     .from("medication_items")
-    .select("id, product_name, manufacturer, product_ndc, lot_number, member_id, status")
+    .select("id, product_name, manufacturer, product_ndc, lot_number, status")
     .eq("id", id)
     .single();
   if (error || !data) return notFound();
   const item = data as ItemRow;
   if (item.status === "deleted") return notFound();
 
-  const { data: familyData } = await supabase
-    .from("family_members")
-    .select("id, display_name")
-    .order("created_at", { ascending: true });
-  const familyOptions = (familyData ?? []) as FamilyOption[];
-
   const initial: MedicationFormValues = {
     productName: item.product_name,
     manufacturer: item.manufacturer,
     productNdc: item.product_ndc ?? "",
     lotNumber: item.lot_number ?? "",
-    memberId: item.member_id,
   };
 
   return (
@@ -64,12 +55,7 @@ export default async function EditMedicationPage({
         </p>
       </div>
       <div className="card">
-        <MedicationForm
-          mode="edit"
-          initial={initial}
-          itemId={item.id}
-          familyOptions={familyOptions}
-        />
+        <MedicationForm mode="edit" initial={initial} itemId={item.id} />
       </div>
     </div>
   );

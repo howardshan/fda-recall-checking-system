@@ -11,28 +11,18 @@ type Item = {
   lot_number: string | null;
   added_at: string;
   manufacturer_unverified: boolean;
-  member_id: number | null;
-  family_members: { display_name: string } | { display_name: string }[] | null;
 };
-
-function memberDisplayName(
-  ref: Item["family_members"],
-): string | null {
-  if (!ref) return null;
-  if (Array.isArray(ref)) return ref[0]?.display_name ?? null;
-  return ref.display_name ?? null;
-}
 
 async function getActiveItems(): Promise<Item[]> {
   const supabase = await getServerAuthSupabase();
   const { data } = await supabase
     .from("medication_items")
     .select(
-      "id, product_name, manufacturer, product_ndc, lot_number, added_at, manufacturer_unverified, member_id, family_members(display_name)",
+      "id, product_name, manufacturer, product_ndc, lot_number, added_at, manufacturer_unverified",
     )
     .eq("status", "active")
     .order("added_at", { ascending: false });
-  return (data ?? []) as unknown as Item[];
+  return (data ?? []) as Item[];
 }
 
 async function getPausedItems(): Promise<Item[]> {
@@ -40,11 +30,11 @@ async function getPausedItems(): Promise<Item[]> {
   const { data } = await supabase
     .from("medication_items")
     .select(
-      "id, product_name, manufacturer, product_ndc, lot_number, added_at, manufacturer_unverified, member_id, family_members(display_name)",
+      "id, product_name, manufacturer, product_ndc, lot_number, added_at, manufacturer_unverified",
     )
     .eq("status", "paused")
     .order("added_at", { ascending: false });
-  return (data ?? []) as unknown as Item[];
+  return (data ?? []) as Item[];
 }
 
 async function getUnreadByItem(): Promise<Map<number, number>> {
@@ -74,13 +64,6 @@ function formatDate(iso: string | null): string {
   }
 }
 
-function memberLabel(item: Item): string | null {
-  const name = memberDisplayName(item.family_members);
-  if (name) return name;
-  if (item.member_id != null) return "Family member";
-  return null;
-}
-
 function MedCard({
   item,
   unread,
@@ -90,7 +73,6 @@ function MedCard({
   unread: number;
   dimmed?: boolean;
 }) {
-  const forLabel = memberLabel(item);
   return (
     <Link
       href={`/cabinet/${item.id}/edit`}
@@ -106,9 +88,6 @@ function MedCard({
           <p className="text-body-md text-on-surface-variant truncate">
             {item.manufacturer}
           </p>
-          {forLabel ? (
-            <p className="mt-1 text-label-sm text-secondary">For: {forLabel}</p>
-          ) : null}
         </div>
         {item.manufacturer_unverified ? (
           <span className="chip bg-surface-container-high text-on-surface shrink-0">

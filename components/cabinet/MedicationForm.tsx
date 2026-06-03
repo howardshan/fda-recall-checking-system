@@ -11,16 +11,12 @@ export type MedicationFormValues = {
   manufacturer: string;
   productNdc: string;
   lotNumber: string;
-  memberId: number | null;
 };
-
-export type FamilyOption = { id: number; display_name: string };
 
 type Props = {
   mode: "create" | "edit";
   initial?: MedicationFormValues;
   itemId?: number;
-  familyOptions?: FamilyOption[];
 };
 
 const EMPTY: MedicationFormValues = {
@@ -28,10 +24,9 @@ const EMPTY: MedicationFormValues = {
   manufacturer: "",
   productNdc: "",
   lotNumber: "",
-  memberId: null,
 };
 
-export function MedicationForm({ mode, initial, itemId, familyOptions = [] }: Props) {
+export function MedicationForm({ mode, initial, itemId }: Props) {
   const router = useRouter();
   const [values, setValues] = useState<MedicationFormValues>(initial ?? EMPTY);
   const [submitting, setSubmitting] = useState(false);
@@ -71,14 +66,13 @@ export function MedicationForm({ mode, initial, itemId, familyOptions = [] }: Pr
           manufacturer: values.manufacturer.trim(),
           productNdc: values.productNdc.trim() || null,
           lotNumber: values.lotNumber.trim() || null,
-          memberId: values.memberId,
           confirmUnverified,
         }),
       });
       const json = (await res.json()) as {
         error?: string;
         message?: string;
-        resource?: "meds" | "familyMembers";
+        resource?: "meds";
         currentPlan?: "free" | "personal" | "family";
         limit?: number;
         upgradeTo?: "free" | "personal" | "family" | null;
@@ -144,26 +138,6 @@ export function MedicationForm({ mode, initial, itemId, familyOptions = [] }: Pr
   return (
     <>
     <form className="space-y-6" onSubmit={handleSubmit}>
-      {familyOptions.length > 0 ? (
-        <div className="flex flex-col gap-2">
-          <label className="text-label-md text-on-surface-variant">For</label>
-          <select
-            value={values.memberId ?? ""}
-            onChange={(e) =>
-              update("memberId", e.target.value ? Number.parseInt(e.target.value, 10) : null)
-            }
-            className="input bg-surface-container-low"
-          >
-            <option value="">Myself</option>
-            {familyOptions.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.display_name}
-              </option>
-            ))}
-          </select>
-        </div>
-      ) : null}
-
       <div className="flex flex-col gap-2">
         <label className="text-label-md text-on-surface-variant">
           Product name <span className="text-error">*</span>
