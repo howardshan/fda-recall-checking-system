@@ -2,11 +2,23 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
+export type TypeaheadFetchResult<T> = T[] | { items: T[]; truncated?: boolean };
+
+function normalizeFetchResult<T>(result: TypeaheadFetchResult<T>): {
+  items: T[];
+  truncated: boolean;
+} {
+  if (Array.isArray(result)) {
+    return { items: result, truncated: false };
+  }
+  return { items: result.items, truncated: result.truncated ?? false };
+}
+
 type Props<T> = {
   value: string;
   onChange: (v: string) => void;
   onPick: (item: T) => void;
-  fetcher: (query: string, signal: AbortSignal) => Promise<T[]>;
+  fetcher: (query: string, signal: AbortSignal) => Promise<TypeaheadFetchResult<T>>;
   renderItem: (item: T) => ReactNode;
   itemKey: (item: T, idx: number) => string;
   placeholder?: string;
@@ -15,6 +27,12 @@ type Props<T> = {
   debounceMs?: number;
   /** When true, skip fetching until the input is focused (manufacturer list mode). */
   fetchOnlyWhenFocused?: boolean;
+  /** Shown on focus when the query is shorter than minQueryLength. */
+  emptyFocusHint?: ReactNode;
+  /** Footer when the API indicates more matches exist beyond the result cap. */
+  truncatedFooter?: ReactNode;
+  /** Shown in the dropdown while a fetch is in flight. */
+  loadingMessage?: ReactNode;
 };
 
 export function Typeahead<T>({
@@ -29,12 +47,23 @@ export function Typeahead<T>({
   minQueryLength = 2,
   debounceMs = 250,
   fetchOnlyWhenFocused = false,
+  emptyFocusHint,
+  truncatedFooter,
+  loadingMessage = "Searching…",
 }: Props<T>) {
   const [items, setItems] = useState<T[]>([]);
+  const [truncated, setTruncated] = useState(false);
   const [open, setOpen] = useState(false);
   const [highlighted, setHighlighted] = useState(0);
   const [loading, setLoading] = useState(false);
   const [focused, setFocused] = useState(false);
+  const showHint =
+    focused && emptyFocusHint != null && value.trim().length < minQueryLength;
+  const showResultsPanel =
+    focused &&
+    !showHint &&
+    value.trim().length >= minQueryLength &&
+    (loading || items.length > 0);
   const containerRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   // Suppress one fetch cycle right after a pick — otherwise setting the
@@ -51,27 +80,35 @@ export function Typeahead<T>({
     }
     if (value.trim().length < minQueryLength) {
       setItems([]);
-      setOpen(false);
+      setTruncated(false);
+      setLoading(false);
+      setOpen(focused && emptyFocusHint != null);
       return;
     }
+    setOpen(focused);
+    setLoading(true);
     const handle = setTimeout(async () => {
       abortRef.current?.abort();
       const ctrl = new AbortController();
       abortRef.current = ctrl;
       setLoading(true);
       try {
-        const results = await fetcher(value.trim(), ctrl.signal);
-        setItems(results);
-        setOpen(focused && results.length > 0);
+        const result = normalizeFetchResult(await fetcher(value.trim(), ctrl.signal));
+        if (ctrl.signal.aborted) return;
+        setItems(result.items);
+        setTruncated(result.truncated);
+        setOpen(focused && result.items.length > 0);
         setHighlighted(0);
       } catch {
         // abort or network error — ignore
       } finally {
-        setLoading(false);
+        if (!ctrl.signal.aborted) {
+          setLoading(false);
+        }
       }
     }, debounceMs);
     return () => clearTimeout(handle);
-  }, [value, fetcher, minQueryLength, debounceMs, fetchOnlyWhenFocused, focused]);
+  }, [value, fetcher, minQueryLength, debounceMs, fetchOnlyWhenFocused, focused, emptyFocusHint]);
 
   useEffect(() => {
     function handler(e: MouseEvent) {
@@ -121,7 +158,11 @@ export function Typeahead<T>({
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => {
           setFocused(true);
-          if (items.length > 0) setOpen(true);
+          if (items.length > 0) {
+            setOpen(true);
+          } else if (emptyFocusHint && value.trim().length < minQueryLength) {
+            setOpen(true);
+          }
         }}
         onBlur={() => {
           window.setTimeout(() => {
@@ -142,11 +183,22 @@ export function Typeahead<T>({
           …
         </span>
       ) : null}
-      {open ? (
+      {open && showHint ? (
+        <div
+          role="status"
+          className="absolute z-20 mt-1 w-full rounded-md border border-slate-200 bg-white px-3 py-3 text-sm text-on-surface-variant shadow-lg"
+        >
+          {emptyFocusHint}
+        </div>
+      ) : null}
+      {open && showResultsPanel ? (
         <ul
           role="listbox"
           className="absolute z-20 mt-1 max-h-72 w-full overflow-y-auto rounded-md border border-slate-200 bg-white shadow-lg"
         >
+          {loading && items.length === 0 ? (
+            <li className="px-3 py-2 text-sm text-on-surface-variant">{loadingMessage}</li>
+          ) : null}
           {items.map((item, i) => (
             <li key={itemKey(item, i)}>
               <button
@@ -161,6 +213,16 @@ export function Typeahead<T>({
               </button>
             </li>
           ))}
+          {truncated && truncatedFooter ? (
+            <li className="border-t border-slate-200 px-3 py-2 text-label-sm text-on-surface-variant">
+              {truncatedFooter}
+            </li>
+          ) : null}
+          {loading && items.length > 0 ? (
+            <li className="border-t border-slate-200 px-3 py-1.5 text-label-sm text-on-surface-variant">
+              {loadingMessage}
+            </li>
+          ) : null}
         </ul>
       ) : null}
     </div>

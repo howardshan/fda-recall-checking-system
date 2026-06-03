@@ -214,7 +214,7 @@ export function MedicationForm({ mode, initial, itemId, familyOptions = [] }: Pr
           onChange={(v) => update("manufacturer", v)}
           onPick={pickManufacturer}
           placeholder={
-            selectedProduct ? "Click to see makers" : "Pick a product from the dropdown first"
+            selectedProduct ? "Type to search makers (e.g. Teva)" : "Pick a product from the dropdown first"
           }
           product={selectedProduct || undefined}
         />

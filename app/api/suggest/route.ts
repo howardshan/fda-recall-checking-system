@@ -11,10 +11,11 @@ export async function GET(req: Request) {
     | "product"
     | "manufacturer";
   const product = (url.searchParams.get("product") ?? "").trim();
-  const limit = Math.min(
-    20,
-    Math.max(1, Number.parseInt(url.searchParams.get("limit") ?? "8", 10) || 8),
-  );
+  const limitParam = Number.parseInt(url.searchParams.get("limit") ?? "8", 10) || 8;
+  const limit =
+    mode === "manufacturer" && product.trim()
+      ? Math.min(50, Math.max(1, limitParam))
+      : Math.min(20, Math.max(1, limitParam));
 
   try {
     const supabase = getServerSupabase();
@@ -50,7 +51,10 @@ export async function GET(req: Request) {
         labelerName: r.labeler_name,
         score: 1,
       }));
-      return NextResponse.json({ results });
+      return NextResponse.json({
+        results,
+        truncated: results.length >= limit,
+      });
     }
 
     // Unconstrained legacy path — used when no product is set yet.

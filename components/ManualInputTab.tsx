@@ -91,7 +91,7 @@ export function ManualInputTab({ onSubmit, submitting }: Props) {
           value={manufacturer}
           onChange={setManufacturer}
           onPick={pickManufacturer}
-          placeholder={selectedProduct ? "Click to see makers" : "Pick a product from the dropdown first"}
+          placeholder={selectedProduct ? "Type to search makers (e.g. Teva)" : "Pick a product from the dropdown first"}
           product={selectedProduct || undefined}
         />
       </div>
