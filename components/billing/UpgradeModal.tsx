@@ -6,7 +6,7 @@ import Link from "next/link";
 import { PLAN_LABEL, QUOTAS, type Plan } from "@/lib/plan";
 
 export type QuotaError = {
-  resource: "meds" | "familyMembers";
+  resource: "meds";
   currentPlan: Plan;
   limit: number;
   upgradeTo: Plan | null;
@@ -18,10 +18,7 @@ type Props = {
   onUpgraded?: (newPlan: Plan) => void;
 };
 
-const COPY: Record<
-  "meds" | "familyMembers",
-  Record<Plan, { title: string; body: string }>
-> = {
+const COPY: Record<"meds", Record<Plan, { title: string; body: string }>> = {
   meds: {
     free: {
       title: "Upgrade to Personal Pro",
@@ -29,25 +26,11 @@ const COPY: Record<
     },
     personal: {
       title: "Upgrade to Family Protection",
-      body: "Personal Pro tracks up to 20 medications. Upgrade to Family Protection for 50 products across up to 5 family members.",
+      body: "Personal Pro tracks up to 20 medications. Upgrade to Family Protection for up to 50 medications.",
     },
     family: {
       title: "Plan limit reached",
-      body: "Family Protection includes 50 tracked products — the highest tier. Remove an item from your cabinet to add a new one.",
-    },
-  },
-  familyMembers: {
-    free: {
-      title: "Upgrade to Family Protection",
-      body: "Family members are part of the Family Protection plan. Subscribe to add up to 5 members.",
-    },
-    personal: {
-      title: "Upgrade to Family Protection",
-      body: "Personal Pro is for one person. Upgrade to Family Protection for family members and 50 tracked products.",
-    },
-    family: {
-      title: "Plan limit reached",
-      body: "Family Protection includes up to 5 family members. Remove a member before adding a new one.",
+      body: "Family Protection includes 50 tracked medications — the highest tier. Remove an item from your cabinet to add a new one.",
     },
   },
 };
@@ -116,9 +99,6 @@ export function UpgradeModal({ error, onClose, onUpgraded }: Props) {
             <p className="font-medium text-on-surface">{PLAN_LABEL[target]}</p>
             <ul className="mt-1 list-disc pl-5 text-on-surface-variant">
               <li>{QUOTAS[target].meds} medications</li>
-              {QUOTAS[target].familyMembers > 0 ? (
-                <li>{QUOTAS[target].familyMembers} family members</li>
-              ) : null}
             </ul>
           </div>
         ) : null}

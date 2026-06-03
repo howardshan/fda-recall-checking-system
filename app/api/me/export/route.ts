@@ -12,11 +12,10 @@ export async function GET() {
   }
   const userId = userData.user.id;
 
-  const [profile, prefs, items, family, notifications] = await Promise.all([
+  const [profile, prefs, items, notifications] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
     supabase.from("notification_preferences").select("*").eq("user_id", userId).maybeSingle(),
     supabase.from("medication_items").select("*").eq("user_id", userId),
-    supabase.from("family_members").select("*").eq("user_id", userId),
     supabase.from("notifications").select("*").eq("user_id", userId),
   ]);
 
@@ -26,7 +25,6 @@ export async function GET() {
     profile: profile.data ?? null,
     notification_preferences: prefs.data ?? null,
     medication_items: items.data ?? [],
-    family_members: family.data ?? [],
     notifications: notifications.data ?? [],
   };
 

@@ -4,6 +4,40 @@ import { listCabinetItems, type CabinetListItem } from "@/lib/cabinet-items";
 
 export const dynamic = "force-dynamic";
 
+type Item = {
+  id: number;
+  product_name: string;
+  manufacturer: string;
+  product_ndc: string | null;
+  lot_number: string | null;
+  added_at: string;
+  manufacturer_unverified: boolean;
+};
+
+async function getActiveItems(): Promise<Item[]> {
+  const supabase = await getServerAuthSupabase();
+  const { data } = await supabase
+    .from("medication_items")
+    .select(
+      "id, product_name, manufacturer, product_ndc, lot_number, added_at, manufacturer_unverified",
+    )
+    .eq("status", "active")
+    .order("added_at", { ascending: false });
+  return (data ?? []) as Item[];
+}
+
+async function getPausedItems(): Promise<Item[]> {
+  const supabase = await getServerAuthSupabase();
+  const { data } = await supabase
+    .from("medication_items")
+    .select(
+      "id, product_name, manufacturer, product_ndc, lot_number, added_at, manufacturer_unverified",
+    )
+    .eq("status", "paused")
+    .order("added_at", { ascending: false });
+  return (data ?? []) as Item[];
+}
+
 async function getUnreadByItem(): Promise<Map<number, number>> {
   const supabase = await getServerAuthSupabase();
   const { data } = await supabase
@@ -31,12 +65,6 @@ function formatDate(iso: string | null): string {
   }
 }
 
-function memberLabel(item: CabinetListItem): string | null {
-  if (item.member_display_name) return item.member_display_name;
-  if (item.member_id != null) return "Family member";
-  return null;
-}
-
 function MedCard({
   item,
   unread,
@@ -46,7 +74,6 @@ function MedCard({
   unread: number;
   dimmed?: boolean;
 }) {
-  const forLabel = memberLabel(item);
   return (
     <Link
       href={`/cabinet/${item.id}/edit`}
@@ -62,9 +89,6 @@ function MedCard({
           <p className="text-body-md text-on-surface-variant truncate">
             {item.manufacturer}
           </p>
-          {forLabel ? (
-            <p className="mt-1 text-label-sm text-secondary">For: {forLabel}</p>
-          ) : null}
         </div>
         {item.manufacturer_unverified ? (
           <span className="chip bg-surface-container-high text-on-surface shrink-0">
