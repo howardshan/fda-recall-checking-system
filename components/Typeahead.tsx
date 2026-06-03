@@ -2,16 +2,23 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
-export type TypeaheadFetchResult<T> = T[] | { items: T[]; truncated?: boolean };
+export type TypeaheadFetchResult<T> =
+  | T[]
+  | { items: T[]; truncated?: boolean; error?: string };
 
 function normalizeFetchResult<T>(result: TypeaheadFetchResult<T>): {
   items: T[];
   truncated: boolean;
+  error: string | null;
 } {
   if (Array.isArray(result)) {
-    return { items: result, truncated: false };
+    return { items: result, truncated: false, error: null };
   }
-  return { items: result.items, truncated: result.truncated ?? false };
+  return {
+    items: result.items,
+    truncated: result.truncated ?? false,
+    error: result.error ?? null,
+  };
 }
 
 type Props<T> = {
@@ -39,6 +46,12 @@ type Props<T> = {
   truncatedFooter?: ReactNode;
   /** Shown in the dropdown while a fetch is in flight. */
   loadingMessage?: ReactNode;
+  /** Shown when the empty-focus preview returns no rows (not an error). */
+  emptyFocusEmptyMessage?: ReactNode;
+  /** Shown when the empty-focus preview request fails. */
+  emptyFocusErrorMessage?: ReactNode;
+  /** Shown when a typed search request fails. */
+  searchErrorMessage?: ReactNode;
 };
 
 export function Typeahead<T>({
@@ -59,13 +72,18 @@ export function Typeahead<T>({
   emptyFocusHint,
   truncatedFooter,
   loadingMessage = "Searching…",
+  emptyFocusEmptyMessage = "No matches found. Try a different search.",
+  emptyFocusErrorMessage = "Couldn't load suggestions. Try typing to search.",
+  searchErrorMessage = "Search failed. Try again.",
 }: Props<T>) {
   const [items, setItems] = useState<T[]>([]);
   const [truncated, setTruncated] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [previewItems, setPreviewItems] = useState<T[]>([]);
   const [previewTruncated, setPreviewTruncated] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewAttempted, setPreviewAttempted] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [highlighted, setHighlighted] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -84,7 +102,7 @@ export function Typeahead<T>({
     emptyFocusFetcher != null &&
     (previewLoading || previewAttempted);
   const showSearchPanel =
-    focused && !queryTooShort && (loading || items.length > 0);
+    focused && !queryTooShort && (loading || items.length > 0 || searchError != null);
   const activeLoading = showSearchPanel ? loading : previewLoading;
   // Hide stale rows while a fetch is in flight (preview or search).
   const activeItems = showSearchPanel
@@ -103,6 +121,7 @@ export function Typeahead<T>({
     setPreviewTruncated(false);
     setPreviewLoading(false);
     setPreviewAttempted(false);
+    setPreviewError(null);
   }
 
   // Context change (e.g. product switch) — drop cached preview rows immediately.
@@ -115,6 +134,7 @@ export function Typeahead<T>({
     setItems([]);
     setTruncated(false);
     setLoading(false);
+    setSearchError(null);
   }, [fetcher]);
 
   useEffect(() => {
@@ -132,6 +152,7 @@ export function Typeahead<T>({
     setPreviewTruncated(false);
     setPreviewLoading(true);
     setPreviewAttempted(false);
+    setPreviewError(null);
     setOpen(true);
 
     void (async () => {
@@ -140,6 +161,7 @@ export function Typeahead<T>({
         if (ctrl.signal.aborted) return;
         setPreviewItems(result.items);
         setPreviewTruncated(result.truncated);
+        setPreviewError(result.error);
         setHighlighted(0);
       } catch {
         // abort or network error — ignore
@@ -166,6 +188,7 @@ export function Typeahead<T>({
       setItems([]);
       setTruncated(false);
       setLoading(false);
+      setSearchError(null);
       if (!emptyFocusFetcher) {
         setOpen(focused && emptyFocusHint != null);
       }
@@ -173,6 +196,7 @@ export function Typeahead<T>({
     }
     setOpen(focused);
     setLoading(true);
+    setSearchError(null);
     const handle = setTimeout(async () => {
       abortRef.current?.abort();
       const ctrl = new AbortController();
@@ -183,7 +207,8 @@ export function Typeahead<T>({
         if (ctrl.signal.aborted) return;
         setItems(result.items);
         setTruncated(result.truncated);
-        setOpen(focused && result.items.length > 0);
+        setSearchError(result.error);
+        setOpen(focused && (result.items.length > 0 || result.error != null));
         setHighlighted(0);
       } catch {
         // abort or network error — ignore
@@ -310,10 +335,16 @@ export function Typeahead<T>({
           {activeLoading && activeItems.length === 0 ? (
             <li className="px-3 py-2 text-sm text-on-surface-variant">{loadingMessage}</li>
           ) : null}
-          {!activeLoading && showPreviewPanel && activeItems.length === 0 ? (
+          {!activeLoading && showPreviewPanel && activeItems.length === 0 && previewError ? (
+            <li className="px-3 py-2 text-sm text-error">{emptyFocusErrorMessage}</li>
+          ) : null}
+          {!activeLoading && showPreviewPanel && activeItems.length === 0 && !previewError ? (
             <li className="px-3 py-2 text-sm text-on-surface-variant">
-              No common makers found for this product. Type to search by name.
+              {emptyFocusEmptyMessage}
             </li>
+          ) : null}
+          {!activeLoading && showSearchPanel && activeItems.length === 0 && searchError ? (
+            <li className="px-3 py-2 text-sm text-error">{searchErrorMessage}</li>
           ) : null}
           {activeItems.map((item, i) => (
             <li key={itemKey(item, i)}>
