@@ -12,22 +12,22 @@ export default async function PublicLayout({ children }: { children: React.React
   return (
     <div className="flex min-h-screen flex-col bg-surface">
       <header className="border-b border-primary/10 bg-surface-container-lowest">
-        <div className="mx-auto flex max-w-container items-center justify-between px-margin-mobile py-4 md:px-margin-desktop">
+        <div className="mx-auto flex max-w-container items-center justify-between gap-4 px-margin-mobile py-4 md:px-margin-desktop">
           <Link href="/" aria-label="SafeTrack home">
             <Logo size={56} />
           </Link>
-          <nav className="flex items-center gap-4 text-label-md">
-            <Link href="/check" className="text-on-surface-variant hover:text-secondary">Quick check</Link>
+          <nav className="flex flex-1 items-center justify-evenly gap-4 text-label-md md:flex-none md:justify-end md:gap-6">
+            <Link href="/check" className="text-on-surface-variant hover:text-secondary whitespace-nowrap">Quick check</Link>
             <Link href="/pricing" className="text-on-surface-variant hover:text-secondary">Pricing</Link>
             {user ? (
               <Link
                 href="/dashboard"
-                className="rounded-full bg-primary px-3 py-1.5 text-on-primary"
+                className="rounded-full bg-primary px-3 py-1.5 text-on-primary whitespace-nowrap"
               >
                 {displayName.slice(0, 18)}
               </Link>
             ) : (
-              <Link href="/login" className="text-on-surface-variant hover:text-secondary">Sign in</Link>
+              <Link href="/login" className="btn-primary text-label-md whitespace-nowrap">Sign in</Link>
             )}
           </nav>
         </div>

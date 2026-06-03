@@ -39,6 +39,23 @@ export function SignupForm() {
     setLoading(true);
     setError(null);
     try {
+      // Server-side pre-check: catch unconfirmed-account duplicates that Supabase's
+      // signUp would silently re-send instead of flagging.
+      const checkRes = await fetch("/api/auth/check-email", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (checkRes.ok) {
+        const { exists } = (await checkRes.json()) as { exists?: boolean };
+        if (exists) {
+          setError(
+            "An account with this email already exists. Try signing in or use the forgot-password link.",
+          );
+          return;
+        }
+      }
+
       const supabase = getBrowserSupabase();
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,

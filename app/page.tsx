@@ -1,30 +1,10 @@
 import Link from "next/link";
-import { headers } from "next/headers";
 import { Logo } from "@/components/Logo";
 import { getCurrentUser } from "@/lib/auth";
-
-type Meta = {
-  lastSyncedAt: string | null;
-  recallCount: number;
-  ndcCount: number;
-};
-
-async function fetchMeta(): Promise<Meta | null> {
-  try {
-    const h = await headers();
-    const host = h.get("host");
-    const proto = h.get("x-forwarded-proto") ?? "http";
-    if (!host) return null;
-    const res = await fetch(`${proto}://${host}/api/meta`, { cache: "no-store" });
-    if (!res.ok) return null;
-    return (await res.json()) as Meta;
-  } catch {
-    return null;
-  }
-}
+import { getMeta } from "@/lib/meta";
 
 export default async function LandingPage() {
-  const [meta, user] = await Promise.all([fetchMeta(), getCurrentUser()]);
+  const [meta, user] = await Promise.all([getMeta(), getCurrentUser()]);
   const displayName =
     (user?.user_metadata?.full_name as string | undefined) ??
     user?.email?.split("@")[0] ??
@@ -34,12 +14,12 @@ export default async function LandingPage() {
     <div className="flex min-h-screen flex-col bg-surface">
       {/* Header */}
       <header className="border-b border-primary/10 bg-surface-container-lowest">
-        <div className="mx-auto flex max-w-container items-center justify-between px-margin-mobile py-4 md:px-margin-desktop">
+        <div className="mx-auto flex max-w-container items-center justify-between gap-4 px-margin-mobile py-4 md:px-margin-desktop">
           <Link href="/" aria-label="SafeTrack home">
             <Logo size={56} />
           </Link>
-          <nav className="flex items-center gap-4 text-label-md">
-            <Link href="/check" className="text-on-surface-variant hover:text-secondary">
+          <nav className="flex flex-1 items-center justify-evenly gap-4 text-label-md md:flex-none md:justify-end md:gap-6">
+            <Link href="/check" className="text-on-surface-variant hover:text-secondary whitespace-nowrap">
               Quick check
             </Link>
             <Link href="/pricing" className="text-on-surface-variant hover:text-secondary">
@@ -48,12 +28,12 @@ export default async function LandingPage() {
             {user ? (
               <Link
                 href="/dashboard"
-                className="rounded-full bg-primary px-3 py-1.5 text-on-primary"
+                className="rounded-full bg-primary px-3 py-1.5 text-on-primary whitespace-nowrap"
               >
                 {displayName.slice(0, 18)}
               </Link>
             ) : (
-              <Link href="/login" className="btn-primary text-label-md">
+              <Link href="/login" className="btn-primary text-label-md whitespace-nowrap">
                 Sign in
               </Link>
             )}
