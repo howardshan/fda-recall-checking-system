@@ -9,7 +9,7 @@ type Props = {
 export function Logo({ size = 40, className = "" }: Props) {
   return (
     <img
-      src="/logo.png"
+      src="/logo.jpg"
       alt="SafeTrack"
       height={size}
       style={{ height: size, width: "auto" }}
