@@ -18,6 +18,7 @@ type Props = {
 
 export function ManualInputTab({ onSubmit, submitting }: Props) {
   const [productName, setProductName] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState("");
   const [manufacturer, setManufacturer] = useState("");
   const [ndc, setNdc] = useState("");
   const [lotNumber, setLotNumber] = useState("");
@@ -27,7 +28,20 @@ export function ManualInputTab({ onSubmit, submitting }: Props) {
       setManufacturer("");
       setNdc("");
     }
+    setSelectedProduct(name);
     setProductName(name);
+  }
+
+  function changeProductName(name: string) {
+    const diverged = Boolean(selectedProduct && name.trim() !== selectedProduct.trim());
+    setProductName(name);
+    if (diverged) {
+      setManufacturer("");
+      setNdc("");
+    }
+    if (!selectedProduct || name.trim() !== selectedProduct.trim()) {
+      setSelectedProduct("");
+    }
   }
 
   function pickManufacturer(m: ManufacturerSuggestion) {
@@ -35,7 +49,6 @@ export function ManualInputTab({ onSubmit, submitting }: Props) {
   }
 
   const canSubmit = productName.trim().length > 0 || ndc.trim().length > 0;
-  const productLocked = productName.trim().length > 0;
 
   return (
     <form
@@ -55,7 +68,7 @@ export function ManualInputTab({ onSubmit, submitting }: Props) {
         <label className="text-label-md text-on-surface-variant">Product name</label>
         <ProductTypeahead
           value={productName}
-          onChange={setProductName}
+          onChange={changeProductName}
           onPick={pickProduct}
           placeholder="e.g. amoxicillin"
         />
@@ -64,9 +77,9 @@ export function ManualInputTab({ onSubmit, submitting }: Props) {
       <div className="flex flex-col gap-2">
         <label className="text-label-md text-on-surface-variant">
           Manufacturer
-          {productLocked ? (
+          {selectedProduct ? (
             <span className="ml-2 text-label-sm font-normal opacity-70">
-              showing makers of &ldquo;{productName.trim()}&rdquo;
+              showing makers of &ldquo;{selectedProduct}&rdquo;
             </span>
           ) : (
             <span className="ml-2 text-label-sm font-normal opacity-50">
@@ -78,8 +91,8 @@ export function ManualInputTab({ onSubmit, submitting }: Props) {
           value={manufacturer}
           onChange={setManufacturer}
           onPick={pickManufacturer}
-          placeholder={productLocked ? "Click to see makers" : "Pick a product first"}
-          product={productLocked ? productName : undefined}
+          placeholder={selectedProduct ? "Click to see makers" : "Pick a product from the dropdown first"}
+          product={selectedProduct || undefined}
         />
       </div>
 

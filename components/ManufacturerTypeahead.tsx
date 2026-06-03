@@ -57,6 +57,7 @@ export function ManufacturerTypeahead({
       )}
       placeholder={placeholder}
       minQueryLength={productKey ? 0 : 2}
+      fetchOnlyWhenFocused={Boolean(productKey)}
     />
   );
 }

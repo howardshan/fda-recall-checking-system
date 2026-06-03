@@ -13,6 +13,8 @@ type Props<T> = {
   autoFocus?: boolean;
   minQueryLength?: number;
   debounceMs?: number;
+  /** When true, skip fetching until the input is focused (manufacturer list mode). */
+  fetchOnlyWhenFocused?: boolean;
 };
 
 export function Typeahead<T>({
@@ -26,11 +28,13 @@ export function Typeahead<T>({
   autoFocus,
   minQueryLength = 2,
   debounceMs = 250,
+  fetchOnlyWhenFocused = false,
 }: Props<T>) {
   const [items, setItems] = useState<T[]>([]);
   const [open, setOpen] = useState(false);
   const [highlighted, setHighlighted] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [focused, setFocused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   // Suppress one fetch cycle right after a pick — otherwise setting the
@@ -40,6 +44,9 @@ export function Typeahead<T>({
   useEffect(() => {
     if (skipNextRef.current) {
       skipNextRef.current = false;
+      return;
+    }
+    if (fetchOnlyWhenFocused && !focused) {
       return;
     }
     if (value.trim().length < minQueryLength) {
@@ -55,7 +62,7 @@ export function Typeahead<T>({
       try {
         const results = await fetcher(value.trim(), ctrl.signal);
         setItems(results);
-        setOpen(results.length > 0);
+        setOpen(focused && results.length > 0);
         setHighlighted(0);
       } catch {
         // abort or network error — ignore
@@ -64,7 +71,7 @@ export function Typeahead<T>({
       }
     }, debounceMs);
     return () => clearTimeout(handle);
-  }, [value, fetcher, minQueryLength, debounceMs]);
+  }, [value, fetcher, minQueryLength, debounceMs, fetchOnlyWhenFocused, focused]);
 
   useEffect(() => {
     function handler(e: MouseEvent) {
@@ -112,7 +119,18 @@ export function Typeahead<T>({
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        onFocus={() => items.length > 0 && setOpen(true)}
+        onFocus={() => {
+          setFocused(true);
+          if (items.length > 0) setOpen(true);
+        }}
+        onBlur={() => {
+          window.setTimeout(() => {
+            if (!containerRef.current?.contains(document.activeElement)) {
+              setFocused(false);
+              setOpen(false);
+            }
+          }, 0);
+        }}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         autoFocus={autoFocus}
