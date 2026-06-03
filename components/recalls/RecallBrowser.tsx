@@ -53,19 +53,24 @@ export function RecallBrowser() {
   const [since, setSince] = useState(sp.get("since") ?? "");
   const [until, setUntil] = useState(sp.get("until") ?? "");
   const page = Math.max(1, Number.parseInt(sp.get("page") ?? "1", 10) || 1);
+  const queryString = sp.toString();
 
   const [data, setData] = useState<Page | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Keep filter inputs aligned with the URL (back/forward, shared links).
+  useEffect(() => {
+    setQ(sp.get("q") ?? "");
+    setCls(sp.get("class") ?? "");
+    setSince(sp.get("since") ?? "");
+    setUntil(sp.get("until") ?? "");
+  }, [queryString, sp]);
+
   useEffect(() => {
     let cancelled = false;
-    const params = new URLSearchParams();
-    if (q.trim()) params.set("q", q.trim());
-    if (cls) params.set("class", cls);
-    if (since) params.set("since", since);
-    if (until) params.set("until", until);
-    params.set("page", String(page));
+    const params = new URLSearchParams(queryString);
+    if (!params.has("page")) params.set("page", "1");
     setLoading(true);
     setError(null);
     fetch(`/api/recalls?${params.toString()}`)
@@ -88,8 +93,7 @@ export function RecallBrowser() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, sp]);
+  }, [queryString]);
 
   function applyFilters() {
     const params = new URLSearchParams();

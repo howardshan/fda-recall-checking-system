@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { applyRecallClassFilter } from "@/lib/recall-classification";
 import { getServerSupabase } from "@/lib/supabase";
 
 export const runtime = "nodejs";
@@ -26,9 +27,9 @@ export async function GET(req: Request) {
     .order("recall_initiation_date", { ascending: false, nullsFirst: false })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
-  if (cls === "I") query = query.ilike("classification", "%Class I%");
-  else if (cls === "II") query = query.ilike("classification", "%Class II%");
-  else if (cls === "III") query = query.ilike("classification", "%Class III%");
+  if (cls === "I" || cls === "II" || cls === "III") {
+    query = applyRecallClassFilter(query, cls);
+  }
 
   if (since) query = query.gte("recall_initiation_date", since);
   if (until) query = query.lte("recall_initiation_date", until);

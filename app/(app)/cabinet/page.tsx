@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getServerAuthSupabase } from "@/lib/auth";
+import { listCabinetItems, type CabinetListItem } from "@/lib/cabinet-items";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +70,7 @@ function MedCard({
   unread,
   dimmed,
 }: {
-  item: Item;
+  item: CabinetListItem;
   unread: number;
   dimmed?: boolean;
 }) {
@@ -131,11 +132,16 @@ function MedCard({
 }
 
 export default async function CabinetPage() {
-  const [items, pausedItems, unreadByItem] = await Promise.all([
-    getActiveItems(),
-    getPausedItems(),
+  const supabase = await getServerAuthSupabase();
+  const [activeResult, pausedResult, unreadByItem] = await Promise.all([
+    listCabinetItems(supabase, "active"),
+    listCabinetItems(supabase, "paused"),
     getUnreadByItem(),
   ]);
+
+  const items = activeResult.items;
+  const pausedItems = pausedResult.items;
+  const loadError = activeResult.error ?? pausedResult.error;
 
   return (
     <div className="space-y-6">
@@ -151,7 +157,13 @@ export default async function CabinetPage() {
         </Link>
       </div>
 
-      {items.length === 0 && pausedItems.length === 0 ? (
+      {loadError ? (
+        <div className="card border-error/30 bg-error-container text-on-error-container">
+          Could not load your medications: {loadError}
+        </div>
+      ) : null}
+
+      {!loadError && items.length === 0 && pausedItems.length === 0 ? (
         <div className="card flex flex-col items-center gap-4 py-16 text-center">
           <h2 className="font-display text-headline-sm text-primary">Your cabinet is empty</h2>
           <p className="max-w-md text-body-md text-on-surface-variant">
@@ -162,7 +174,7 @@ export default async function CabinetPage() {
             Add your first medication
           </Link>
         </div>
-      ) : (
+      ) : loadError ? null : (
         <>
           {items.length > 0 ? (
             <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">

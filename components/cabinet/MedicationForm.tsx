@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ProductTypeahead } from "@/components/ProductTypeahead";
 import { ManufacturerTypeahead, type ManufacturerSuggestion } from "@/components/ManufacturerTypeahead";
 import { UpgradeModal, type QuotaError } from "@/components/billing/UpgradeModal";
+import { UnverifiedManufacturerModal } from "@/components/cabinet/UnverifiedManufacturerModal";
 
 export type MedicationFormValues = {
   productName: string;
@@ -29,16 +30,23 @@ const EMPTY: MedicationFormValues = {
 export function MedicationForm({ mode, initial, itemId }: Props) {
   const router = useRouter();
   const [values, setValues] = useState<MedicationFormValues>(initial ?? EMPTY);
+  const [selectedProduct, setSelectedProduct] = useState(
+    mode === "edit" && initial?.productName?.trim() ? initial.productName.trim() : "",
+  );
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [quotaError, setQuotaError] = useState<QuotaError | null>(null);
+  const [unverifiedPrompt, setUnverifiedPrompt] = useState<{
+    message: string;
+  } | null>(null);
 
   function update<K extends keyof MedicationFormValues>(key: K, v: MedicationFormValues[K]) {
     setValues((cur) => ({ ...cur, [key]: v }));
   }
 
   function pickProduct(name: string) {
+    setSelectedProduct(name);
     setValues((cur) => ({
       ...cur,
       productName: name,
@@ -46,6 +54,18 @@ export function MedicationForm({ mode, initial, itemId }: Props) {
       manufacturer: cur.productName === name ? cur.manufacturer : "",
       productNdc: cur.productName === name ? cur.productNdc : "",
     }));
+  }
+
+  function changeProductName(name: string) {
+    const diverged = Boolean(selectedProduct && name.trim() !== selectedProduct.trim());
+    setValues((cur) => ({
+      ...cur,
+      productName: name,
+      ...(diverged ? { manufacturer: "", productNdc: "" } : {}),
+    }));
+    if (!selectedProduct || name.trim() !== selectedProduct.trim()) {
+      setSelectedProduct("");
+    }
   }
 
   function pickManufacturer(m: ManufacturerSuggestion) {
@@ -78,15 +98,12 @@ export function MedicationForm({ mode, initial, itemId }: Props) {
         upgradeTo?: "free" | "personal" | "family" | null;
       };
       if (res.status === 409 && json.error === "MANUFACTURER_UNVERIFIED") {
-        const ok = window.confirm(
-          json.message ??
-            "This manufacturer is not in our directory. The medication will be saved but will NOT be monitored for recalls. Continue?",
-        );
-        if (ok) {
-          await submitMedication(true);
-        } else {
-          setSubmitting(false);
-        }
+        setUnverifiedPrompt({
+          message:
+            json.message ??
+            "This manufacturer is not in our FDA drug directory. We cannot monitor recalls for this entry.",
+        });
+        setSubmitting(false);
         return;
       }
       if (res.status === 402 && json.error === "QUOTA_EXCEEDED" && json.resource && json.currentPlan && typeof json.limit === "number") {
@@ -144,7 +161,7 @@ export function MedicationForm({ mode, initial, itemId }: Props) {
         </label>
         <ProductTypeahead
           value={values.productName}
-          onChange={(v) => update("productName", v)}
+          onChange={changeProductName}
           onPick={pickProduct}
           placeholder="Start typing a drug name…"
         />
@@ -156,9 +173,9 @@ export function MedicationForm({ mode, initial, itemId }: Props) {
       <div className="flex flex-col gap-2">
         <label className="text-label-md text-on-surface-variant">
           Manufacturer <span className="text-error">*</span>
-          {values.productName ? (
+          {selectedProduct ? (
             <span className="ml-2 text-label-sm font-normal opacity-70">
-              showing makers of &ldquo;{values.productName}&rdquo;
+              showing makers of &ldquo;{selectedProduct}&rdquo;
             </span>
           ) : (
             <span className="ml-2 text-label-sm font-normal opacity-50">
@@ -171,9 +188,9 @@ export function MedicationForm({ mode, initial, itemId }: Props) {
           onChange={(v) => update("manufacturer", v)}
           onPick={pickManufacturer}
           placeholder={
-            values.productName ? "Click to see makers" : "Optional, pick a product first"
+            selectedProduct ? "Pick a common maker or type to search" : "Pick a product from the dropdown first"
           }
-          product={values.productName || undefined}
+          product={selectedProduct || undefined}
         />
       </div>
 
@@ -245,6 +262,23 @@ export function MedicationForm({ mode, initial, itemId }: Props) {
         error={quotaError}
         onClose={() => setQuotaError(null)}
         onUpgraded={() => setQuotaError(null)}
+      />
+    ) : null}
+    {unverifiedPrompt ? (
+      <UnverifiedManufacturerModal
+        message={unverifiedPrompt.message}
+        medication={{
+          productName: values.productName.trim(),
+          manufacturer: values.manufacturer.trim(),
+          productNdc: values.productNdc.trim() || null,
+          lotNumber: values.lotNumber.trim() || null,
+        }}
+        busy={submitting}
+        onCancel={() => setUnverifiedPrompt(null)}
+        onConfirm={() => {
+          setUnverifiedPrompt(null);
+          void submitMedication(true);
+        }}
       />
     ) : null}
     </>
