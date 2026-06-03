@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { getServerAuthSupabase } from "@/lib/auth";
 import { getServerSupabase } from "@/lib/supabase";
@@ -114,5 +115,7 @@ export async function POST(req: Request) {
     })();
   }
 
+  revalidatePath("/cabinet");
+  revalidatePath("/dashboard");
   return NextResponse.json({ item: inserted }, { status: 201 });
 }

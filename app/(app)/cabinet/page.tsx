@@ -1,51 +1,8 @@
 import Link from "next/link";
 import { getServerAuthSupabase } from "@/lib/auth";
+import { listCabinetItems, type CabinetListItem } from "@/lib/cabinet-items";
 
 export const dynamic = "force-dynamic";
-
-type Item = {
-  id: number;
-  product_name: string;
-  manufacturer: string;
-  product_ndc: string | null;
-  lot_number: string | null;
-  added_at: string;
-  manufacturer_unverified: boolean;
-  member_id: number | null;
-  family_members: { display_name: string } | { display_name: string }[] | null;
-};
-
-function memberDisplayName(
-  ref: Item["family_members"],
-): string | null {
-  if (!ref) return null;
-  if (Array.isArray(ref)) return ref[0]?.display_name ?? null;
-  return ref.display_name ?? null;
-}
-
-async function getActiveItems(): Promise<Item[]> {
-  const supabase = await getServerAuthSupabase();
-  const { data } = await supabase
-    .from("medication_items")
-    .select(
-      "id, product_name, manufacturer, product_ndc, lot_number, added_at, manufacturer_unverified, member_id, family_members(display_name)",
-    )
-    .eq("status", "active")
-    .order("added_at", { ascending: false });
-  return (data ?? []) as unknown as Item[];
-}
-
-async function getPausedItems(): Promise<Item[]> {
-  const supabase = await getServerAuthSupabase();
-  const { data } = await supabase
-    .from("medication_items")
-    .select(
-      "id, product_name, manufacturer, product_ndc, lot_number, added_at, manufacturer_unverified, member_id, family_members(display_name)",
-    )
-    .eq("status", "paused")
-    .order("added_at", { ascending: false });
-  return (data ?? []) as unknown as Item[];
-}
 
 async function getUnreadByItem(): Promise<Map<number, number>> {
   const supabase = await getServerAuthSupabase();
@@ -74,9 +31,8 @@ function formatDate(iso: string | null): string {
   }
 }
 
-function memberLabel(item: Item): string | null {
-  const name = memberDisplayName(item.family_members);
-  if (name) return name;
+function memberLabel(item: CabinetListItem): string | null {
+  if (item.member_display_name) return item.member_display_name;
   if (item.member_id != null) return "Family member";
   return null;
 }
@@ -86,7 +42,7 @@ function MedCard({
   unread,
   dimmed,
 }: {
-  item: Item;
+  item: CabinetListItem;
   unread: number;
   dimmed?: boolean;
 }) {
@@ -152,11 +108,16 @@ function MedCard({
 }
 
 export default async function CabinetPage() {
-  const [items, pausedItems, unreadByItem] = await Promise.all([
-    getActiveItems(),
-    getPausedItems(),
+  const supabase = await getServerAuthSupabase();
+  const [activeResult, pausedResult, unreadByItem] = await Promise.all([
+    listCabinetItems(supabase, "active"),
+    listCabinetItems(supabase, "paused"),
     getUnreadByItem(),
   ]);
+
+  const items = activeResult.items;
+  const pausedItems = pausedResult.items;
+  const loadError = activeResult.error ?? pausedResult.error;
 
   return (
     <div className="space-y-6">
@@ -172,7 +133,13 @@ export default async function CabinetPage() {
         </Link>
       </div>
 
-      {items.length === 0 && pausedItems.length === 0 ? (
+      {loadError ? (
+        <div className="card border-error/30 bg-error-container text-on-error-container">
+          Could not load your medications: {loadError}
+        </div>
+      ) : null}
+
+      {!loadError && items.length === 0 && pausedItems.length === 0 ? (
         <div className="card flex flex-col items-center gap-4 py-16 text-center">
           <h2 className="font-display text-headline-sm text-primary">Your cabinet is empty</h2>
           <p className="max-w-md text-body-md text-on-surface-variant">
@@ -183,7 +150,7 @@ export default async function CabinetPage() {
             Add your first medication
           </Link>
         </div>
-      ) : (
+      ) : loadError ? null : (
         <>
           {items.length > 0 ? (
             <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
