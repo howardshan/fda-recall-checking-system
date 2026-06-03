@@ -30,7 +30,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
       <header className="border-b border-primary/10 bg-surface-container-lowest">
         <div className="mx-auto flex max-w-container items-center justify-between px-margin-mobile py-4 md:px-margin-desktop">
           <Link href="/" aria-label="SafeTrack home">
-            <Logo size={40} />
+            <Logo size={56} />
           </Link>
 
           <nav className="flex items-center gap-2 md:gap-6">
