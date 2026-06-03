@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { getServerAuthSupabase } from "@/lib/auth";
 
@@ -32,5 +33,6 @@ export async function PATCH(req: Request, ctx: Params) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+  revalidatePath("/dashboard");
   return NextResponse.json({ ok: true });
 }
