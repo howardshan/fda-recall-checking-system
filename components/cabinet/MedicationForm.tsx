@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ProductTypeahead } from "@/components/ProductTypeahead";
 import { ManufacturerTypeahead, type ManufacturerSuggestion } from "@/components/ManufacturerTypeahead";
 import { UpgradeModal, type QuotaError } from "@/components/billing/UpgradeModal";
+import { UnverifiedManufacturerModal } from "@/components/cabinet/UnverifiedManufacturerModal";
 
 export type MedicationFormValues = {
   productName: string;
@@ -41,6 +42,9 @@ export function MedicationForm({ mode, initial, itemId, familyOptions = [] }: Pr
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [quotaError, setQuotaError] = useState<QuotaError | null>(null);
+  const [unverifiedPrompt, setUnverifiedPrompt] = useState<{
+    message: string;
+  } | null>(null);
 
   function update<K extends keyof MedicationFormValues>(key: K, v: MedicationFormValues[K]) {
     setValues((cur) => ({ ...cur, [key]: v }));
@@ -100,15 +104,12 @@ export function MedicationForm({ mode, initial, itemId, familyOptions = [] }: Pr
         upgradeTo?: "free" | "personal" | "family" | null;
       };
       if (res.status === 409 && json.error === "MANUFACTURER_UNVERIFIED") {
-        const ok = window.confirm(
-          json.message ??
-            "This manufacturer is not in our directory. The medication will be saved but will NOT be monitored for recalls. Continue?",
-        );
-        if (ok) {
-          await submitMedication(true);
-        } else {
-          setSubmitting(false);
-        }
+        setUnverifiedPrompt({
+          message:
+            json.message ??
+            "This manufacturer is not in our FDA drug directory. We cannot monitor recalls for this entry.",
+        });
+        setSubmitting(false);
         return;
       }
       if (res.status === 402 && json.error === "QUOTA_EXCEEDED" && json.resource && json.currentPlan && typeof json.limit === "number") {
@@ -287,6 +288,23 @@ export function MedicationForm({ mode, initial, itemId, familyOptions = [] }: Pr
         error={quotaError}
         onClose={() => setQuotaError(null)}
         onUpgraded={() => setQuotaError(null)}
+      />
+    ) : null}
+    {unverifiedPrompt ? (
+      <UnverifiedManufacturerModal
+        message={unverifiedPrompt.message}
+        medication={{
+          productName: values.productName.trim(),
+          manufacturer: values.manufacturer.trim(),
+          productNdc: values.productNdc.trim() || null,
+          lotNumber: values.lotNumber.trim() || null,
+        }}
+        busy={submitting}
+        onCancel={() => setUnverifiedPrompt(null)}
+        onConfirm={() => {
+          setUnverifiedPrompt(null);
+          void submitMedication(true);
+        }}
       />
     ) : null}
     </>
