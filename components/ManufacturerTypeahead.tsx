@@ -13,15 +13,12 @@ type Props = {
   onChange: (v: string) => void;
   onPick: (s: ManufacturerSuggestion) => void;
   placeholder?: string;
-  /**
-   * When set, suggestions are limited to labelers that make this product.
-   * The user types at least one letter to search — we do not load an
-   * alphabetical slice of all makers on empty focus.
-   */
+  /** When set, suggestions are limited to labelers that make this product. */
   product?: string;
 };
 
 const CONSTRAINED_LIMIT = 50;
+const COMMON_LIMIT = 12;
 const CACHE_MAX = 64;
 
 type CachedResult = {
@@ -44,20 +41,13 @@ export function ManufacturerTypeahead({
     cacheRef.current.clear();
   }, [productKey]);
 
-  const fetcher = useCallback(
-    async (q: string, signal: AbortSignal) => {
-      const cacheKey = `${productKey.toLowerCase()}\0${q.toLowerCase()}`;
+  const fetchSuggest = useCallback(
+    async (params: URLSearchParams, cacheKey: string, signal: AbortSignal) => {
       const cached = cacheRef.current.get(cacheKey);
       if (cached) {
         return cached;
       }
 
-      const params = new URLSearchParams({
-        mode: "manufacturer",
-        q,
-        limit: String(constrained ? CONSTRAINED_LIMIT : 20),
-      });
-      if (productKey) params.set("product", productKey);
       const res = await fetch(`/api/suggest?${params.toString()}`, { signal });
       if (!res.ok) return { items: [], truncated: false };
       const json = (await res.json()) as {
@@ -76,7 +66,36 @@ export function ManufacturerTypeahead({
       cacheRef.current.set(cacheKey, result);
       return result;
     },
-    [productKey, constrained],
+    [],
+  );
+
+  const emptyFocusFetcher = useCallback(
+    async (signal: AbortSignal) => {
+      if (!productKey) return { items: [], truncated: false };
+      const cacheKey = `${productKey.toLowerCase()}\0__common__`;
+      const params = new URLSearchParams({
+        mode: "manufacturer",
+        product: productKey,
+        common: "1",
+        limit: String(COMMON_LIMIT),
+      });
+      return fetchSuggest(params, cacheKey, signal);
+    },
+    [productKey, fetchSuggest],
+  );
+
+  const fetcher = useCallback(
+    async (q: string, signal: AbortSignal) => {
+      const cacheKey = `${productKey.toLowerCase()}\0${q.toLowerCase()}`;
+      const params = new URLSearchParams({
+        mode: "manufacturer",
+        q,
+        limit: String(constrained ? CONSTRAINED_LIMIT : 20),
+      });
+      if (productKey) params.set("product", productKey);
+      return fetchSuggest(params, cacheKey, signal);
+    },
+    [productKey, constrained, fetchSuggest],
   );
 
   return (
@@ -92,26 +111,23 @@ export function ManufacturerTypeahead({
       placeholder={
         placeholder ??
         (constrained
-          ? "Type to search makers (e.g. Teva)"
+          ? "Pick a common maker or type to search"
           : "Start typing a manufacturer name…")
       }
       minQueryLength={constrained ? 1 : 2}
       debounceMs={constrained ? 100 : 250}
       fetchOnlyWhenFocused={constrained}
-      emptyFocusHint={
-        constrained ? (
-          <>
-            <p className="font-medium text-on-surface">Search by manufacturer name</p>
-            <p className="mt-1">
-              This product has many makers in our FDA directory. Type the first few
-              letters — for example <span className="font-medium">Tev</span> for Teva
-              or <span className="font-medium">Act</span> for Actavis — then pick from
-              the list.
-            </p>
-          </>
-        ) : undefined
+      emptyFocusFetcher={constrained ? emptyFocusFetcher : undefined}
+      emptyFocusHeader={
+        constrained ? `Common makers for “${productKey}”` : undefined
+      }
+      emptyFocusFooter={
+        constrained
+          ? "Type to search all makers — there may be more than shown above."
+          : undefined
       }
       truncatedFooter="More matches available — keep typing to narrow the list."
+      loadingMessage="Loading makers…"
     />
   );
 }

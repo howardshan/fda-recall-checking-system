@@ -27,7 +27,13 @@ type Props<T> = {
   debounceMs?: number;
   /** When true, skip fetching until the input is focused (manufacturer list mode). */
   fetchOnlyWhenFocused?: boolean;
-  /** Shown on focus when the query is shorter than minQueryLength. */
+  /** Fetch suggestions shown on focus before the user types (e.g. common makers). */
+  emptyFocusFetcher?: (signal: AbortSignal) => Promise<TypeaheadFetchResult<T>>;
+  /** Header above the empty-focus suggestion list. */
+  emptyFocusHeader?: ReactNode;
+  /** Footer below the empty-focus suggestion list. */
+  emptyFocusFooter?: ReactNode;
+  /** Shown on focus when no emptyFocusFetcher and query is below minQueryLength. */
   emptyFocusHint?: ReactNode;
   /** Footer when the API indicates more matches exist beyond the result cap. */
   truncatedFooter?: ReactNode;
@@ -47,28 +53,80 @@ export function Typeahead<T>({
   minQueryLength = 2,
   debounceMs = 250,
   fetchOnlyWhenFocused = false,
+  emptyFocusFetcher,
+  emptyFocusHeader,
+  emptyFocusFooter,
   emptyFocusHint,
   truncatedFooter,
   loadingMessage = "Searching…",
 }: Props<T>) {
   const [items, setItems] = useState<T[]>([]);
   const [truncated, setTruncated] = useState(false);
+  const [previewItems, setPreviewItems] = useState<T[]>([]);
+  const [previewTruncated, setPreviewTruncated] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewAttempted, setPreviewAttempted] = useState(false);
   const [open, setOpen] = useState(false);
   const [highlighted, setHighlighted] = useState(0);
   const [loading, setLoading] = useState(false);
   const [focused, setFocused] = useState(false);
-  const showHint =
-    focused && emptyFocusHint != null && value.trim().length < minQueryLength;
-  const showResultsPanel =
-    focused &&
-    !showHint &&
-    value.trim().length >= minQueryLength &&
-    (loading || items.length > 0);
   const containerRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
-  // Suppress one fetch cycle right after a pick — otherwise setting the
-  // controlled `value` to the picked label immediately re-queries for it.
+  const previewAbortRef = useRef<AbortController | null>(null);
   const skipNextRef = useRef(false);
+
+  const queryTooShort = value.trim().length < minQueryLength;
+  const showHint =
+    focused && queryTooShort && emptyFocusFetcher == null && emptyFocusHint != null;
+  const showPreviewPanel =
+    focused &&
+    queryTooShort &&
+    emptyFocusFetcher != null &&
+    (previewLoading || previewAttempted);
+  const showSearchPanel =
+    focused && !queryTooShort && (loading || items.length > 0);
+  const activeItems = showSearchPanel ? items : previewItems;
+  const activeLoading = showSearchPanel ? loading : previewLoading;
+  const activeTruncated = showSearchPanel ? truncated : previewTruncated;
+  const activeFooter = showSearchPanel ? truncatedFooter : emptyFocusFooter;
+
+  useEffect(() => {
+    if (!emptyFocusFetcher || !focused || !queryTooShort) {
+      if (!queryTooShort) {
+        setPreviewItems([]);
+        setPreviewTruncated(false);
+        setPreviewLoading(false);
+        setPreviewAttempted(false);
+      }
+      return;
+    }
+
+    previewAbortRef.current?.abort();
+    const ctrl = new AbortController();
+    previewAbortRef.current = ctrl;
+    setPreviewLoading(true);
+    setPreviewAttempted(false);
+    setOpen(true);
+
+    void (async () => {
+      try {
+        const result = normalizeFetchResult(await emptyFocusFetcher(ctrl.signal));
+        if (ctrl.signal.aborted) return;
+        setPreviewItems(result.items);
+        setPreviewTruncated(result.truncated);
+        setHighlighted(0);
+      } catch {
+        // abort or network error — ignore
+      } finally {
+        if (!ctrl.signal.aborted) {
+          setPreviewLoading(false);
+          setPreviewAttempted(true);
+        }
+      }
+    })();
+
+    return () => ctrl.abort();
+  }, [emptyFocusFetcher, focused, queryTooShort]);
 
   useEffect(() => {
     if (skipNextRef.current) {
@@ -78,11 +136,13 @@ export function Typeahead<T>({
     if (fetchOnlyWhenFocused && !focused) {
       return;
     }
-    if (value.trim().length < minQueryLength) {
+    if (queryTooShort) {
       setItems([]);
       setTruncated(false);
       setLoading(false);
-      setOpen(focused && emptyFocusHint != null);
+      if (!emptyFocusFetcher) {
+        setOpen(focused && emptyFocusHint != null);
+      }
       return;
     }
     setOpen(focused);
@@ -108,7 +168,17 @@ export function Typeahead<T>({
       }
     }, debounceMs);
     return () => clearTimeout(handle);
-  }, [value, fetcher, minQueryLength, debounceMs, fetchOnlyWhenFocused, focused, emptyFocusHint]);
+  }, [
+    value,
+    fetcher,
+    minQueryLength,
+    debounceMs,
+    fetchOnlyWhenFocused,
+    focused,
+    emptyFocusHint,
+    emptyFocusFetcher,
+    queryTooShort,
+  ]);
 
   useEffect(() => {
     function handler(e: MouseEvent) {
@@ -130,23 +200,35 @@ export function Typeahead<T>({
   );
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "ArrowDown" && !open && items.length > 0) {
+    const list = showSearchPanel ? items : showPreviewPanel ? previewItems : [];
+    if (e.key === "ArrowDown" && !open && list.length > 0) {
       setOpen(true);
       e.preventDefault();
       return;
     }
-    if (!open || items.length === 0) return;
+    if (!open || list.length === 0) return;
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setHighlighted((h) => Math.min(h + 1, items.length - 1));
+      setHighlighted((h) => Math.min(h + 1, list.length - 1));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setHighlighted((h) => Math.max(0, h - 1));
     } else if (e.key === "Enter") {
       e.preventDefault();
-      pick(items[highlighted]);
+      pick(list[highlighted]);
     } else if (e.key === "Escape") {
       setOpen(false);
+    }
+  }
+
+  function openOnFocus() {
+    setFocused(true);
+    if (!queryTooShort && items.length > 0) {
+      setOpen(true);
+    } else if (queryTooShort && emptyFocusFetcher) {
+      setOpen(true);
+    } else if (queryTooShort && emptyFocusHint) {
+      setOpen(true);
     }
   }
 
@@ -156,14 +238,7 @@ export function Typeahead<T>({
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        onFocus={() => {
-          setFocused(true);
-          if (items.length > 0) {
-            setOpen(true);
-          } else if (emptyFocusHint && value.trim().length < minQueryLength) {
-            setOpen(true);
-          }
-        }}
+        onFocus={openOnFocus}
         onBlur={() => {
           window.setTimeout(() => {
             if (!containerRef.current?.contains(document.activeElement)) {
@@ -178,7 +253,7 @@ export function Typeahead<T>({
         autoComplete="off"
         className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 pr-9"
       />
-      {loading ? (
+      {activeLoading ? (
         <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">
           …
         </span>
@@ -191,15 +266,25 @@ export function Typeahead<T>({
           {emptyFocusHint}
         </div>
       ) : null}
-      {open && showResultsPanel ? (
+      {open && (showPreviewPanel || showSearchPanel) ? (
         <ul
           role="listbox"
           className="absolute z-20 mt-1 max-h-72 w-full overflow-y-auto rounded-md border border-slate-200 bg-white shadow-lg"
         >
-          {loading && items.length === 0 ? (
+          {showPreviewPanel && emptyFocusHeader ? (
+            <li className="border-b border-slate-200 px-3 py-2 text-label-sm font-semibold text-on-surface-variant">
+              {emptyFocusHeader}
+            </li>
+          ) : null}
+          {activeLoading && activeItems.length === 0 ? (
             <li className="px-3 py-2 text-sm text-on-surface-variant">{loadingMessage}</li>
           ) : null}
-          {items.map((item, i) => (
+          {!activeLoading && showPreviewPanel && activeItems.length === 0 ? (
+            <li className="px-3 py-2 text-sm text-on-surface-variant">
+              No common makers found for this product. Type to search by name.
+            </li>
+          ) : null}
+          {activeItems.map((item, i) => (
             <li key={itemKey(item, i)}>
               <button
                 type="button"
@@ -213,12 +298,12 @@ export function Typeahead<T>({
               </button>
             </li>
           ))}
-          {truncated && truncatedFooter ? (
+          {activeTruncated && activeFooter ? (
             <li className="border-t border-slate-200 px-3 py-2 text-label-sm text-on-surface-variant">
-              {truncatedFooter}
+              {activeFooter}
             </li>
           ) : null}
-          {loading && items.length > 0 ? (
+          {activeLoading && activeItems.length > 0 ? (
             <li className="border-t border-slate-200 px-3 py-1.5 text-label-sm text-on-surface-variant">
               {loadingMessage}
             </li>

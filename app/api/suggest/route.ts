@@ -11,10 +11,13 @@ export async function GET(req: Request) {
     | "product"
     | "manufacturer";
   const product = (url.searchParams.get("product") ?? "").trim();
+  const common = url.searchParams.get("common") === "1";
   const limitParam = Number.parseInt(url.searchParams.get("limit") ?? "8", 10) || 8;
   const limit =
     mode === "manufacturer" && product.trim()
-      ? Math.min(50, Math.max(1, limitParam))
+      ? common
+        ? Math.min(20, Math.max(1, limitParam))
+        : Math.min(50, Math.max(1, limitParam))
       : Math.min(20, Math.max(1, limitParam));
 
   try {
@@ -37,8 +40,28 @@ export async function GET(req: Request) {
 
     // mode === "manufacturer"
     if (product) {
-      // Constrained: only labelers that make this product. Allow empty `q`
-      // so the dropdown can show the full list when the field is focused.
+      if (common) {
+        if (q.length > 0) {
+          return NextResponse.json({ results: [], truncated: false });
+        }
+        const { data, error } = await supabase.rpc("common_labelers_for_product", {
+          product_name: product,
+          max_results: limit,
+        });
+        if (error) {
+          return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+        const results = ((data ?? []) as { labeler_name: string }[]).map((r) => ({
+          labelerName: r.labeler_name,
+          score: 1,
+        }));
+        return NextResponse.json({
+          results,
+          truncated: true,
+          preview: true,
+        });
+      }
+
       const { data, error } = await supabase.rpc("labelers_for_product", {
         product_name: product,
         query: q,
