@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { getServerAuthSupabase } from "@/lib/auth";
 import { getServerSupabase } from "@/lib/supabase";
@@ -128,6 +129,8 @@ export async function PATCH(req: Request, ctx: Params) {
     })();
   }
 
+  revalidatePath("/cabinet");
+  revalidatePath("/dashboard");
   return NextResponse.json({ item: data });
 }
 
@@ -143,5 +146,7 @@ export async function DELETE(_req: Request, ctx: Params) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+  revalidatePath("/cabinet");
+  revalidatePath("/dashboard");
   return NextResponse.json({ ok: true });
 }
