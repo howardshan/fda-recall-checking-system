@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import { UserMenu } from "@/components/UserMenu";
 import { getCurrentUser } from "@/lib/auth";
 import { canManageFamily, getUserPlan } from "@/lib/plan";
 import { getServerSupabase } from "@/lib/supabase";
@@ -66,39 +67,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
                 </span>
               ) : null}
             </Link>
-            <details className="relative">
-              <summary className="cursor-pointer list-none rounded-full bg-primary px-3 py-1.5 text-label-md text-on-primary">
-                {displayName.slice(0, 18)}
-              </summary>
-              <div className="absolute right-0 z-10 mt-2 w-56 rounded-lg border border-primary/10 bg-surface-container-lowest p-2 shadow-lg">
-                <Link
-                  href="/settings/notifications"
-                  className="block rounded px-3 py-2 text-label-md text-on-surface hover:bg-surface-container-low"
-                >
-                  Notification settings
-                </Link>
-                <Link
-                  href="/settings/data"
-                  className="block rounded px-3 py-2 text-label-md text-on-surface hover:bg-surface-container-low"
-                >
-                  Data & privacy
-                </Link>
-                <Link
-                  href="/pricing"
-                  className="block rounded px-3 py-2 text-label-md text-on-surface hover:bg-surface-container-low"
-                >
-                  Plan & pricing
-                </Link>
-                <form action="/auth/signout" method="post" className="border-t border-primary/10 pt-2 mt-1">
-                  <button
-                    type="submit"
-                    className="block w-full rounded px-3 py-2 text-left text-label-md text-on-surface hover:bg-surface-container-low"
-                  >
-                    Sign out
-                  </button>
-                </form>
-              </div>
-            </details>
+            <UserMenu displayName={displayName} />
           </nav>
         </div>
       </header>
