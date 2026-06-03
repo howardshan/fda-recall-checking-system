@@ -85,18 +85,42 @@ export function Typeahead<T>({
     (previewLoading || previewAttempted);
   const showSearchPanel =
     focused && !queryTooShort && (loading || items.length > 0);
-  const activeItems = showSearchPanel ? items : previewItems;
   const activeLoading = showSearchPanel ? loading : previewLoading;
+  // Hide stale rows while a fetch is in flight (preview or search).
+  const activeItems = showSearchPanel
+    ? loading
+      ? []
+      : items
+    : previewLoading
+      ? []
+      : previewItems;
   const activeTruncated = showSearchPanel ? truncated : previewTruncated;
   const activeFooter = showSearchPanel ? truncatedFooter : emptyFocusFooter;
+
+  function resetPreviewState() {
+    previewAbortRef.current?.abort();
+    setPreviewItems([]);
+    setPreviewTruncated(false);
+    setPreviewLoading(false);
+    setPreviewAttempted(false);
+  }
+
+  // Context change (e.g. product switch) — drop cached preview rows immediately.
+  useEffect(() => {
+    resetPreviewState();
+  }, [emptyFocusFetcher]);
+
+  useEffect(() => {
+    abortRef.current?.abort();
+    setItems([]);
+    setTruncated(false);
+    setLoading(false);
+  }, [fetcher]);
 
   useEffect(() => {
     if (!emptyFocusFetcher || !focused || !queryTooShort) {
       if (!queryTooShort) {
-        setPreviewItems([]);
-        setPreviewTruncated(false);
-        setPreviewLoading(false);
-        setPreviewAttempted(false);
+        resetPreviewState();
       }
       return;
     }
@@ -104,6 +128,8 @@ export function Typeahead<T>({
     previewAbortRef.current?.abort();
     const ctrl = new AbortController();
     previewAbortRef.current = ctrl;
+    setPreviewItems([]);
+    setPreviewTruncated(false);
     setPreviewLoading(true);
     setPreviewAttempted(false);
     setOpen(true);
@@ -200,7 +226,12 @@ export function Typeahead<T>({
   );
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    const list = showSearchPanel ? items : showPreviewPanel ? previewItems : [];
+    const list =
+      showSearchPanel && !loading
+        ? items
+        : showPreviewPanel && !previewLoading
+          ? previewItems
+          : [];
     if (e.key === "ArrowDown" && !open && list.length > 0) {
       setOpen(true);
       e.preventDefault();
@@ -298,14 +329,9 @@ export function Typeahead<T>({
               </button>
             </li>
           ))}
-          {activeTruncated && activeFooter ? (
+          {activeTruncated && activeFooter && !activeLoading ? (
             <li className="border-t border-slate-200 px-3 py-2 text-label-sm text-on-surface-variant">
               {activeFooter}
-            </li>
-          ) : null}
-          {activeLoading && activeItems.length > 0 ? (
-            <li className="border-t border-slate-200 px-3 py-1.5 text-label-sm text-on-surface-variant">
-              {loadingMessage}
             </li>
           ) : null}
         </ul>
