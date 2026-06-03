@@ -26,6 +26,8 @@ type CachedResult = {
   truncated: boolean;
 };
 
+type SuggestResult = CachedResult & { error?: string };
+
 export function ManufacturerTypeahead({
   value,
   onChange,
@@ -42,18 +44,25 @@ export function ManufacturerTypeahead({
   }, [productKey]);
 
   const fetchSuggest = useCallback(
-    async (params: URLSearchParams, cacheKey: string, signal: AbortSignal) => {
+    async (params: URLSearchParams, cacheKey: string, signal: AbortSignal): Promise<SuggestResult> => {
       const cached = cacheRef.current.get(cacheKey);
       if (cached) {
         return cached;
       }
 
       const res = await fetch(`/api/suggest?${params.toString()}`, { signal });
-      if (!res.ok) return { items: [], truncated: false };
       const json = (await res.json()) as {
         results?: ManufacturerSuggestion[];
         truncated?: boolean;
+        error?: string;
       };
+      if (!res.ok) {
+        return {
+          items: [],
+          truncated: false,
+          error: json.error ?? "Request failed",
+        };
+      }
       const result: CachedResult = {
         items: json.results ?? [],
         truncated: json.truncated ?? false,
@@ -128,6 +137,9 @@ export function ManufacturerTypeahead({
       }
       truncatedFooter="More matches available — keep typing to narrow the list."
       loadingMessage="Loading makers…"
+      emptyFocusEmptyMessage="No common makers found for this product. Type to search by name."
+      emptyFocusErrorMessage="Couldn't load common makers. Type to search by name."
+      searchErrorMessage="Manufacturer search failed. Try again."
     />
   );
 }
