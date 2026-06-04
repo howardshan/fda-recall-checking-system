@@ -262,6 +262,7 @@ export async function dispatchPendingEmails(
 
     if (
       row.medication_items?.status === "deleted" ||
+      row.medication_items?.status === "paused" ||
       !row.medication_items ||
       !row.recalls
     ) {

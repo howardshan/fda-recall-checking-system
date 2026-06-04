@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { sendEmailQuietly } from "./mailer";
 import { appBaseUrl } from "./stripe";
 
@@ -8,6 +10,32 @@ function formatMoney(cents: number, currency = "usd"): string {
   }).format(cents / 100);
 }
 
+function escHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+let cachedTemplate: string | null = null;
+
+async function loadTemplate(): Promise<string> {
+  if (cachedTemplate) return cachedTemplate;
+  const path = join(process.cwd(), "emails", "subscription-ended.html");
+  cachedTemplate = await readFile(path, "utf-8");
+  return cachedTemplate;
+}
+
+function render(template: string, vars: Record<string, string>): string {
+  let out = template;
+  out = out.replace(/\{\{#if\s+(\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g, (_, name, body) =>
+    vars[name] ? body : "",
+  );
+  out = out.replace(/\{\{(\w+)\}\}/g, (_, name) => vars[name] ?? "");
+  return out;
+}
+
 export async function sendSubscriptionEndedEmail(args: {
   to: string;
   userName: string;
@@ -15,34 +43,44 @@ export async function sendSubscriptionEndedEmail(args: {
   currency?: string;
 }): Promise<boolean> {
   const appUrl = appBaseUrl();
-  const refundBlock =
-    args.refundAmountCents != null && args.refundAmountCents > 0
-      ? `<p>We refunded <strong>${formatMoney(args.refundAmountCents, args.currency ?? "usd")}</strong> of unused account credit to your original payment method. Banks typically post refunds within 5–10 business days.</p>`
+  const hasRefund =
+    args.refundAmountCents != null && args.refundAmountCents > 0 ? "1" : "";
+  const refundFormatted =
+    hasRefund && args.refundAmountCents != null
+      ? formatMoney(args.refundAmountCents, args.currency ?? "usd")
       : "";
 
-  const html = `
-    <div style="font-family: system-ui, sans-serif; max-width: 560px; color: #001f2a;">
-      <h1 style="color: #00342b; font-size: 1.25rem;">Your subscription has ended</h1>
-      <p>Hi ${args.userName},</p>
-      <p>Your paid plan has ended and your account is now on the <strong>Free</strong> plan. You can still sign in and manage up to 2 medications.</p>
-      ${refundBlock}
-      <p><a href="${appUrl}/pricing" style="color: #822800;">View plans</a> if you would like to subscribe again.</p>
-      <p style="font-size: 0.875rem; color: #44443f;">— SafeTrack</p>
-    </div>
-  `;
+  const template = await loadTemplate();
+  const html = render(template, {
+    userName: escHtml(args.userName),
+    appUrl,
+    hasRefund,
+    refundAmountFormatted: refundFormatted,
+  });
 
   const textLines = [
     `Hi ${args.userName},`,
     "",
-    "Your paid plan has ended and your account is now on the Free plan.",
+    "Your SafeTrack paid plan has ended. Your account is now on the Free plan.",
+    "",
+    "On Free you can:",
+    "• Track up to 2 medications with active recall monitoring",
+    "• Receive in-app alerts and daily digest email",
+    "• Extra saved medications are paused until you upgrade",
   ];
-  if (args.refundAmountCents != null && args.refundAmountCents > 0) {
+  if (hasRefund) {
     textLines.push(
       "",
-      `We refunded ${formatMoney(args.refundAmountCents, args.currency ?? "usd")} of unused account credit to your original payment method.`,
+      `Refund: ${refundFormatted} of unused account credit was sent to your original payment method (typically 5–10 business days).`,
     );
   }
-  textLines.push("", `Plans: ${appUrl}/pricing`, "", "— SafeTrack");
+  textLines.push(
+    "",
+    `View plans: ${appUrl}/pricing`,
+    `Medicine cabinet: ${appUrl}/cabinet`,
+    "",
+    "— SafeTrack",
+  );
 
   return sendEmailQuietly({
     to: args.to,

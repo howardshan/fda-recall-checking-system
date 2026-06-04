@@ -1,7 +1,10 @@
 import type Stripe from "stripe";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { medQuota, type Plan } from "./plan";
-import { syncMonitoringQuota } from "./plan-monitoring";
+import {
+  syncMonitoringQuota,
+  type SyncMonitoringQuotaResult,
+} from "./plan-monitoring";
 import { planFromStripePrice, type BillingCycle } from "./stripe";
 
 export type { BillingCycle };
@@ -125,7 +128,7 @@ export async function syncSubscriptionFromEvent(
   supabase: SupabaseClient,
   subscriptionId: string,
   userIdHint?: string | null,
-): Promise<void> {
+): Promise<SyncMonitoringQuotaResult | null> {
   const sub = await retrieveSubscriptionWhenReady(stripe, subscriptionId);
   const userId =
     userIdHint ?? (await resolveUserIdForSubscription(supabase, sub));
@@ -134,9 +137,9 @@ export async function syncSubscriptionFromEvent(
       "[stripe-billing] sync skipped — no user for subscription",
       subscriptionId,
     );
-    return;
+    return null;
   }
-  await syncSubscriptionFromStripe(supabase, userId, sub);
+  return syncSubscriptionFromStripe(supabase, userId, sub);
 }
 
 export type SubscriptionRow = {
@@ -228,7 +231,7 @@ export async function syncSubscriptionFromStripe(
   supabase: SupabaseClient,
   userId: string,
   subscription: Stripe.Subscription,
-): Promise<void> {
+): Promise<SyncMonitoringQuotaResult | null> {
   const previousPlan = await getEffectivePlan(supabase, userId);
 
   const priceId = subscription.items.data[0]?.price?.id ?? "";
@@ -278,8 +281,9 @@ export async function syncSubscriptionFromStripe(
   const prevQuota = medQuota(previousPlan);
   const nextQuota = medQuota(effectivePlan);
   if (nextQuota !== prevQuota) {
-    await syncMonitoringQuota(supabase, userId, effectivePlan);
+    return syncMonitoringQuota(supabase, userId, effectivePlan);
   }
+  return null;
 }
 
 export async function revokePaidAccess(

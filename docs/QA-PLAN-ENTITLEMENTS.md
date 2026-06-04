@@ -111,6 +111,23 @@ order by added_at;
 | C7  | `/pricing`                                                   | 显示当前计划为 Free                                          | [x] |
 
 
+### 每日Digest邮件手动触发方法：
+
+每次触发前先清理数据库的发送记录：
+
+```sql
+update notification_preferences
+set last_digest_sent_at = null
+where user_id = '<user ID>';
+```
+
+再在终端中输入：
+
+```bash
+curl -s -X POST "[http://localhost:3000/api/sync](http://localhost:3000/api/sync)"   
+  -H "Authorization: Bearer <CRON_SECRET>"  
+```
+
 ---
 
 ## D. Personal Pro
@@ -123,11 +140,11 @@ order by added_at;
 | D1  | 从 Free 订阅 Personal（月付或年付） | Checkout 成功；`/pricing?checkout=success`；计划为 Personal Pro | [x] |
 | D2  | Stripe Checkout           | 要求填写**账单地址**                                             | [x] |
 | D3  | `/settings/notifications` | Instant 与 Daily digest 均可开关                              | [x] |
-| D4  | 开启 Instant，触发新召回通知        | 收到单条分级样式**即时邮件**（需 SMTP）                                 | [ ] |
+| D4  | 开启 Instant，触发新召回通知        | 收到单条分级样式**即时邮件**（需 SMTP）                                 | [x] |
 | D5  | 添加药直至 20 个 active         | 第 20 个成功                                                 | [ ] |
 | D6  | 尝试第 21 个                  | 402，UpgradeModal 引导 Family                               | [ ] |
-| D7  | 药箱表单填写并保存 `lot_number`    | 成功；不因 plan 被拦                                            | [ ] |
-| D8  | 顶栏导航                      | **无** Family 链接                                          | [ ] |
+| D7  | 药箱表单填写并保存 `lot_number`    | 成功；不因 plan 被拦                                            | [x] |
+| D8  | 顶栏导航                      | **无** Family 链接                                          | [x] |
 
 
 ---
@@ -153,16 +170,16 @@ order by added_at;
 
 ## F. 监控配额与 paused
 
-（降权：按 `added_at` 保留最早 N 条 `active`，其余 `paused`）
+（降权：按 `added_at` 保留最早 N 条 `active`，其余 `paused`；paused 的 unread 自动归档，升级恢复监控时补回仍匹配的告警）
 
 
 | #   | 步骤                                              | 预期结果                                        | 通过  |
 | --- | ----------------------------------------------- | ------------------------------------------- | --- |
-| F1  | 账号有多条 active 药后降为 Free（订阅结束 / 支付失败 / Stripe 测试） | 仅**最早 2 条** `active`，其余 `paused`            | [ ] |
-| F2  | `/cabinet`                                      | Active 列表 + **Monitoring paused** 区块与升级说明   | [ ] |
+| F1  | 账号有多条 active 药后降为 Free（订阅结束 / 支付失败 / Stripe 测试） | 仅**最早 2 条** `active`，其余 `paused`；paused 药 unread → `dismissed`（`dismiss_reason=monitoring_paused`） | [ ] |
+| F2  | `/cabinet` + `/notifications`                   | Monitoring paused 区块；未读角标 ≈ active 药 alert 之和（不含 paused 归档） | [ ] |
 | F3  | 对 `paused` 药触发新 FDA 匹配                          | **不应**产生新召回通知                               | [ ] |
 | F4  | 对 2 条 `active` 药触发匹配                            | 仍可产生站内通知（及 digest/instant 按 plan）           | [ ] |
-| F5  | 从 Free 再升级 Personal                             | `paused` 按 `added_at` 恢复为 `active`，直至 20 上限 | [ ] |
+| F5  | 从 Free 再升级 Personal                             | `paused` 恢复 `active`；仍匹配的归档通知恢复 `unread`；暂停期间新召回补建新通知 | [ ] |
 | F6  | Free 下删除部分 paused 后再加药                          | `paused` 不计入名额；仍可加到 2 个 active              | [ ] |
 
 
@@ -176,9 +193,9 @@ order by added_at;
 | G1  | 已有订阅时切换 plan 或月/年               | 预览费用 → 确认后**立即**变更；`profiles.plan` 更新        | [x] |
 | G2  | Plan 页 Cancel subscription      | `cancel_at_period_end=true`；**账期内**仍为付费 plan | [x] |
 | G3  | 账期结束或测试时钟推进                     | 变 Free；监控配额同步为 2 药                           | [ ] |
-| G4  | `invoice.payment_failed`        | plan=free；仅 2 药继续监控                          | [ ] |
-| G5  | `customer.subscription.deleted` | 同上；可选收到订阅结束邮件 / 退款（Plan B）                   | [ ] |
-| G6  | Stripe Billing Portal（若有入口）     | 可打开并返回 `/pricing`                            | [ ] |
+| G4  | `invoice.payment_failed`        | plan=free；仅 2 药继续监控                          | [x] |
+| G5  | `customer.subscription.deleted` | 同上；可选收到订阅结束邮件 / 退款（Plan B）                   | [x] |
+| G6  | Stripe Billing Portal（若有入口）     | 可打开并返回 `/pricing`                            | [x] |
 
 
 ---
@@ -190,10 +207,10 @@ order by added_at;
 
 | #   | 步骤                  | 预期结果                  | 通过  |
 | --- | ------------------- | --------------------- | --- |
-| H1  | 关闭 Email 总开关        | 无 instant / digest 邮件 | [ ] |
-| H2  | 仅开 Digest、关 Instant | 无单条即时邮件；可有 digest     | [ ] |
-| H3  | 仅开 Instant、关 Digest | 有即时邮件；无每日 digest      | [ ] |
-| H4  | 关闭 Class III        | Class III 召回不产生通知     | [ ] |
+| H1  | 关闭 Email 总开关        | 无 instant / digest 邮件 | [x] |
+| H2  | 仅开 Digest、关 Instant | 无单条即时邮件；可有 digest     | [x] |
+| H3  | 仅开 Instant、关 Digest | 有即时邮件；无每日 digest      | [x] |
+| H4  | 关闭 Class III        | Class III 召回不产生通知     | [x] |
 
 
 ---
@@ -203,10 +220,10 @@ order by added_at;
 
 | #   | 步骤                | 预期结果                                                     | 通过  |
 | --- | ----------------- | -------------------------------------------------------- | --- |
-| I1  | `npm test`        | 全部通过（含 `lib/plan.test.ts`、`lib/plan-monitoring.test.ts`） | [ ] |
-| I2  | `npm run build`   | 成功；无 `twilio` / `lib/sms` 引用                             | [ ] |
-| I3  | 访客 `/check` 2 次限额 | 第 3 次引导注册（回归）                                            | [ ] |
-| I4  | 加药后匹配 + dispatch  | 邮件链路正常；**不发短信**                                          | [ ] |
+| I1  | `npm test`        | 全部通过（含 `lib/plan.test.ts`、`lib/plan-monitoring.test.ts`） | [x] |
+| I2  | `npm run build`   | 成功；无 `twilio` / `lib/sms` 引用                             | [x] |
+| I3  | 访客 `/check` 2 次限额 | 第 3 次引导注册（回归）                                            | [x] |
+| I4  | 加药后匹配 + dispatch  | 邮件链路正常；**不发短信**                                          | [x] |
 
 
 ---
@@ -362,7 +379,8 @@ npm run seed:ndc
 | C5    | A.6 从 `/recalls` 选的真实召回药                               |
 | D5–D6 | A.2 + A.3 + A.5 凑 20 条，第 21 条 ROSUVASTATIN             |
 | D7    | A.3 任一条（带 Lot）                                         |
-| F1 降权 | Personal 加满后降 Free，观察 Monitoring paused（需 >2 条 active） |
+| F1 降权 | Personal 加 ≥4 条药后立刻降 Free；SQL 查 paused 药 `dismiss_reason=monitoring_paused`；角标 unread ≈ active 药之和 |
+| F5 恢复 | 再订 Personal；Reboost 等恢复 active 后 unread 应回来（若召回仍匹配） |
 
 
 ### A.9 下拉无建议时
