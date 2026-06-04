@@ -6,6 +6,7 @@ import { ProductTypeahead } from "@/components/ProductTypeahead";
 import { ManufacturerTypeahead, type ManufacturerSuggestion } from "@/components/ManufacturerTypeahead";
 import { UpgradeModal, type QuotaError } from "@/components/billing/UpgradeModal";
 import { UnverifiedManufacturerModal } from "@/components/cabinet/UnverifiedManufacturerModal";
+import { useUnreadNotifications } from "@/components/notifications/UnreadNotificationsProvider";
 
 export type MedicationFormValues = {
   productName: string;
@@ -29,6 +30,7 @@ const EMPTY: MedicationFormValues = {
 
 export function MedicationForm({ mode, initial, itemId }: Props) {
   const router = useRouter();
+  const { scheduleUnreadRefreshAfterMatching, refreshUnreadCount } = useUnreadNotifications();
   const [values, setValues] = useState<MedicationFormValues>(initial ?? EMPTY);
   const [selectedProduct, setSelectedProduct] = useState(
     mode === "edit" && initial?.productName?.trim() ? initial.productName.trim() : "",
@@ -117,6 +119,7 @@ export function MedicationForm({ mode, initial, itemId }: Props) {
         return;
       }
       if (!res.ok) throw new Error(json.error ?? json.message ?? "Save failed");
+      scheduleUnreadRefreshAfterMatching();
       router.push("/cabinet");
       router.refresh();
     } catch (e) {
@@ -144,6 +147,7 @@ export function MedicationForm({ mode, initial, itemId }: Props) {
         const json = (await res.json()) as { error?: string };
         throw new Error(json.error ?? "Delete failed");
       }
+      void refreshUnreadCount();
       router.push("/cabinet");
       router.refresh();
     } catch (e) {
