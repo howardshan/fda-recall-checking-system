@@ -120,9 +120,9 @@ order by added_at;
 
 | #   | 步骤                        | 预期结果                                                     | 通过  |
 | --- | ------------------------- | -------------------------------------------------------- | --- |
-| D1  | 从 Free 订阅 Personal（月付或年付） | Checkout 成功；`/pricing?checkout=success`；计划为 Personal Pro | [ ] |
-| D2  | Stripe Checkout           | 要求填写**账单地址**                                             | [ ] |
-| D3  | `/settings/notifications` | Instant 与 Daily digest 均可开关                              | [ ] |
+| D1  | 从 Free 订阅 Personal（月付或年付） | Checkout 成功；`/pricing?checkout=success`；计划为 Personal Pro | [x] |
+| D2  | Stripe Checkout           | 要求填写**账单地址**                                             | [x] |
+| D3  | `/settings/notifications` | Instant 与 Daily digest 均可开关                              | [x] |
 | D4  | 开启 Instant，触发新召回通知        | 收到单条分级样式**即时邮件**（需 SMTP）                                 | [ ] |
 | D5  | 添加药直至 20 个 active         | 第 20 个成功                                                 | [ ] |
 | D6  | 尝试第 21 个                  | 402，UpgradeModal 引导 Family                               | [ ] |
