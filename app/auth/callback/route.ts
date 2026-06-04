@@ -7,19 +7,42 @@ import { getServerAuthSupabase } from "@/lib/auth";
  * We exchange the code for a session (which writes the auth cookies) and
  * redirect to `?next=...` (defaults to /dashboard).
  */
+function loginWithError(origin: string, message: string, next?: string) {
+  const errUrl = new URL("/login", origin);
+  errUrl.searchParams.set("error", message);
+  if (next && next !== "/dashboard") {
+    errUrl.searchParams.set("next", next);
+  }
+  return NextResponse.redirect(errUrl);
+}
+
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
   const next = url.searchParams.get("next") ?? "/dashboard";
+  const oauthError = url.searchParams.get("error");
+  const oauthErrorDescription = url.searchParams.get("error_description");
 
-  if (code) {
-    const supabase = await getServerAuthSupabase();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) {
-      const errUrl = new URL("/login", url.origin);
-      errUrl.searchParams.set("error", error.message);
-      return NextResponse.redirect(errUrl);
-    }
+  if (oauthError) {
+    return loginWithError(
+      url.origin,
+      oauthErrorDescription ?? oauthError,
+      next,
+    );
+  }
+
+  if (!code) {
+    return loginWithError(
+      url.origin,
+      "Sign-in link is incomplete or expired. Please try again or sign in.",
+      next,
+    );
+  }
+
+  const supabase = await getServerAuthSupabase();
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  if (error) {
+    return loginWithError(url.origin, error.message, next);
   }
 
   return NextResponse.redirect(new URL(next, url.origin));

@@ -14,7 +14,7 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(() => params.get("error"));
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

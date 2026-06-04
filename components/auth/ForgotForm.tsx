@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { authCallbackUrl } from "@/lib/auth-redirect";
 import { getBrowserSupabase } from "@/lib/supabase-browser";
 
 export function ForgotForm() {
@@ -16,11 +17,8 @@ export function ForgotForm() {
     setError(null);
     try {
       const supabase = getBrowserSupabase();
-      const appUrl =
-        process.env.NEXT_PUBLIC_APP_URL ??
-        (typeof window !== "undefined" ? window.location.origin : "");
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${appUrl}/auth/reset`,
+        redirectTo: authCallbackUrl("/reset"),
       });
       if (error) throw error;
       setSent(true);
