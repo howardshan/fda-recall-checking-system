@@ -235,11 +235,8 @@ export async function dispatchPendingEmails(
           failed++;
         }
       } else {
-        // Free plan, prefs off, or instant disabled — mark processed (digest may cover later).
-        await supabase
-          .from("notifications")
-          .update({ email_sent_at: new Date().toISOString() })
-          .eq("id", row.id);
+        // Free plan, prefs off, or instant disabled — leave for daily digest.
+        skipped++;
       }
     }
   }

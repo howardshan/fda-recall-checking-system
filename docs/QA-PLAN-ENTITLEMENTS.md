@@ -106,8 +106,8 @@ order by added_at;
 | C2  | 尝试添加第 3 个药                                                   | **402**，UpgradeModal 引导 Personal Pro                  | [x] |
 | C3  | `/settings/notifications`                                    | **无** Instant 开关；有说明 +「View plans →」；Daily digest 可开关 | [x] |
 | C4  | PATCH `/api/preferences` 设 `email_instant_enabled: true`     | **400**，提示需付费计划                                       | [x] |
-| C5  | 触发召回匹配（加药命中或 sync 后）                                         | **站内通知**有；**不应**收到单条 Class 样式即时邮件                     | [ ] |
-| C6  | 触发 `/api/sync`（`Authorization: Bearer <CRON_SECRET>`）或等 Cron | 若开启 digest，可收到**每日汇总**邮件                              | [ ] |
+| C5  | 触发召回匹配（加药命中或 sync 后）                                         | **站内通知**有；**不应**收到单条 Class 样式即时邮件                     | [x] |
+| C6  | 触发 `/api/sync`（`Authorization: Bearer <CRON_SECRET>`）或等 Cron | 若开启 digest，可收到**每日汇总**邮件                              | [x] |
 | C7  | `/pricing`                                                   | 显示当前计划为 Free                                          | [x] |
 
 

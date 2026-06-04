@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendEmailQuietly } from "./mailer";
 
-type Match = {
+export type DigestMatch = {
   id: number;
   classification: string | null;
   created_at: string;
@@ -9,6 +9,7 @@ type Match = {
     id: number;
     product_name: string;
     manufacturer: string;
+    status: string;
   } | null;
   recalls: {
     recall_number: string;
@@ -44,7 +45,7 @@ function esc(s: string): string {
     .replace(/>/g, "&gt;");
 }
 
-function composeMatches(matches: Match[], appUrl: string): { html: string; text: string } {
+function composeMatches(matches: DigestMatch[], appUrl: string): { html: string; text: string } {
   const rows = matches
     .filter((m) => m.medication_items && m.recalls)
     .map((m) => {
@@ -82,9 +83,26 @@ function composeMatches(matches: Match[], appUrl: string): { html: string; text:
   return { html, text };
 }
 
-function composeDigest(args: {
+/** Unread alerts for medications still active in the cabinet (digest must match in-app). */
+export function filterDigestNotifications(rows: DigestMatch[]): DigestMatch[] {
+  return rows.filter(
+    (n) => n.medication_items?.status === "active" && n.recalls != null,
+  );
+}
+
+export function countDistinctMedications(matches: DigestMatch[]): number {
+  const keys = new Set<string>();
+  for (const m of matches) {
+    if (!m.medication_items) continue;
+    const med = m.medication_items;
+    keys.add(`${med.product_name}\0${med.manufacturer}`.toLowerCase());
+  }
+  return keys.size;
+}
+
+export function composeDigest(args: {
   userName: string;
-  matches: Match[];
+  matches: DigestMatch[];
   medCount: number;
   appUrl: string;
 }): { subject: string; html: string; text: string } {
@@ -118,27 +136,33 @@ Manage your cabinet: ${appUrl}/cabinet`;
     return { subject, html, text };
   }
 
-  const subject = `[FDA] ${matches.length} recall match${matches.length === 1 ? "" : "es"} for your medications`;
+  const alertCount = matches.length;
+  const medCountWithAlerts = countDistinctMedications(matches);
+  const subject = `[FDA] ${alertCount} unread recall alert${alertCount === 1 ? "" : "s"} in your cabinet`;
   const { html: matchHtml, text: matchText } = composeMatches(matches, appUrl);
+  const medPhrase =
+    medCountWithAlerts === 1
+      ? "1 medication in your cabinet"
+      : `${medCountWithAlerts} medications in your cabinet`;
   const html = `
 <div style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#1a1a1a">
   <h2 style="margin:0 0 8px;font-size:20px;color:#b91c1c">
-    ${matches.length} medication${matches.length === 1 ? "" : "s"} in your cabinet ${matches.length === 1 ? "has" : "have"} a recall notice
+    ${alertCount} unread recall alert${alertCount === 1 ? "" : "s"} for ${medPhrase}
   </h2>
   <p style="margin:0 0 8px">${safeUser},</p>
   <p style="margin:0 0 16px">
-    Today&rsquo;s FDA check found the following match${matches.length === 1 ? "" : "es"}:
+    Today&rsquo;s FDA check found the following unread alert${alertCount === 1 ? "" : "s"}:
   </p>
   ${matchHtml}
   <p style="font-size:13px;color:#666">
-    Review each match and decide whether to stop the medication. When in doubt, consult your
+    Review each alert and decide whether to stop the medication. When in doubt, consult your
     pharmacist or physician.
   </p>
   <p style="margin-top:24px;font-size:12px;color:#888">
     <a href="${appUrl}/settings/notifications" style="color:#0a66c2">Notification settings</a>
   </p>
 </div>`;
-  const text = `${matches.length} medication${matches.length === 1 ? "" : "s"} in your cabinet ${matches.length === 1 ? "has" : "have"} a recall notice.
+  const text = `${alertCount} unread recall alert${alertCount === 1 ? "" : "s"} for ${medPhrase}.
 
 ${userName},
 
@@ -155,6 +179,10 @@ Review at: ${appUrl}/notifications`;
  * Idempotent within a UTC day: re-running won't double-send because
  * `notification_preferences.last_digest_sent_at` is checked against
  * the start of today UTC.
+ *
+ * Digest content mirrors in-app unread alerts (active meds). We do not
+ * require `email_sent_at` to be null — a notification can stay unread in
+ * the dashboard after a prior digest already marked the email channel.
  */
 export async function sendDailyDigests(
   supabase: SupabaseClient,
@@ -223,19 +251,25 @@ export async function sendDailyDigests(
       continue;
     }
 
-    const { data: notifs } = await supabase
+    const { data: notifs, error: notifErr } = await supabase
       .from("notifications")
       .select(
         `id, classification, created_at,
-         medication_items!inner(id, product_name, manufacturer),
+         medication_items!inner(id, product_name, manufacturer, status),
          recalls!inner(recall_number, reason_for_recall)`,
       )
       .eq("user_id", userId)
-      .is("email_sent_at", null)
+      .eq("status", "unread")
       .order("created_at", { ascending: false })
       .limit(20);
 
-    const matches = (notifs ?? []) as unknown as Match[];
+    if (notifErr) {
+      console.error("[digest] fetch notifications failed:", notifErr.message);
+      stats.failed++;
+      continue;
+    }
+
+    const matches = filterDigestNotifications((notifs ?? []) as unknown as DigestMatch[]);
 
     const userName = profile.full_name?.trim() || profile.email.split("@")[0];
     const { subject, html, text } = composeDigest({
