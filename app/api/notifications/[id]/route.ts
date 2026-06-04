@@ -26,7 +26,11 @@ export async function PATCH(req: Request, ctx: Params) {
   }
 
   const supabase = await getServerAuthSupabase();
-  const patch: { status: string; email_sent_at?: string } = { status: body.status };
+  const patch: {
+    status: string;
+    email_sent_at?: string;
+    dismiss_reason?: null;
+  } = { status: body.status, dismiss_reason: null };
   if (body.status === "dismissed") {
     patch.email_sent_at = new Date().toISOString();
   }

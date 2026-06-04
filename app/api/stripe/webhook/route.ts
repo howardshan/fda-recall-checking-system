@@ -8,10 +8,22 @@ import {
   syncSubscriptionFromEvent,
   syncSubscriptionFromStripe,
 } from "@/lib/stripe-billing";
+import { dispatchAfterMatch } from "@/lib/dispatch-after-match";
 import { handleSubscriptionDeleted } from "@/lib/subscription-ended";
+import type { SyncMonitoringQuotaResult } from "@/lib/plan-monitoring";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+async function dispatchIfNewMatches(
+  admin: ReturnType<typeof getServerSupabase>,
+  quotaResult: SyncMonitoringQuotaResult | null,
+): Promise<void> {
+  if (!quotaResult || quotaResult.newNotifications <= 0) return;
+  await dispatchAfterMatch(admin).catch((e) => {
+    console.error("[stripe/webhook] dispatch after quota restore failed:", e);
+  });
+}
 
 async function syncSubscriptionObject(
   stripe: Stripe,
@@ -25,7 +37,8 @@ async function syncSubscriptionObject(
     console.warn("[stripe/webhook] no user for subscription", sub.id);
     return;
   }
-  await syncSubscriptionFromStripe(admin, userId, sub);
+  const quotaResult = await syncSubscriptionFromStripe(admin, userId, sub);
+  await dispatchIfNewMatches(admin, quotaResult);
 }
 
 export async function POST(req: Request) {
@@ -62,7 +75,13 @@ export async function POST(req: Request) {
             ? session.subscription
             : session.subscription?.id;
         if (subId) {
-          await syncSubscriptionFromEvent(stripe, admin, subId, userId);
+          const quotaResult = await syncSubscriptionFromEvent(
+            stripe,
+            admin,
+            subId,
+            userId,
+          );
+          await dispatchIfNewMatches(admin, quotaResult);
         }
         break;
       }
@@ -84,7 +103,8 @@ export async function POST(req: Request) {
             ? invoice.subscription
             : invoice.subscription?.id;
         if (subId) {
-          await syncSubscriptionFromEvent(stripe, admin, subId);
+          const quotaResult = await syncSubscriptionFromEvent(stripe, admin, subId);
+          await dispatchIfNewMatches(admin, quotaResult);
         }
         break;
       }

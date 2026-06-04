@@ -170,16 +170,16 @@ curl -s -X POST "[http://localhost:3000/api/sync](http://localhost:3000/api/sync
 
 ## F. 监控配额与 paused
 
-（降权：按 `added_at` 保留最早 N 条 `active`，其余 `paused`）
+（降权：按 `added_at` 保留最早 N 条 `active`，其余 `paused`；paused 的 unread 自动归档，升级恢复监控时补回仍匹配的告警）
 
 
 | #   | 步骤                                              | 预期结果                                        | 通过  |
 | --- | ----------------------------------------------- | ------------------------------------------- | --- |
-| F1  | 账号有多条 active 药后降为 Free（订阅结束 / 支付失败 / Stripe 测试） | 仅**最早 2 条** `active`，其余 `paused`            | [x] |
-| F2  | `/cabinet`                                      | Active 列表 + **Monitoring paused** 区块与升级说明   | [x] |
-| F3  | 对 `paused` 药触发新 FDA 匹配                          | **不应**产生新召回通知                               | [x] |
-| F4  | 对 2 条 `active` 药触发匹配                            | 仍可产生站内通知（及 digest/instant 按 plan）           | [x] |
-| F5  | 从 Free 再升级 Personal                             | `paused` 按 `added_at` 恢复为 `active`，直至 20 上限 | [ ] |
+| F1  | 账号有多条 active 药后降为 Free（订阅结束 / 支付失败 / Stripe 测试） | 仅**最早 2 条** `active`，其余 `paused`；paused 药 unread → `dismissed`（`dismiss_reason=monitoring_paused`） | [ ] |
+| F2  | `/cabinet` + `/notifications`                   | Monitoring paused 区块；未读角标 ≈ active 药 alert 之和（不含 paused 归档） | [ ] |
+| F3  | 对 `paused` 药触发新 FDA 匹配                          | **不应**产生新召回通知                               | [ ] |
+| F4  | 对 2 条 `active` 药触发匹配                            | 仍可产生站内通知（及 digest/instant 按 plan）           | [ ] |
+| F5  | 从 Free 再升级 Personal                             | `paused` 恢复 `active`；仍匹配的归档通知恢复 `unread`；暂停期间新召回补建新通知 | [ ] |
 | F6  | Free 下删除部分 paused 后再加药                          | `paused` 不计入名额；仍可加到 2 个 active              | [ ] |
 
 
@@ -379,7 +379,8 @@ npm run seed:ndc
 | C5    | A.6 从 `/recalls` 选的真实召回药                               |
 | D5–D6 | A.2 + A.3 + A.5 凑 20 条，第 21 条 ROSUVASTATIN             |
 | D7    | A.3 任一条（带 Lot）                                         |
-| F1 降权 | Personal 加满后降 Free，观察 Monitoring paused（需 >2 条 active） |
+| F1 降权 | Personal 加 ≥4 条药后立刻降 Free；SQL 查 paused 药 `dismiss_reason=monitoring_paused`；角标 unread ≈ active 药之和 |
+| F5 恢复 | 再订 Personal；Reboost 等恢复 active 后 unread 应回来（若召回仍匹配） |
 
 
 ### A.9 下拉无建议时

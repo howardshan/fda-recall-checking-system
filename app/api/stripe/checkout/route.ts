@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerAuthSupabase } from "@/lib/auth";
 import { getServerSupabase } from "@/lib/supabase";
 import { appBaseUrl, getStripe, stripePriceId, type BillingCycle } from "@/lib/stripe";
+import { dispatchAfterMatch } from "@/lib/dispatch-after-match";
 import {
   ensureStripeCustomer,
   resolveActiveSubscriptionId,
@@ -68,7 +69,12 @@ export async function POST(req: Request) {
         cancel_at_period_end: false,
         metadata: { user_id: userId, plan, cycle },
       });
-      await syncSubscriptionFromStripe(admin, userId, updated);
+      const quotaResult = await syncSubscriptionFromStripe(admin, userId, updated);
+      if (quotaResult && quotaResult.newNotifications > 0) {
+        await dispatchAfterMatch(admin).catch((e) => {
+          console.error("[stripe/checkout] dispatch after upgrade failed:", e);
+        });
+      }
       return NextResponse.json({ ok: true, upgraded: true, plan, cycle });
     }
 

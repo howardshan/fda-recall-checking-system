@@ -247,7 +247,8 @@ export default async function CabinetPage() {
                 </h2>
                 <p className="mt-2 text-body-md text-on-surface-variant">
                   These medications are saved in your cabinet but are not being checked for
-                  recalls. This usually happens when your plan limit is exceeded or your
+                  recalls. Unread alerts for paused entries were archived automatically.
+                  This usually happens when your plan limit is exceeded or your
                   subscription ended.{" "}
                   <Link href="/pricing" className="text-secondary hover:underline">
                     Upgrade your plan
