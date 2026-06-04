@@ -6,6 +6,7 @@ import { ProductTypeahead } from "@/components/ProductTypeahead";
 import { ManufacturerTypeahead, type ManufacturerSuggestion } from "@/components/ManufacturerTypeahead";
 import { UpgradeModal, type QuotaError } from "@/components/billing/UpgradeModal";
 import { UnverifiedManufacturerModal } from "@/components/cabinet/UnverifiedManufacturerModal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useUnreadNotifications } from "@/components/notifications/UnreadNotificationsProvider";
 
 export type MedicationFormValues = {
@@ -42,6 +43,7 @@ export function MedicationForm({ mode, initial, itemId }: Props) {
   const [unverifiedPrompt, setUnverifiedPrompt] = useState<{
     message: string;
   } | null>(null);
+  const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false);
 
   function update<K extends keyof MedicationFormValues>(key: K, v: MedicationFormValues[K]) {
     setValues((cur) => ({ ...cur, [key]: v }));
@@ -137,16 +139,17 @@ export function MedicationForm({ mode, initial, itemId }: Props) {
     await submitMedication(false);
   }
 
-  async function handleDelete() {
+  async function confirmRemoveMedication() {
     if (!itemId) return;
-    if (!confirm("Remove this medication from your cabinet?")) return;
     setDeleting(true);
+    setError(null);
     try {
       const res = await fetch(`/api/cabinet/${itemId}`, { method: "DELETE" });
       if (!res.ok) {
         const json = (await res.json()) as { error?: string };
         throw new Error(json.error ?? "Delete failed");
       }
+      setRemoveConfirmOpen(false);
       void refreshUnreadCount();
       router.push("/cabinet");
       router.refresh();
@@ -238,11 +241,11 @@ export function MedicationForm({ mode, initial, itemId }: Props) {
         {mode === "edit" ? (
           <button
             type="button"
-            onClick={handleDelete}
+            onClick={() => setRemoveConfirmOpen(true)}
             disabled={deleting || submitting}
             className="btn-ghost text-error hover:bg-error-container hover:text-on-error-container"
           >
-            {deleting ? "Removing…" : "Remove medication"}
+            Remove medication
           </button>
         ) : (
           <span />
@@ -285,6 +288,56 @@ export function MedicationForm({ mode, initial, itemId }: Props) {
         }}
       />
     ) : null}
+    <ConfirmDialog
+      open={removeConfirmOpen}
+      title="Remove medication?"
+      description="This will remove the entry from your cabinet and delete all recall alerts linked to it. This cannot be undone."
+      confirmLabel="Remove medication"
+      cancelLabel="Keep in cabinet"
+      variant="danger"
+      busy={deleting}
+      onConfirm={() => void confirmRemoveMedication()}
+      onCancel={() => {
+        if (!deleting) setRemoveConfirmOpen(false);
+      }}
+      details={
+        <div className="rounded-lg border border-primary/10 bg-surface-container-low p-4">
+          <p className="text-label-md uppercase tracking-wider text-on-surface-variant">
+            Removing
+          </p>
+          <dl className="mt-3 space-y-3">
+            <div>
+              <dt className="text-label-sm text-on-surface-variant">Product name</dt>
+              <dd className="mt-0.5 font-medium text-on-surface">
+                {values.productName.trim() || "—"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-label-sm text-on-surface-variant">Manufacturer</dt>
+              <dd className="mt-0.5 font-medium text-on-surface">
+                {values.manufacturer.trim() || "—"}
+              </dd>
+            </div>
+            {values.productNdc.trim() ? (
+              <div>
+                <dt className="text-label-sm text-on-surface-variant">NDC</dt>
+                <dd className="mt-0.5 font-mono text-body-md text-on-surface">
+                  {values.productNdc.trim()}
+                </dd>
+              </div>
+            ) : null}
+            {values.lotNumber.trim() ? (
+              <div>
+                <dt className="text-label-sm text-on-surface-variant">Lot number</dt>
+                <dd className="mt-0.5 font-mono text-body-md text-on-surface">
+                  {values.lotNumber.trim()}
+                </dd>
+              </div>
+            ) : null}
+          </dl>
+        </div>
+      }
+    />
     </>
   );
 }
