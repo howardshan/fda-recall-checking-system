@@ -98,6 +98,10 @@ export async function fetchDownloadIndex(): Promise<DownloadIndex> {
 /**
  * Build a date-range search clause for incremental sync.
  * `sinceDate` and `untilDate` are ISO "YYYY-MM-DD" strings.
+ *
+ * Use spaced ` TO ` (not `+TO+`): URLSearchParams encodes `+` as `%2B`, which
+ * OpenFDA's parser treats as literal plus and fails with parse_exception.
+ * Spaces become `+` in the query string, which OpenFDA decodes as ` TO `.
  */
 export function dateRangeClause(
   field: string,
@@ -106,5 +110,5 @@ export function dateRangeClause(
 ): string {
   const since = sinceDate.replace(/-/g, "");
   const until = untilDate.replace(/-/g, "");
-  return `${field}:[${since}+TO+${until}]`;
+  return `${field}:[${since} TO ${until}]`;
 }
