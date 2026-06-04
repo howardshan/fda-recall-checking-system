@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Your SafeTrack subscription has ended</title>
+  </head>
+  <body style="margin: 0; padding: 0; background: #f4faff; font-family: 'Fira Sans', Helvetica, Arial, sans-serif; color: #001f2a; line-height: 1.5;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: #f4faff; padding: 32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background: #ffffff; border: 1px solid rgba(0, 52, 43, 0.1); border-radius: 8px; overflow: hidden;">
+            <!-- Brand header -->
+            <tr>
+              <td style="background: #00342b; color: #ffffff; padding: 28px 32px;">
+                <div style="font-family: 'Fira Sans', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.85;">
+                  SafeTrack · Billing
+                </div>
+                <h1 style="margin: 10px 0 0 0; font-family: Merriweather, Georgia, serif; font-size: 26px; font-weight: 700; line-height: 34px; color: #ffffff;">
+                  Your subscription has ended
+                </h1>
+                <p style="margin: 10px 0 0 0; font-family: 'Fira Sans', sans-serif; font-size: 15px; line-height: 22px; color: #afefdd;">
+                  Your account is now on the Free plan. You can still sign in anytime.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Body -->
+            <tr>
+              <td style="padding: 32px;">
+                <p style="margin: 0 0 16px 0; font-size: 16px;">Hi {{userName}},</p>
+                <p style="margin: 0 0 24px 0; font-size: 16px; color: #001f2a;">
+                  Your paid plan has ended. We&apos;ve updated your account so you can keep using SafeTrack on the <strong style="color: #00342b;">Free</strong> plan.
+                </p>
+
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; border: 1px solid rgba(0, 52, 43, 0.1); border-radius: 6px; overflow: hidden;">
+                  <tr>
+                    <td colspan="2" style="padding: 14px 16px; background: #e6f6ff; border-bottom: 1px solid rgba(0, 52, 43, 0.08);">
+                      <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #3f4945;">
+                        What&apos;s included on Free
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 14px 16px; width: 40%; font-size: 14px; color: #3f4945; border-bottom: 1px solid rgba(0, 52, 43, 0.08); vertical-align: top;">
+                      Medicine cabinet
+                    </td>
+                    <td style="padding: 14px 16px; font-size: 15px; color: #00342b; border-bottom: 1px solid rgba(0, 52, 43, 0.08);">
+                      Track up to <strong>2 medications</strong> with active recall monitoring
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 14px 16px; font-size: 14px; color: #3f4945; border-bottom: 1px solid rgba(0, 52, 43, 0.08); vertical-align: top;">
+                      Alerts
+                    </td>
+                    <td style="padding: 14px 16px; font-size: 15px; color: #00342b; border-bottom: 1px solid rgba(0, 52, 43, 0.08);">
+                      In-app recall notifications and <strong>daily digest email</strong>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 14px 16px; font-size: 14px; color: #3f4945; vertical-align: top;">
+                      Extra medications
+                    </td>
+                    <td style="padding: 14px 16px; font-size: 15px; color: #00342b;">
+                      Entries beyond your quota are saved but <strong>monitoring is paused</strong> until you upgrade
+                    </td>
+                  </tr>
+                </table>
+
+                {{#if hasRefund}}
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top: 20px; border-collapse: collapse; background: #ffdbcf; border: 1px solid rgba(164, 60, 18, 0.2); border-radius: 6px;">
+                  <tr>
+                    <td style="padding: 16px 18px;">
+                      <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #822800;">
+                        Refund issued
+                      </div>
+                      <p style="margin: 8px 0 0 0; font-size: 15px; color: #380c00; line-height: 22px;">
+                        We refunded <strong>{{refundAmountFormatted}}</strong> of unused account credit to your original payment method. Banks typically post refunds within 5–10 business days.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+                {{/if}}
+
+                <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top: 28px;">
+                  <tr>
+                    <td style="background: #a43c12; border-radius: 4px;">
+                      <a href="{{appUrl}}/pricing" style="display: inline-block; padding: 14px 28px; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 14px; letter-spacing: 0.03em;">
+                        View plans &amp; upgrade →
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+
+                <p style="margin: 24px 0 0 0; font-size: 14px; color: #3f4945;">
+                  <a href="{{appUrl}}/cabinet" style="color: #a43c12; text-decoration: none; font-weight: 600;">Medicine cabinet</a>
+                  &nbsp;·&nbsp;
+                  <a href="{{appUrl}}/settings/notifications" style="color: #a43c12; text-decoration: none; font-weight: 600;">Notification settings</a>
+                </p>
+
+                <p style="margin: 28px 0 0 0; padding-top: 24px; border-top: 1px solid rgba(0, 52, 43, 0.08); font-size: 12px; color: #707975; line-height: 18px;">
+                  Questions about billing? Reply to this email or manage your subscription from your account.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="background: #e6f6ff; padding: 16px 32px; font-size: 12px; color: #3f4945; line-height: 18px;">
+                You received this because your SafeTrack subscription ended.
+                <br/>
+                <a href="{{appUrl}}/pricing" style="color: #a43c12;">Plans &amp; pricing</a>
+                &nbsp;·&nbsp;
+                <a href="{{appUrl}}/privacy" style="color: #a43c12;">Privacy</a>
+              </td>
+            </tr>
+          </table>
+
+          <p style="margin: 16px 0 0 0; max-width: 600px; font-size: 11px; color: #707975; text-align: center; line-height: 16px;">
+            SafeTrack · FDA recall alerts for your medicine cabinet
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
