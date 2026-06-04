@@ -149,10 +149,11 @@ export function PreferencesForm({
       </section>
 
       <section className="card">
-        <h2 className="font-display text-headline-sm text-primary">Severity classes</h2>
+        <h2 className="font-display text-headline-sm text-primary">Severity classes (email)</h2>
         <p className="mt-1 text-body-md text-on-surface-variant">
-          Choose which FDA classifications you want alerts for. Class I is
-          always recommended.
+          In-app alerts in your notification center always show matching recalls. These
+          toggles filter email only — instant recall emails (paid plans) and what goes
+          into your daily digest. Class I is always recommended for email.
         </p>
         <div className="mt-4 divide-y divide-primary/10">
           <Toggle

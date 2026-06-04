@@ -1,11 +1,13 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import {
   createContext,
   useCallback,
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -14,6 +16,8 @@ type UnreadNotificationsContextValue = {
   unreadCount: number;
   refreshUnreadCount: () => Promise<void>;
   adjustUnreadCount: (delta: number) => void;
+  /** Poll after async recall matching (e.g. adding a medication). */
+  scheduleUnreadRefreshAfterMatching: () => void;
 };
 
 const UnreadNotificationsContext =
@@ -27,6 +31,8 @@ export function UnreadNotificationsProvider({
   children: ReactNode;
 }) {
   const [unreadCount, setUnreadCount] = useState(initialCount);
+  const pollTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const pathname = usePathname();
 
   useEffect(() => {
     setUnreadCount(initialCount);
@@ -43,13 +49,42 @@ export function UnreadNotificationsProvider({
     }
   }, []);
 
+  useEffect(() => {
+    void refreshUnreadCount();
+  }, [pathname, refreshUnreadCount]);
+
+  const scheduleUnreadRefreshAfterMatching = useCallback(() => {
+    void refreshUnreadCount();
+    for (const id of pollTimeoutsRef.current) clearTimeout(id);
+    pollTimeoutsRef.current = [1000, 2500, 5000].map((ms) =>
+      setTimeout(() => void refreshUnreadCount(), ms),
+    );
+  }, [refreshUnreadCount]);
+
+  useEffect(
+    () => () => {
+      for (const id of pollTimeoutsRef.current) clearTimeout(id);
+    },
+    [],
+  );
+
   const adjustUnreadCount = useCallback((delta: number) => {
     setUnreadCount((current) => Math.max(0, current + delta));
   }, []);
 
   const value = useMemo(
-    () => ({ unreadCount, refreshUnreadCount, adjustUnreadCount }),
-    [unreadCount, refreshUnreadCount, adjustUnreadCount],
+    () => ({
+      unreadCount,
+      refreshUnreadCount,
+      adjustUnreadCount,
+      scheduleUnreadRefreshAfterMatching,
+    }),
+    [
+      unreadCount,
+      refreshUnreadCount,
+      adjustUnreadCount,
+      scheduleUnreadRefreshAfterMatching,
+    ],
   );
 
   return (
