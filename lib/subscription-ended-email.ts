@@ -1,5 +1,4 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { loadEmailTemplate, renderEmailTemplate } from "./email-template";
 import { sendEmailQuietly } from "./mailer";
 import { appBaseUrl } from "./stripe";
 
@@ -18,24 +17,6 @@ function escHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-let cachedTemplate: string | null = null;
-
-async function loadTemplate(): Promise<string> {
-  if (cachedTemplate) return cachedTemplate;
-  const path = join(process.cwd(), "emails", "subscription-ended.html");
-  cachedTemplate = await readFile(path, "utf-8");
-  return cachedTemplate;
-}
-
-function render(template: string, vars: Record<string, string>): string {
-  let out = template;
-  out = out.replace(/\{\{#if\s+(\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g, (_, name, body) =>
-    vars[name] ? body : "",
-  );
-  out = out.replace(/\{\{(\w+)\}\}/g, (_, name) => vars[name] ?? "");
-  return out;
-}
-
 export async function sendSubscriptionEndedEmail(args: {
   to: string;
   userName: string;
@@ -50,8 +31,8 @@ export async function sendSubscriptionEndedEmail(args: {
       ? formatMoney(args.refundAmountCents, args.currency ?? "usd")
       : "";
 
-  const template = await loadTemplate();
-  const html = render(template, {
+  const template = loadEmailTemplate("subscription-ended.html");
+  const html = renderEmailTemplate(template, {
     userName: escHtml(args.userName),
     appUrl,
     hasRefund,
