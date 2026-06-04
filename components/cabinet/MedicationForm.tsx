@@ -30,7 +30,7 @@ const EMPTY: MedicationFormValues = {
 
 export function MedicationForm({ mode, initial, itemId }: Props) {
   const router = useRouter();
-  const { scheduleUnreadRefreshAfterMatching } = useUnreadNotifications();
+  const { scheduleUnreadRefreshAfterMatching, refreshUnreadCount } = useUnreadNotifications();
   const [values, setValues] = useState<MedicationFormValues>(initial ?? EMPTY);
   const [selectedProduct, setSelectedProduct] = useState(
     mode === "edit" && initial?.productName?.trim() ? initial.productName.trim() : "",
@@ -147,6 +147,7 @@ export function MedicationForm({ mode, initial, itemId }: Props) {
         const json = (await res.json()) as { error?: string };
         throw new Error(json.error ?? "Delete failed");
       }
+      void refreshUnreadCount();
       router.push("/cabinet");
       router.refresh();
     } catch (e) {

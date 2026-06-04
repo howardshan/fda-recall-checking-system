@@ -137,6 +137,15 @@ export async function DELETE(_req: Request, ctx: Params) {
   const id = parseId(idStr);
   if (id == null) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
   const supabase = await getServerAuthSupabase();
+
+  const { error: notifErr } = await supabase
+    .from("notifications")
+    .delete()
+    .eq("medication_item_id", id);
+  if (notifErr) {
+    return NextResponse.json({ error: notifErr.message }, { status: 500 });
+  }
+
   const { error } = await supabase
     .from("medication_items")
     .update({ status: "deleted", updated_at: new Date().toISOString() })
@@ -146,5 +155,6 @@ export async function DELETE(_req: Request, ctx: Params) {
   }
   revalidatePath("/cabinet");
   revalidatePath("/dashboard");
+  revalidatePath("/notifications");
   return NextResponse.json({ ok: true });
 }
