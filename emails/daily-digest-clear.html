@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SafeTrack daily check — all clear</title>
+  </head>
+  <body style="margin: 0; padding: 0; background: #f4faff; font-family: 'Fira Sans', Helvetica, Arial, sans-serif; color: #001f2a; line-height: 1.5;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: #f4faff; padding: 32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background: #ffffff; border: 1px solid rgba(0, 52, 43, 0.1); border-radius: 8px; overflow: hidden;">
+            <tr>
+              <td style="background: #00342b; color: #ffffff; padding: 28px 32px;">
+                <div style="font-family: 'Fira Sans', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.85;">
+                  SafeTrack · Daily digest
+                </div>
+                <h1 style="margin: 10px 0 0 0; font-family: Merriweather, Georgia, serif; font-size: 26px; font-weight: 700; line-height: 34px; color: #ffffff;">
+                  All clear today
+                </h1>
+                <p style="margin: 10px 0 0 0; font-family: 'Fira Sans', sans-serif; font-size: 15px; line-height: 22px; color: #afefdd;">
+                  No FDA recalls matched your {{medCountLabel}}.
+                </p>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding: 32px;">
+                <p style="margin: 0 0 16px 0; font-size: 16px;">Hi {{userName}},</p>
+                <p style="margin: 0 0 24px 0; font-size: 16px; color: #001f2a;">
+                  We checked your actively monitored medications against the FDA recall database today.
+                  <strong style="color: #00342b;">No recalls were found.</strong>
+                </p>
+
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; border: 1px solid rgba(0, 52, 43, 0.1); border-radius: 6px; overflow: hidden;">
+                  <tr>
+                    <td style="padding: 20px 18px; background: #e6f6ff; text-align: center;">
+                      <div style="font-size: 28px; line-height: 1; margin-bottom: 8px;">✓</div>
+                      <div style="font-family: Merriweather, Georgia, serif; font-size: 18px; font-weight: 700; color: #00342b;">
+                        Your cabinet looks good
+                      </div>
+                      <p style="margin: 8px 0 0 0; font-size: 14px; color: #3f4945; line-height: 20px;">
+                        You&rsquo;ll get this check every day. If something is recalled, you&rsquo;ll see it here first.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+
+                <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top: 28px;">
+                  <tr>
+                    <td style="background: #a43c12; border-radius: 4px;">
+                      <a href="{{appUrl}}/cabinet" style="display: inline-block; padding: 14px 28px; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 14px; letter-spacing: 0.03em;">
+                        View medicine cabinet →
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+
+                <p style="margin: 20px 0 0 0; font-size: 14px; color: #3f4945;">
+                  <a href="{{appUrl}}/settings/notifications" style="color: #a43c12; text-decoration: none; font-weight: 600;">Notification settings</a>
+                </p>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="background: #e6f6ff; padding: 16px 32px; font-size: 12px; color: #3f4945; line-height: 18px;">
+                You receive this daily digest because it is enabled on your account.
+                <br/>
+                <a href="{{appUrl}}/settings/notifications" style="color: #a43c12;">Manage email preferences</a>
+              </td>
+            </tr>
+          </table>
+
+          <p style="margin: 16px 0 0 0; max-width: 600px; font-size: 11px; color: #707975; text-align: center; line-height: 16px;">
+            SafeTrack · FDA recall alerts for your medicine cabinet
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

@@ -1,5 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { loadEmailTemplate, renderEmailTemplate } from "./email-template";
 import { sendEmailQuietly } from "./mailer";
+import {
+  parseRecallClassTier,
+  recallClassLabelForTier,
+  type RecallClassTier,
+} from "./recall-classification";
 
 export type DigestMatch = {
   id: number;
@@ -30,57 +36,86 @@ function startOfTodayUtc(): Date {
   return d;
 }
 
-function classChip(c: string | null): string {
-  if (!c) return "Unclassified";
-  if (/class\s*i\b/i.test(c) && !/class\s*ii/i.test(c)) return "Class I";
-  if (/class\s*ii\b/i.test(c) && !/class\s*iii/i.test(c)) return "Class II";
-  if (/class\s*iii\b/i.test(c)) return "Class III";
-  return c;
-}
-
 function esc(s: string): string {
   return s
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
-function composeMatches(matches: DigestMatch[], appUrl: string): { html: string; text: string } {
-  const rows = matches
+function classBadgeStyles(tier: RecallClassTier | null): {
+  label: string;
+  bg: string;
+  color: string;
+} {
+  if (tier === "I") {
+    return { label: recallClassLabelForTier("I"), bg: "#ba1a1a", color: "#ffffff" };
+  }
+  if (tier === "II") {
+    return { label: recallClassLabelForTier("II"), bg: "#ffdbcf", color: "#00342b" };
+  }
+  if (tier === "III") {
+    return { label: recallClassLabelForTier("III"), bg: "#707975", color: "#ffffff" };
+  }
+  return { label: "Unclassified", bg: "#ceedfd", color: "#00342b" };
+}
+
+function buildAlertRowsHtml(matches: DigestMatch[]): string {
+  const rows = matches.filter((m) => m.medication_items && m.recalls);
+  if (rows.length === 0) return "";
+
+  return rows
+    .map((m, index) => {
+      const med = m.medication_items!;
+      const rec = m.recalls!;
+      const tier = parseRecallClassTier(m.classification);
+      const badge = classBadgeStyles(tier);
+      const marginTop = index === 0 ? "0" : "12px";
+
+      return `
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top: ${marginTop}; border-collapse: collapse; border: 1px solid rgba(0, 52, 43, 0.1); border-radius: 6px; overflow: hidden;">
+  <tr>
+    <td style="padding: 16px 18px; background: #ffffff;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="vertical-align: top;">
+            <span style="display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; background: ${badge.bg}; color: ${badge.color};">
+              ${esc(badge.label)}
+            </span>
+            <div style="margin-top: 10px; font-family: Merriweather, Georgia, serif; font-size: 18px; font-weight: 700; color: #00342b; line-height: 24px;">
+              ${esc(med.product_name)}
+            </div>
+            <div style="margin-top: 4px; font-size: 14px; color: #3f4945;">
+              ${esc(med.manufacturer)}
+            </div>
+          </td>
+        </tr>
+      </table>
+      <p style="margin: 14px 0 0 0; font-size: 15px; color: #001f2a; line-height: 22px;">
+        ${esc(rec.reason_for_recall ?? "See FDA notice")}
+      </p>
+      <p style="margin: 10px 0 0 0; font-size: 12px; color: #707975; font-family: 'Courier New', monospace;">
+        Recall #${esc(rec.recall_number)}
+      </p>
+    </td>
+  </tr>
+</table>`;
+    })
+    .join("");
+}
+
+function composeMatchesText(matches: DigestMatch[]): string {
+  return matches
     .filter((m) => m.medication_items && m.recalls)
     .map((m) => {
       const med = m.medication_items!;
       const rec = m.recalls!;
-      return {
-        product: med.product_name,
-        manufacturer: med.manufacturer,
-        cls: classChip(m.classification),
-        recallNumber: rec.recall_number,
-        reason: rec.reason_for_recall ?? "See FDA notice",
-      };
-    });
-  const htmlRows = rows
-    .map(
-      (r) => `
-    <tr>
-      <td style="padding:8px 12px;border-bottom:1px solid #eee">
-        <strong>${esc(r.product)}</strong><br/>
-        <span style="color:#666">${esc(r.manufacturer)} · ${esc(r.cls)}</span><br/>
-        <span style="font-size:13px">${esc(r.reason)}</span><br/>
-        <span style="font-size:12px;color:#888">Recall #${esc(r.recallNumber)}</span>
-      </td>
-    </tr>`,
-    )
-    .join("");
-  const html = `<table style="width:100%;border-collapse:collapse;margin:16px 0">${htmlRows}</table>
-  <p><a href="${appUrl}/notifications" style="color:#0a66c2">Review all alerts in your dashboard →</a></p>`;
-  const text = rows
-    .map(
-      (r) =>
-        `• ${r.product} (${r.manufacturer}) — ${r.cls}\n  Recall #${r.recallNumber}: ${r.reason}`,
-    )
+      const tier = parseRecallClassTier(m.classification);
+      const cls = tier ? recallClassLabelForTier(tier) : "Unclassified";
+      return `• ${med.product_name} (${med.manufacturer}) — ${cls}\n  Recall #${rec.recall_number}: ${rec.reason_for_recall ?? "See FDA notice"}`;
+    })
     .join("\n\n");
-  return { html, text };
 }
 
 /** Unread alerts for medications still active in the cabinet (digest must match in-app). */
@@ -108,61 +143,51 @@ export function composeDigest(args: {
 }): { subject: string; html: string; text: string } {
   const { userName, matches, medCount, appUrl } = args;
   const safeUser = esc(userName);
+  const medCountLabel =
+    medCount === 1 ? "1 medication" : `${medCount} medications`;
 
   if (matches.length === 0) {
     const subject = "[FDA] Daily check — no recalls found";
-    const html = `
-<div style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#1a1a1a">
-  <h2 style="margin:0 0 8px;font-size:20px">All clear, ${safeUser}.</h2>
-  <p style="margin:0 0 16px">
-    We checked your ${medCount} medication${medCount === 1 ? "" : "s"} against the FDA recall
-    database today. <strong>No recalls found.</strong>
-  </p>
-  <p style="font-size:14px;color:#666">
-    You&rsquo;ll get this check every day. If something is recalled, you&rsquo;ll see it here first.
-  </p>
-  <p style="margin-top:24px;font-size:13px;color:#888">
-    <a href="${appUrl}/cabinet" style="color:#0a66c2">Manage your cabinet</a> ·
-    <a href="${appUrl}/settings/notifications" style="color:#0a66c2">Notification settings</a>
-  </p>
-</div>`;
+    const html = renderEmailTemplate(loadEmailTemplate("daily-digest-clear.html"), {
+      userName: safeUser,
+      medCountLabel,
+      appUrl,
+    });
     const text = `All clear, ${userName}.
 
-We checked your ${medCount} medication${medCount === 1 ? "" : "s"} against the FDA recall database today. No recalls found.
+We checked your ${medCountLabel} against the FDA recall database today. No recalls found.
 
 You'll get this check every day. If something is recalled, you'll see it here first.
 
-Manage your cabinet: ${appUrl}/cabinet`;
+Medicine cabinet: ${appUrl}/cabinet
+Notification settings: ${appUrl}/settings/notifications`;
     return { subject, html, text };
   }
 
   const alertCount = matches.length;
   const medCountWithAlerts = countDistinctMedications(matches);
   const subject = `[FDA] ${alertCount} unread recall alert${alertCount === 1 ? "" : "s"} in your cabinet`;
-  const { html: matchHtml, text: matchText } = composeMatches(matches, appUrl);
   const medPhrase =
     medCountWithAlerts === 1
-      ? "1 medication in your cabinet"
-      : `${medCountWithAlerts} medications in your cabinet`;
-  const html = `
-<div style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#1a1a1a">
-  <h2 style="margin:0 0 8px;font-size:20px;color:#b91c1c">
-    ${alertCount} unread recall alert${alertCount === 1 ? "" : "s"} for ${medPhrase}
-  </h2>
-  <p style="margin:0 0 8px">${safeUser},</p>
-  <p style="margin:0 0 16px">
-    Today&rsquo;s FDA check found the following unread alert${alertCount === 1 ? "" : "s"}:
-  </p>
-  ${matchHtml}
-  <p style="font-size:13px;color:#666">
-    Review each alert and decide whether to stop the medication. When in doubt, consult your
-    pharmacist or physician.
-  </p>
-  <p style="margin-top:24px;font-size:12px;color:#888">
-    <a href="${appUrl}/settings/notifications" style="color:#0a66c2">Notification settings</a>
-  </p>
-</div>`;
-  const text = `${alertCount} unread recall alert${alertCount === 1 ? "" : "s"} for ${medPhrase}.
+      ? "1 medication"
+      : `${medCountWithAlerts} medications`;
+  const headline =
+    alertCount === 1
+      ? "1 unread recall alert"
+      : `${alertCount} unread recall alerts`;
+  const summaryLine = `${alertCount} alert${alertCount === 1 ? "" : "s"} across ${medPhrase} in your cabinet`;
+
+  const html = renderEmailTemplate(loadEmailTemplate("daily-digest-alerts.html"), {
+    userName: safeUser,
+    headline,
+    summaryLine,
+    alertCountPlural: alertCount === 1 ? "" : "s",
+    alertRows: buildAlertRowsHtml(matches),
+    appUrl,
+  });
+
+  const matchText = composeMatchesText(matches);
+  const text = `${headline} for ${medPhrase}.
 
 ${userName},
 
@@ -170,7 +195,9 @@ Today's FDA check found:
 
 ${matchText}
 
-Review at: ${appUrl}/notifications`;
+Review all alerts: ${appUrl}/notifications
+Medicine cabinet: ${appUrl}/cabinet`;
+
   return { subject, html, text };
 }
 
