@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  markCabinetMatchPollPending,
+  MATCH_POLL_DELAYS_MS,
+} from "@/lib/matching-refresh-poll";
 import { usePathname } from "next/navigation";
 import {
   createContext,
@@ -54,9 +58,10 @@ export function UnreadNotificationsProvider({
   }, [pathname, refreshUnreadCount]);
 
   const scheduleUnreadRefreshAfterMatching = useCallback(() => {
+    markCabinetMatchPollPending();
     void refreshUnreadCount();
     for (const id of pollTimeoutsRef.current) clearTimeout(id);
-    pollTimeoutsRef.current = [1000, 2500, 5000].map((ms) =>
+    pollTimeoutsRef.current = [...MATCH_POLL_DELAYS_MS].map((ms) =>
       setTimeout(() => void refreshUnreadCount(), ms),
     );
   }, [refreshUnreadCount]);
