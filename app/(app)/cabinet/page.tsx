@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CabinetMatchingRefresh } from "@/components/cabinet/CabinetMatchingRefresh";
 import { getServerAuthSupabase } from "@/lib/auth";
 import { listCabinetItems, type CabinetListItem } from "@/lib/cabinet-items";
 
@@ -144,7 +145,9 @@ export default async function CabinetPage() {
   const loadError = activeResult.error ?? pausedResult.error;
 
   return (
-    <div className="space-y-6">
+    <>
+      <CabinetMatchingRefresh />
+      <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="font-display text-headline-md text-primary">Medicine Cabinet</h1>
@@ -218,5 +221,6 @@ export default async function CabinetPage() {
         </>
       )}
     </div>
+    </>
   );
 }
