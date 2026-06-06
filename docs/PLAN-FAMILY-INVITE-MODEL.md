@@ -6,7 +6,9 @@
 **实施状态**：待产品确认 / 待开发  
 **用途**：Family Plan 的**备选产品模型** — 通过邮箱邀请**已有或新注册**的 SafeTrack 账户加入同一家庭组  
 
-**与 Profile 方案关系**：本文档为 [PLAN-FAMILY-IMPLEMENTATION.md](./PLAN-FAMILY-IMPLEMENTATION.md)（管理员 + 成员档案、无需成员登录）的**替代方案**。两套模型**不可混用**同一套 `family_members` 表语义，实施前须产品书面选定其一。
+**与 Profile 方案关系**：本文档为 [PLAN-FAMILY-IMPLEMENTATION.md](./PLAN-FAMILY-IMPLEMENTATION.md)（**方案 A**：管理员 + 成员档案、无需成员登录）的**替代方案（方案 B）**。两套模型**不可混用**同一套 `family_members` 表语义，实施前须产品书面选定其一。
+
+**总览与报价**：[PLAN-FAMILY-OVERVIEW.md](./PLAN-FAMILY-OVERVIEW.md) — 客户卖点映射；Shared family dashboard 归属 **方案 B**；Caregiver notifications 为 **附加方案 C**。
 
 **相关文档**：[REQUIREMENTS-CLIENT.md](./REQUIREMENTS-CLIENT.md)、[PLAN-ENTITLEMENTS-AND-SMS-CLEANUP.md](./PLAN-ENTITLEMENTS-AND-SMS-CLEANUP.md)、[QA-PLAN-ENTITLEMENTS.md](./QA-PLAN-ENTITLEMENTS.md)
 
@@ -362,6 +364,7 @@ create index idx_household_invites_email_pending
 
 ## 相关文档
 
-- [PLAN-FAMILY-IMPLEMENTATION.md](./PLAN-FAMILY-IMPLEMENTATION.md) — Profile 方案（无需成员账号）  
+- [PLAN-FAMILY-OVERVIEW.md](./PLAN-FAMILY-OVERVIEW.md) — **总览**：客户卖点、A/B/C 分包报价  
+- [PLAN-FAMILY-IMPLEMENTATION.md](./PLAN-FAMILY-IMPLEMENTATION.md) — **方案 A**（Profile，无需成员账号）  
 - [PLAN-ENTITLEMENTS-AND-SMS-CLEANUP.md](./PLAN-ENTITLEMENTS-AND-SMS-CLEANUP.md) — 订阅权益基线  
 - [QA-PLAN-ENTITLEMENTS.md](./QA-PLAN-ENTITLEMENTS.md) — 现有 UAT（实施本方案后需另写 INVITE 版 QA）
