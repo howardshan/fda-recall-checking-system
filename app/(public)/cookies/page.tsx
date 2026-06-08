@@ -1,35 +1,91 @@
+import { LegalPage } from "@/components/legal/LegalPage";
+
 export const metadata = { title: "Cookie Policy | SafeTrack" };
 
 export default function CookiesPage() {
   return (
-    <article className="prose mx-auto max-w-2xl">
-      <h1 className="font-display text-headline-md text-primary">Cookie Policy</h1>
-      <p className="mt-2 text-label-sm text-on-surface-variant">
-        Placeholder copy — replace with attorney-reviewed text before production.
-      </p>
-      <div className="mt-6 space-y-4 text-body-md text-on-surface">
+    <LegalPage
+      title="Cookie Policy"
+      effectiveDate="June 2026"
+      intro={
         <p>
-          SafeTrack uses only the cookies required to keep you signed in
-          and to remember your consent to this policy.
+          This Cookie Policy explains how SafeTrack DV LLC uses cookies and similar
+          technologies when you visit and use safetrackdv.com and related services.
         </p>
-        <h2 className="font-display text-headline-sm text-primary">Strictly necessary</h2>
-        <ul className="list-disc pl-6">
-          <li>
-            <strong>Auth session cookies</strong> — issued by Supabase Auth.
-            Set when you sign in; removed when you sign out.
-          </li>
-          <li>
-            <strong>Cookie consent flag</strong> — stored in localStorage so we
-            don&apos;t repeatedly show the consent banner.
-          </li>
-        </ul>
-        <h2 className="font-display text-headline-sm text-primary">No tracking</h2>
-        <p>
-          We do not use advertising cookies, third-party analytics that share
-          your identifier, or cross-site tracking. We do not embed Facebook
-          pixels or Google Analytics with personally-identifiable identifiers.
-        </p>
-      </div>
-    </article>
+      }
+      sections={[
+        {
+          heading: "What Are Cookies?",
+          body: (
+            <p>
+              Cookies are small text files stored on your device that help websites
+              function properly, remember preferences, and improve user experiences.
+            </p>
+          ),
+        },
+        {
+          heading: "How We Use Cookies",
+          body: (
+            <p>
+              We use cookies and similar technologies to maintain user sessions,
+              authenticate accounts, improve website security, remember preferences,
+              and analyze website performance.
+            </p>
+          ),
+        },
+        {
+          heading: "Types of Cookies We Use",
+          body: (
+            <ul className="list-disc pl-6">
+              <li>
+                <strong>Essential cookies:</strong> Required for website functionality
+                and user authentication.
+              </li>
+              <li>
+                <strong>Performance cookies:</strong> Help us understand how visitors
+                use the website.
+              </li>
+              <li>
+                <strong>Preference cookies:</strong> Remember user settings and
+                preferences.
+              </li>
+              <li>
+                <strong>Security cookies:</strong> Help protect accounts and prevent
+                unauthorized access.
+              </li>
+            </ul>
+          ),
+        },
+        {
+          heading: "Third-Party Services",
+          body: (
+            <p>
+              Third-party providers such as Stripe, Supabase, SMTP2GO, analytics
+              providers, and hosting services may place cookies or similar
+              technologies necessary for their services.
+            </p>
+          ),
+        },
+        {
+          heading: "Managing Cookies",
+          body: (
+            <p>
+              Most web browsers allow users to control or delete cookies through
+              browser settings. Disabling certain cookies may affect website
+              functionality.
+            </p>
+          ),
+        },
+        {
+          heading: "Changes to This Policy",
+          body: (
+            <p>
+              We may update this Cookie Policy from time to time. Updated versions
+              will be posted on this page with a revised effective date.
+            </p>
+          ),
+        },
+      ]}
+    />
   );
 }

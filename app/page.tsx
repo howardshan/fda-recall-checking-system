@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LegalFooterLinks } from "@/components/legal/LegalFooterLinks";
 import { Logo } from "@/components/Logo";
 import { getCurrentUser } from "@/lib/auth";
 import { getMeta } from "@/lib/meta";
@@ -47,8 +48,11 @@ export default async function LandingPage() {
           <div className="mx-auto max-w-container px-margin-mobile py-16 md:px-margin-desktop md:py-24">
             <div className="grid grid-cols-1 gap-12 md:grid-cols-2 md:items-center">
               <div>
+                <p className="mb-4 inline-block rounded-full bg-primary-fixed px-3 py-1 text-label-md uppercase tracking-wider text-on-primary-fixed">
+                  Faster than your pharmacy
+                </p>
                 <h1 className="font-display text-display-lg-mobile md:text-display-lg text-primary">
-                  Know the moment a medication you take is recalled by the FDA.
+                  FDA Recall Alerts Delivered Before Your Pharmacy Calls.
                 </h1>
                 <p className="mt-6 text-body-lg text-on-surface-variant">
                   Add prescriptions to your personal medicine cabinet. We&apos;ll
@@ -60,7 +64,7 @@ export default async function LandingPage() {
                     Get free alerts →
                   </Link>
                   <Link href="/check" className="btn-secondary px-6 py-3 text-label-md">
-                    Quick one-off check
+                    Start Free Monitoring
                   </Link>
                 </div>
               </div>
@@ -167,11 +171,7 @@ export default async function LandingPage() {
       <footer className="border-t border-primary/10 bg-surface-container-low">
         <div className="mx-auto flex max-w-container flex-col items-center justify-between gap-2 px-margin-mobile py-6 md:flex-row md:px-margin-desktop">
           <Logo size={28} />
-          <div className="flex gap-4 text-label-sm text-on-surface-variant">
-            <Link href="/privacy" className="hover:text-secondary">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-secondary">Terms of Service</Link>
-            <Link href="/cookies" className="hover:text-secondary">Cookies</Link>
-          </div>
+          <LegalFooterLinks />
           <p className="text-label-sm text-on-surface-variant opacity-80">
             FDA data last synced:{" "}
             {meta?.lastSyncedAt ? new Date(meta.lastSyncedAt).toLocaleString() : "Never"}

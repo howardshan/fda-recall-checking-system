@@ -1,5 +1,26 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendEmailQuietly } from "./mailer";
+import { hasPaidPlan, type Plan } from "./plan";
+import { getEffectivePlan } from "./stripe-billing";
+
+export type DigestCadence = "daily" | "weekly";
+
+/** Skip threshold (UTC) below which a user is eligible for the next digest. */
+function skipThreshold(cadence: DigestCadence): Date {
+  const now = new Date();
+  if (cadence === "daily") {
+    const t = new Date(now);
+    t.setUTCHours(0, 0, 0, 0);
+    return t;
+  }
+  // weekly: at most one digest per ~7-day window. 6.5-day margin avoids
+  // clock-skew double-sends across Sunday-noon-ET (17:00 UTC) cron firings.
+  return new Date(now.getTime() - 6.5 * 24 * 60 * 60 * 1000);
+}
+
+function planMatchesCadence(plan: Plan, cadence: DigestCadence): boolean {
+  return cadence === "daily" ? hasPaidPlan(plan) : plan === "free";
+}
 
 type Match = {
   id: number;
@@ -22,12 +43,6 @@ export type DigestStats = {
   skipped: number;
   failed: number;
 };
-
-function startOfTodayUtc(): Date {
-  const d = new Date();
-  d.setUTCHours(0, 0, 0, 0);
-  return d;
-}
 
 function classChip(c: string | null): string {
   if (!c) return "Unclassified";
@@ -151,14 +166,20 @@ Review at: ${appUrl}/notifications`;
 }
 
 /**
- * Send one daily digest email per user.
- * Idempotent within a UTC day: re-running won't double-send because
- * `notification_preferences.last_digest_sent_at` is checked against
- * the start of today UTC.
+ * Send one digest email per eligible user.
+ *
+ * Cadence routing:
+ *   - "daily"  → only paid plans (personal, family); idempotent per UTC day
+ *   - "weekly" → only free plan; idempotent within a 6.5-day window (one email
+ *                per calendar week of Sunday cron firings)
+ *
+ * Both cadences use `notification_preferences.last_digest_sent_at` as the
+ * idempotency key — the check is just a different time threshold.
  */
-export async function sendDailyDigests(
+export async function sendDigests(
   supabase: SupabaseClient,
   appUrl: string,
+  cadence: DigestCadence,
 ): Promise<DigestStats> {
   const stats: DigestStats = {
     usersConsidered: 0,
@@ -167,7 +188,7 @@ export async function sendDailyDigests(
     failed: 0,
   };
 
-  const todayStart = startOfTodayUtc();
+  const threshold = skipThreshold(cadence);
   const nowIso = new Date().toISOString();
 
   const { data: medUsers } = await supabase
@@ -180,6 +201,13 @@ export async function sendDailyDigests(
 
   for (const userId of userIds) {
     stats.usersConsidered++;
+
+    // Plan-based routing: skip users whose plan doesn't match this cadence.
+    const userPlan = await getEffectivePlan(supabase, userId);
+    if (!planMatchesCadence(userPlan, cadence)) {
+      stats.skipped++;
+      continue;
+    }
 
     const { data: profile } = await supabase
       .from("profiles")
@@ -206,7 +234,7 @@ export async function sendDailyDigests(
 
     if (
       prefs?.last_digest_sent_at &&
-      new Date(prefs.last_digest_sent_at) >= todayStart
+      new Date(prefs.last_digest_sent_at) >= threshold
     ) {
       stats.skipped++;
       continue;

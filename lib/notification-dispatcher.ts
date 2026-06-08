@@ -64,7 +64,7 @@ function classTemplateTokens(tier: ClassTier): {
         classSubhead:
           "Potential for temporary or medically reversible adverse health consequences.",
         classBannerBg: "#ffdbcf",
-        classBannerText: "#00342b",
+        classBannerText: "#0e7c89",
       };
     case "III":
       return {
@@ -79,7 +79,7 @@ function classTemplateTokens(tier: ClassTier): {
         classHeadline: "FDA Recall Notice",
         classSubhead:
           "A medication in your cabinet is subject to an FDA recall. Review the details below.",
-        classBannerBg: "#00342b",
+        classBannerBg: "#0e7c89",
         classBannerText: "#ffffff",
       };
   }

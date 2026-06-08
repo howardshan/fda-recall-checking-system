@@ -57,6 +57,9 @@ export default async function PricingPage({
         </div>
       ) : null}
       <div className="text-center">
+        <p className="mx-auto mb-4 inline-block rounded-full bg-primary-fixed px-3 py-1 text-label-md uppercase tracking-wider text-on-primary-fixed">
+          FDA recall alerts before your pharmacy calls
+        </p>
         <h1 className="font-display text-headline-md text-primary">
           Pick the plan that fits your household
         </h1>

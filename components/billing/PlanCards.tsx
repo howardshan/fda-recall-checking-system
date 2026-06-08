@@ -62,8 +62,7 @@ const PLANS: PlanCard[] = [
     featured: false,
     bullets: [
       "Track 2 medications",
-      "Daily recall digest email",
-      "In-app recall alerts",
+      "Weekly digest",
     ],
   },
   {
@@ -76,9 +75,10 @@ const PLANS: PlanCard[] = [
     featured: true,
     bullets: [
       "Track up to 20 medications",
-      "Instant recall emails",
-      "Lot-number tracking",
-      "In-app recall alerts",
+      "Instant recall alerts",
+      "Email notifications",
+      "Priority monitoring",
+      "Lot number tracking",
     ],
   },
   {
@@ -90,11 +90,12 @@ const PLANS: PlanCard[] = [
     annualSecondary: "≈ $8.33/mo",
     featured: false,
     bullets: [
-      "Track up to 50 medications",
-      "Priority alerts",
-      "Lot-number tracking",
-      "Faster monitoring",
-      "Future cosmetic + food monitoring",
+      "Everything in Personal Pro",
+      "Track up to 5 family members",
+      "Shared family dashboard",
+      "Caregiver notifications",
+      "Priority family alerts",
+      "Track up to 100 medications",
     ],
   },
 ];

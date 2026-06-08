@@ -50,19 +50,19 @@ const config: Config = {
           DEFAULT: '#707975',
           variant: '#bfc9c4',
         },
-        // Primary — deep teal authority
+        // Primary — Mayo Clinic medical teal (blue-green)
         primary: {
-          DEFAULT: '#00342b',
-          container: '#004d40',
-          fixed: '#afefdd',
-          'fixed-dim': '#94d3c1',
-          inverse: '#94d3c1',
+          DEFAULT: '#0e7c89',
+          container: '#15a3b5',
+          fixed: '#b5e7ed',
+          'fixed-dim': '#8dcfd9',
+          inverse: '#5cb8c6',
         },
         'on-primary': {
           DEFAULT: '#ffffff',
-          container: '#7ebdac',
-          fixed: '#00201a',
-          'fixed-variant': '#065043',
+          container: '#cdeff4',
+          fixed: '#003138',
+          'fixed-variant': '#005761',
         },
         // Secondary — warm coral CTA
         secondary: {

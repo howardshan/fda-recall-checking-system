@@ -22,7 +22,7 @@ export async function sendSubscriptionEndedEmail(args: {
 
   const html = `
     <div style="font-family: system-ui, sans-serif; max-width: 560px; color: #001f2a;">
-      <h1 style="color: #00342b; font-size: 1.25rem;">Your subscription has ended</h1>
+      <h1 style="color: #0e7c89; font-size: 1.25rem;">Your subscription has ended</h1>
       <p>Hi ${args.userName},</p>
       <p>Your paid plan has ended and your account is now on the <strong>Free</strong> plan. You can still sign in and manage up to 2 medications.</p>
       ${refundBlock}

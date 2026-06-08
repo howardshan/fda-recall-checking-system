@@ -20,7 +20,7 @@ h2,
 h3,
 h4 {
   font-family: Merriweather, Georgia, serif;
-  color: #00342b;
+  color: #0e7c89;
 }
 
 @layer components {
@@ -33,7 +33,7 @@ h4 {
   }
   .chip-ii {
     background-color: #ffdbcf;
-    color: #00342b;
+    color: #0e7c89;
   }
   .chip-iii {
     background-color: #707975;

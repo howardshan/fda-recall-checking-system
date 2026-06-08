@@ -26,11 +26,11 @@ const COPY: Record<"meds", Record<Plan, { title: string; body: string }>> = {
     },
     personal: {
       title: "Upgrade to Family Protection",
-      body: "Personal Pro tracks up to 20 medications. Upgrade to Family Protection for up to 50 medications.",
+      body: "Personal Pro tracks up to 20 medications. Upgrade to Family Protection for up to 100 medications.",
     },
     family: {
       title: "Plan limit reached",
-      body: "Family Protection includes 50 tracked medications — the highest tier. Remove an item from your cabinet to add a new one.",
+      body: "Family Protection includes 100 tracked medications — the highest tier. Remove an item from your cabinet to add a new one.",
     },
   },
 };

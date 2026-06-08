@@ -10,7 +10,7 @@ export type Quota = {
 export const QUOTAS: Record<Plan, Quota> = {
   free: { meds: 2 },
   personal: { meds: 20 },
-  family: { meds: 50 },
+  family: { meds: 100 },
 };
 
 export const PLAN_LABEL: Record<Plan, string> = {
