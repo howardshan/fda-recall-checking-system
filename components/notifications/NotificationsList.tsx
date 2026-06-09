@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useUnreadNotifications } from "./UnreadNotificationsProvider";
 
 type NotificationRow = {
   id: number;
@@ -57,6 +58,7 @@ export function NotificationsList({ initial }: { initial: NotificationRow[] }) {
   const [items, setItems] = useState(initial);
   const [filter, setFilter] = useState<Filter>("all");
   const [pendingId, setPendingId] = useState<number | null>(null);
+  const { adjustUnreadCount, refreshUnreadCount } = useUnreadNotifications();
 
   const visible = items.filter((n) => {
     if (filter === "all") return n.status !== "dismissed";
@@ -65,6 +67,7 @@ export function NotificationsList({ initial }: { initial: NotificationRow[] }) {
 
   const updateStatus = useCallback(
     async (id: number, status: "read" | "unread" | "dismissed") => {
+      const previous = items.find((n) => n.id === id)?.status;
       setPendingId(id);
       try {
         const res = await fetch(`/api/notifications/${id}`, {
@@ -74,6 +77,13 @@ export function NotificationsList({ initial }: { initial: NotificationRow[] }) {
         });
         if (!res.ok) throw new Error("Update failed");
         setItems((cur) => cur.map((n) => (n.id === id ? { ...n, status } : n)));
+
+        if (previous === "unread" && status !== "unread") {
+          adjustUnreadCount(-1);
+        } else if (previous !== "unread" && status === "unread") {
+          adjustUnreadCount(1);
+        }
+        void refreshUnreadCount();
       } catch (e) {
         console.error(e);
         alert("Could not update notification.");
@@ -81,7 +91,7 @@ export function NotificationsList({ initial }: { initial: NotificationRow[] }) {
         setPendingId(null);
       }
     },
-    [],
+    [items, adjustUnreadCount, refreshUnreadCount],
   );
 
   useEffect(() => {

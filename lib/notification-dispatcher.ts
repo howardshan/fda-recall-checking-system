@@ -122,6 +122,73 @@ function render(template: string, vars: Record<string, string>): string {
   return out;
 }
 
+type NotificationPrefs = NonNullable<PendingRow["notification_preferences"]>;
+
+/** Load profiles + prefs by user id (no PostgREST embed — FK is via auth.users only). */
+export async function loadDispatchUserContext(
+  supabase: SupabaseClient,
+  userIds: string[],
+): Promise<{
+  profiles: Map<string, { email: string; full_name: string | null }>;
+  preferences: Map<string, NotificationPrefs>;
+}> {
+  const profiles = new Map<string, { email: string; full_name: string | null }>();
+  const preferences = new Map<string, NotificationPrefs>();
+  if (userIds.length === 0) {
+    return { profiles, preferences };
+  }
+
+  const [profilesRes, prefsRes] = await Promise.all([
+    supabase.from("profiles").select("id, email, full_name").in("id", userIds),
+    supabase
+      .from("notification_preferences")
+      .select(
+        "user_id, email_enabled, email_instant_enabled, alert_on_class_i, alert_on_class_ii, alert_on_class_iii, alert_after_stop_date",
+      )
+      .in("user_id", userIds),
+  ]);
+
+  if (profilesRes.error) {
+    console.error("[dispatcher] profiles fetch failed:", profilesRes.error.message);
+  } else {
+    for (const p of profilesRes.data ?? []) {
+      profiles.set(p.id as string, {
+        email: p.email as string,
+        full_name: (p.full_name as string | null) ?? null,
+      });
+    }
+  }
+
+  if (prefsRes.error) {
+    console.error("[dispatcher] preferences fetch failed:", prefsRes.error.message);
+  } else {
+    for (const pref of prefsRes.data ?? []) {
+      preferences.set(pref.user_id as string, {
+        email_enabled: pref.email_enabled as boolean,
+        email_instant_enabled: pref.email_instant_enabled as boolean,
+        alert_on_class_i: pref.alert_on_class_i as boolean,
+        alert_on_class_ii: pref.alert_on_class_ii as boolean,
+        alert_on_class_iii: pref.alert_on_class_iii as boolean,
+        alert_after_stop_date: pref.alert_after_stop_date as boolean,
+      });
+    }
+  }
+
+  return { profiles, preferences };
+}
+
+export function hydratePendingRows(
+  rows: Omit<PendingRow, "profiles" | "notification_preferences">[],
+  profiles: Map<string, { email: string; full_name: string | null }>,
+  preferences: Map<string, NotificationPrefs>,
+): PendingRow[] {
+  return rows.map((row) => ({
+    ...row,
+    profiles: profiles.get(row.user_id) ?? null,
+    notification_preferences: preferences.get(row.user_id) ?? null,
+  }));
+}
+
 /**
  * Dispatch pending instant recall emails for unread notifications.
  * Use a service-role Supabase client (RLS bypass).
@@ -141,9 +208,7 @@ export async function dispatchPendingEmails(
       `
       id, user_id, classification, created_at, email_sent_at,
       medication_items!inner(id, product_name, manufacturer, status, expected_stop_date),
-      recalls!inner(recall_number, reason_for_recall, recall_initiation_date),
-      profiles!inner(email, full_name),
-      notification_preferences(email_enabled, email_instant_enabled, alert_on_class_i, alert_on_class_ii, alert_on_class_iii, alert_after_stop_date)
+      recalls!inner(recall_number, reason_for_recall, recall_initiation_date)
       `,
     )
     .is("email_sent_at", null)
@@ -154,7 +219,13 @@ export async function dispatchPendingEmails(
     console.error("[dispatcher] fetch pending failed:", error.message);
     return { considered: 0, emailsSent: 0, skipped: 0, failed: 0 };
   }
-  const rows = (data ?? []) as unknown as PendingRow[];
+  const baseRows = (data ?? []) as unknown as Omit<
+    PendingRow,
+    "profiles" | "notification_preferences"
+  >[];
+  const userIds = [...new Set(baseRows.map((r) => r.user_id))];
+  const { profiles, preferences } = await loadDispatchUserContext(supabase, userIds);
+  const rows = hydratePendingRows(baseRows, profiles, preferences);
   const template = await loadTemplate();
 
   let emailsSent = 0;
@@ -191,6 +262,7 @@ export async function dispatchPendingEmails(
 
     if (
       row.medication_items?.status === "deleted" ||
+      row.medication_items?.status === "paused" ||
       !row.medication_items ||
       !row.recalls
     ) {
@@ -235,11 +307,8 @@ export async function dispatchPendingEmails(
           failed++;
         }
       } else {
-        // Free plan, prefs off, or instant disabled — mark processed (digest may cover later).
-        await supabase
-          .from("notifications")
-          .update({ email_sent_at: new Date().toISOString() })
-          .eq("id", row.id);
+        // Free plan, prefs off, or instant disabled — leave for daily digest.
+        skipped++;
       }
     }
   }

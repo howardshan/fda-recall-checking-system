@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { getServerAuthSupabase } from "@/lib/auth";
 
@@ -25,12 +26,21 @@ export async function PATCH(req: Request, ctx: Params) {
   }
 
   const supabase = await getServerAuthSupabase();
+  const patch: {
+    status: string;
+    email_sent_at?: string;
+    dismiss_reason?: null;
+  } = { status: body.status, dismiss_reason: null };
+  if (body.status === "dismissed") {
+    patch.email_sent_at = new Date().toISOString();
+  }
   const { error } = await supabase
     .from("notifications")
-    .update({ status: body.status })
+    .update(patch)
     .eq("id", id);
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+  revalidatePath("/dashboard");
   return NextResponse.json({ ok: true });
 }

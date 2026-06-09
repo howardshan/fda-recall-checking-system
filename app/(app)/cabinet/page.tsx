@@ -1,6 +1,14 @@
 import Link from "next/link";
+import { CabinetMatchingRefresh } from "@/components/cabinet/CabinetMatchingRefresh";
 import { getServerAuthSupabase } from "@/lib/auth";
 import { listCabinetItems, type CabinetListItem } from "@/lib/cabinet-items";
+import {
+  parseRecallClassTier,
+  recallClassChipClassForTier,
+  recallClassLabelForTier,
+  sortRecallClassTiers,
+  type RecallClassTier,
+} from "@/lib/recall-classification";
 
 export const dynamic = "force-dynamic";
 
@@ -38,16 +46,38 @@ async function getPausedItems(): Promise<Item[]> {
   return (data ?? []) as Item[];
 }
 
-async function getUnreadByItem(): Promise<Map<number, number>> {
+type ItemAlertSummary = {
+  unreadCount: number;
+  classTiers: RecallClassTier[];
+};
+
+async function getAlertSummaryByItem(): Promise<Map<number, ItemAlertSummary>> {
   const supabase = await getServerAuthSupabase();
   const { data } = await supabase
     .from("notifications")
-    .select("medication_item_id, status")
+    .select("medication_item_id, classification")
     .eq("status", "unread");
-  const map = new Map<number, number>();
-  for (const row of (data ?? []) as { medication_item_id: number | null }[]) {
+  const tierSets = new Map<number, Set<RecallClassTier>>();
+  const counts = new Map<number, number>();
+  for (const row of (data ?? []) as {
+    medication_item_id: number | null;
+    classification: string | null;
+  }[]) {
     if (row.medication_item_id == null) continue;
-    map.set(row.medication_item_id, (map.get(row.medication_item_id) ?? 0) + 1);
+    const id = row.medication_item_id;
+    counts.set(id, (counts.get(id) ?? 0) + 1);
+    const tier = parseRecallClassTier(row.classification);
+    if (tier) {
+      if (!tierSets.has(id)) tierSets.set(id, new Set());
+      tierSets.get(id)!.add(tier);
+    }
+  }
+  const map = new Map<number, ItemAlertSummary>();
+  for (const [id, unreadCount] of counts) {
+    map.set(id, {
+      unreadCount,
+      classTiers: sortRecallClassTiers(tierSets.get(id) ?? []),
+    });
   }
   return map;
 }
@@ -67,13 +97,16 @@ function formatDate(iso: string | null): string {
 
 function MedCard({
   item,
-  unread,
+  alertSummary,
   dimmed,
 }: {
   item: CabinetListItem;
-  unread: number;
+  alertSummary?: ItemAlertSummary;
   dimmed?: boolean;
 }) {
+  const unread = alertSummary?.unreadCount ?? 0;
+  const classTiers = alertSummary?.classTiers ?? [];
+
   return (
     <Link
       href={`/cabinet/${item.id}/edit`}
@@ -99,9 +132,24 @@ function MedCard({
             Paused
           </span>
         ) : unread > 0 ? (
-          <span className="chip chip-i shrink-0">
-            {unread} alert{unread === 1 ? "" : "s"}
-          </span>
+          <div className="flex flex-col items-end gap-1.5 shrink-0">
+            <span className="chip bg-error/10 text-error">
+              {unread} alert{unread === 1 ? "" : "s"}
+            </span>
+            <div className="flex flex-wrap justify-end gap-1">
+              {classTiers.length > 0 ? (
+                classTiers.map((tier) => (
+                  <span key={tier} className={recallClassChipClassForTier(tier)}>
+                    {recallClassLabelForTier(tier)}
+                  </span>
+                ))
+              ) : (
+                <span className="chip bg-surface-container-high text-on-surface">
+                  Unclassified
+                </span>
+              )}
+            </div>
+          </div>
         ) : (
           <span className="chip bg-surface-container-high text-on-surface shrink-0">
             Monitored
@@ -133,10 +181,10 @@ function MedCard({
 
 export default async function CabinetPage() {
   const supabase = await getServerAuthSupabase();
-  const [activeResult, pausedResult, unreadByItem] = await Promise.all([
+  const [activeResult, pausedResult, alertSummaryByItem] = await Promise.all([
     listCabinetItems(supabase, "active"),
     listCabinetItems(supabase, "paused"),
-    getUnreadByItem(),
+    getAlertSummaryByItem(),
   ]);
 
   const items = activeResult.items;
@@ -144,7 +192,9 @@ export default async function CabinetPage() {
   const loadError = activeResult.error ?? pausedResult.error;
 
   return (
-    <div className="space-y-6">
+    <>
+      <CabinetMatchingRefresh />
+      <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="font-display text-headline-md text-on-surface">Medicine Cabinet</h1>
@@ -180,7 +230,10 @@ export default async function CabinetPage() {
             <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {items.map((item) => (
                 <li key={item.id}>
-                  <MedCard item={item} unread={unreadByItem.get(item.id) ?? 0} />
+                  <MedCard
+                    item={item}
+                    alertSummary={alertSummaryByItem.get(item.id)}
+                  />
                 </li>
               ))}
             </ul>
@@ -194,7 +247,8 @@ export default async function CabinetPage() {
                 </h2>
                 <p className="mt-2 text-body-md text-on-surface-variant">
                   These medications are saved in your cabinet but are not being checked for
-                  recalls. This usually happens when your plan limit is exceeded or your
+                  recalls. Unread alerts for paused entries were archived automatically.
+                  This usually happens when your plan limit is exceeded or your
                   subscription ended.{" "}
                   <Link href="/pricing" className="text-secondary hover:underline">
                     Upgrade your plan
@@ -207,7 +261,7 @@ export default async function CabinetPage() {
                   <li key={item.id}>
                     <MedCard
                       item={item}
-                      unread={unreadByItem.get(item.id) ?? 0}
+                      alertSummary={alertSummaryByItem.get(item.id)}
                       dimmed
                     />
                   </li>
@@ -218,5 +272,6 @@ export default async function CabinetPage() {
         </>
       )}
     </div>
+    </>
   );
 }

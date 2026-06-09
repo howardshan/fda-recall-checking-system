@@ -65,7 +65,6 @@ export function UserMenu({ displayName }: Props) {
             action="/auth/signout"
             method="post"
             className="border-t border-primary/10 pt-2 mt-1"
-            onSubmit={() => setOpen(false)}
           >
             <button
               type="submit"

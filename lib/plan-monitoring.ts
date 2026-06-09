@@ -1,4 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  dismissUnreadForPausedMedications,
+  restoreNotificationsForReactivatedMedications,
+} from "./notification-monitoring";
 import { getUserPlan, medQuota, type Plan } from "./plan";
 
 type MedRow = { id: number; added_at: string | null };
@@ -24,11 +28,19 @@ export function selectMonitoredMedIds(
  * Oldest active meds are kept; excess become paused. Paused meds are re-activated
  * when quota increases (upgrade).
  */
+export type SyncMonitoringQuotaResult = {
+  paused: number;
+  reactivated: number;
+  notificationsDismissed: number;
+  notificationsRestored: number;
+  newNotifications: number;
+};
+
 export async function syncMonitoringQuota(
   supabase: SupabaseClient,
   userId: string,
   planOverride?: Plan,
-): Promise<{ paused: number; reactivated: number }> {
+): Promise<SyncMonitoringQuotaResult> {
   const plan = planOverride ?? (await getUserPlan(supabase, userId));
   const limit = medQuota(plan);
 
@@ -41,12 +53,21 @@ export async function syncMonitoringQuota(
 
   if (activeErr) {
     console.error("[plan-monitoring] fetch active failed:", activeErr.message);
-    return { paused: 0, reactivated: 0 };
+    return {
+      paused: 0,
+      reactivated: 0,
+      notificationsDismissed: 0,
+      notificationsRestored: 0,
+      newNotifications: 0,
+    };
   }
 
   const active = (activeRows ?? []) as MedRow[];
   let paused = 0;
   let reactivated = 0;
+  let notificationsDismissed = 0;
+  let notificationsRestored = 0;
+  let newNotifications = 0;
 
   if (active.length > limit) {
     const keep = selectMonitoredMedIds(active, limit);
@@ -60,6 +81,10 @@ export async function syncMonitoringQuota(
         console.error("[plan-monitoring] pause failed:", error.message);
       } else {
         paused = toPause.length;
+        notificationsDismissed = await dismissUnreadForPausedMedications(
+          supabase,
+          toPause,
+        );
       }
     }
   }
@@ -77,7 +102,13 @@ export async function syncMonitoringQuota(
 
     if (pausedErr) {
       console.error("[plan-monitoring] fetch paused failed:", pausedErr.message);
-      return { paused, reactivated };
+      return {
+        paused,
+        reactivated,
+        notificationsDismissed,
+        notificationsRestored,
+        newNotifications,
+      };
     }
 
     const toActivate = (pausedRows ?? []).map((m) => (m as MedRow).id);
@@ -90,11 +121,24 @@ export async function syncMonitoringQuota(
         console.error("[plan-monitoring] reactivate failed:", error.message);
       } else {
         reactivated = toActivate.length;
+        const restoreResult = await restoreNotificationsForReactivatedMedications(
+          supabase,
+          userId,
+          toActivate,
+        );
+        notificationsRestored = restoreResult.restored;
+        newNotifications = restoreResult.newNotifications;
       }
     }
   }
 
-  return { paused, reactivated };
+  return {
+    paused,
+    reactivated,
+    notificationsDismissed,
+    notificationsRestored,
+    newNotifications,
+  };
 }
 
 /** True if this active item is within the user's monitored quota (by added_at). */
