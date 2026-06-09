@@ -204,12 +204,12 @@ export function MedicationForm({ mode, initial, itemId }: Props) {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="flex flex-col gap-2">
           <label className="text-label-md text-on-surface-variant" htmlFor="ndc">
-            NDC <span className="text-outline">(optional)</span>
+            NDC <span className="text-on-surface-variant">(optional)</span>
           </label>
           <input
             id="ndc"
             type="text"
-            className="input bg-surface-container-low font-mono"
+            className="input bg-surface-container-lowest font-mono"
             placeholder="0093-4155-01"
             value={values.productNdc}
             onChange={(e) => update("productNdc", e.target.value)}
@@ -218,12 +218,12 @@ export function MedicationForm({ mode, initial, itemId }: Props) {
 
         <div className="flex flex-col gap-2">
           <label className="text-label-md text-on-surface-variant" htmlFor="lot">
-            Lot number <span className="text-outline">(optional)</span>
+            Lot number <span className="text-on-surface-variant">(optional)</span>
           </label>
           <input
             id="lot"
             type="text"
-            className="input bg-surface-container-low font-mono"
+            className="input bg-surface-container-lowest font-mono"
             placeholder="AB1234"
             value={values.lotNumber}
             onChange={(e) => update("lotNumber", e.target.value)}

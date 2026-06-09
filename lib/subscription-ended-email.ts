@@ -31,13 +31,16 @@ export async function sendSubscriptionEndedEmail(args: {
       ? formatMoney(args.refundAmountCents, args.currency ?? "usd")
       : "";
 
-  const template = loadEmailTemplate("subscription-ended.html");
-  const html = renderEmailTemplate(template, {
-    userName: escHtml(args.userName),
-    appUrl,
-    hasRefund,
-    refundAmountFormatted: refundFormatted,
-  });
+  const html = `
+    <div style="font-family: system-ui, sans-serif; max-width: 560px; color: #0f172a;">
+      <h1 style="color: #0f172a; font-size: 1.25rem;">Your subscription has ended</h1>
+      <p>Hi ${args.userName},</p>
+      <p>Your paid plan has ended and your account is now on the <strong>Free</strong> plan. You can still sign in and manage up to 2 medications.</p>
+      ${refundBlock}
+      <p><a href="${appUrl}/pricing" style="color: #f97316;">View plans</a> if you would like to subscribe again.</p>
+      <p style="font-size: 0.875rem; color: #475569;">— SafeTrack</p>
+    </div>
+  `;
 
   const textLines = [
     `Hi ${args.userName},`,

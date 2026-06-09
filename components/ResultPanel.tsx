@@ -51,7 +51,7 @@ function MatchCard({ m }: { m: RecallMatch }) {
       </div>
 
       <div>
-        <h4 className="font-display text-headline-sm text-primary">
+        <h4 className="font-display text-headline-sm text-on-surface">
           {m.brandName || m.genericName || m.productDescription || "(unnamed)"}
         </h4>
         {m.productDescription &&
@@ -124,7 +124,7 @@ export function ResultPanel({ result, onReset }: Props) {
       </div>
     ) : (
       <div className="rounded-lg border-2 border-primary/30 bg-surface-container-low p-6 text-on-surface">
-        <h2 className="font-display text-headline-sm text-primary">✓ No recall found</h2>
+        <h2 className="font-display text-headline-sm text-on-surface">✓ No recall found</h2>
         {result.ndcSearched ? (
           <p className="mt-2 text-body-md">
             The <strong>NDC</strong> you provided is not in the recall database.

@@ -6,14 +6,14 @@ export default function DataExportPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="font-display text-headline-md text-primary">Data &amp; privacy</h1>
+        <h1 className="font-display text-headline-md text-on-surface">Data &amp; privacy</h1>
         <p className="mt-2 text-body-md text-on-surface-variant">
           Download a copy of everything we store about you, or close your account.
         </p>
       </div>
 
       <section className="card">
-        <h2 className="font-display text-headline-sm text-primary">Export your data</h2>
+        <h2 className="font-display text-headline-sm text-on-surface">Export your data</h2>
         <p className="mt-2 text-body-md text-on-surface-variant">
           Includes your profile, medications, notification history, and preferences.
           Downloads as a JSON file you can save or import elsewhere.
@@ -28,7 +28,7 @@ export default function DataExportPage() {
       </section>
 
       <section className="card">
-        <h2 className="font-display text-headline-sm text-primary">Close account</h2>
+        <h2 className="font-display text-headline-sm text-on-surface">Close account</h2>
         <p className="mt-2 text-body-md text-on-surface-variant">
           Permanently removes your profile, cabinet, notifications, and preferences.
           This cannot be undone. To proceed, email{" "}

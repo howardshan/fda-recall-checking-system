@@ -1,40 +1,127 @@
+import { LegalPage } from "@/components/legal/LegalPage";
+
 export const metadata = { title: "Privacy Policy | SafeTrack" };
 
 export default function PrivacyPage() {
   return (
-    <article className="prose mx-auto max-w-2xl">
-      <h1 className="font-display text-headline-md text-primary">Privacy Policy</h1>
-      <p className="mt-2 text-label-sm text-on-surface-variant">
-        Placeholder copy — replace with attorney-reviewed text before production.
-      </p>
-      <div className="mt-6 space-y-4 text-body-md text-on-surface">
+    <LegalPage
+      title="Privacy Policy"
+      effectiveDate="June 2026"
+      intro={
         <p>
-          SafeTrack (&ldquo;we&rdquo;) collects only the information you provide
-          when creating an account and adding medications to your cabinet:
-          name (optional), email address, and the medication details you enter.
+          Welcome to SafeTrack DV LLC (&ldquo;SafeTrack&rdquo;). SafeTrack provides
+          medication recall monitoring services that help users receive alerts when
+          medications they track may be affected by FDA recalls or safety notices.
+          This Privacy Policy explains how we collect, use, disclose, and protect
+          your information.
         </p>
-        <h2 className="font-display text-headline-sm text-primary">How we use your data</h2>
-        <ul className="list-disc pl-6">
-          <li>To match your medications against FDA recall records.</li>
-          <li>To send you email and in-app recall notifications.</li>
-          <li>To operate and improve the service.</li>
-        </ul>
-        <h2 className="font-display text-headline-sm text-primary">What we don&apos;t do</h2>
-        <ul className="list-disc pl-6">
-          <li>We do not sell or share your data with third parties.</li>
-          <li>We do not provide medical or treatment advice.</li>
-          <li>We do not retain your data after you delete your account.</li>
-        </ul>
-        <h2 className="font-display text-headline-sm text-primary">Your rights</h2>
-        <p>
-          You can export or delete your data at any time from the
-          settings page. Email questions to{" "}
-          <a href="mailto:privacy@example.com" className="text-secondary underline">
-            privacy@example.com
-          </a>
-          .
-        </p>
-      </div>
-    </article>
+      }
+      sections={[
+        {
+          heading: "Information We Collect",
+          body: (
+            <p>
+              We may collect your name, email address, account information,
+              subscription details, medications you track, and website usage
+              information.
+            </p>
+          ),
+        },
+        {
+          heading: "How We Use Your Information",
+          body: (
+            <p>
+              We use information to provide services, send recall alerts, process
+              subscriptions, improve our services, and comply with legal obligations.
+            </p>
+          ),
+        },
+        {
+          heading: "FDA Recall Monitoring",
+          body: (
+            <p>
+              SafeTrack provides informational recall monitoring only and does not
+              provide medical advice, diagnosis, or treatment.
+            </p>
+          ),
+        },
+        {
+          heading: "Email Communications",
+          body: (
+            <p>
+              We may send recall alerts, account notifications, billing notices, and
+              service-related emails.
+            </p>
+          ),
+        },
+        {
+          heading: "Information Sharing",
+          body: (
+            <p>
+              We do not sell personal information. We may share information with
+              service providers such as Stripe, SMTP2GO, hosting providers, and
+              analytics providers.
+            </p>
+          ),
+        },
+        {
+          heading: "Data Security",
+          body: (
+            <p>
+              We use commercially reasonable safeguards including encryption, secure
+              password storage, and access controls.
+            </p>
+          ),
+        },
+        {
+          heading: "Data Retention",
+          body: (
+            <p>
+              We retain information as necessary to operate the service and comply
+              with legal requirements.
+            </p>
+          ),
+        },
+        {
+          heading: "Your Rights",
+          body: (
+            <p>
+              You may request access, correction, deletion, or export of your
+              personal information where permitted by law.
+            </p>
+          ),
+        },
+        {
+          heading: "California Privacy Rights",
+          body: (
+            <p>
+              California residents may have additional privacy rights under
+              applicable law. See our{" "}
+              <a href="/ccpa" className="text-secondary underline">
+                California Privacy Notice
+              </a>{" "}
+              for details.
+            </p>
+          ),
+        },
+        {
+          heading: "Children's Privacy",
+          body: <p>SafeTrack is not intended for children under 13 years old.</p>,
+        },
+        {
+          heading: "Third-Party Services",
+          body: (
+            <p>
+              We may link to third-party services and are not responsible for their
+              privacy practices.
+            </p>
+          ),
+        },
+        {
+          heading: "Changes to This Policy",
+          body: <p>We may update this Privacy Policy from time to time.</p>,
+        },
+      ]}
+    />
   );
 }

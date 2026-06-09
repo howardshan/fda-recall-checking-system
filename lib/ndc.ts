@@ -31,22 +31,42 @@ export async function insertNdcBatch(
 ): Promise<number> {
   if (rows.length === 0) return 0;
   // ndc_products has no unique constraint to upsert on; we wipe + insert in the seed.
-  const { error, count } = await supabase
-    .from("ndc_products")
-    .insert(rows, { count: "exact" });
+  const { error } = await supabase.from("ndc_products").insert(rows);
   if (error) throw new Error(`ndc_products insert failed: ${error.message}`);
-  return count ?? rows.length;
+  return rows.length;
 }
 
 export async function insertNdcChunked(
   supabase: SupabaseClient,
   rows: NdcProductRow[],
-  chunkSize = 500,
+  chunkSize = 200,
 ): Promise<number> {
   let total = 0;
+  const startedAt = Date.now();
   for (let i = 0; i < rows.length; i += chunkSize) {
     const chunk = rows.slice(i, i + chunkSize);
-    total += await insertNdcBatch(supabase, chunk);
+    let attempts = 0;
+    // Retry timeouts up to 3x with backoff before bailing.
+    while (true) {
+      try {
+        total += await insertNdcBatch(supabase, chunk);
+        break;
+      } catch (err) {
+        attempts += 1;
+        const msg = err instanceof Error ? err.message : String(err);
+        if (attempts >= 3 || !/timeout|reset|ECONN|fetch failed/i.test(msg)) {
+          throw err;
+        }
+        const wait = 1000 * attempts;
+        console.log(`  · retry chunk ${i / chunkSize + 1} after ${wait}ms (${msg})`);
+        await new Promise((r) => setTimeout(r, wait));
+      }
+    }
+    if ((i / chunkSize) % 25 === 0) {
+      const pct = ((total / rows.length) * 100).toFixed(1);
+      const elapsed = ((Date.now() - startedAt) / 1000).toFixed(0);
+      console.log(`  · ${total}/${rows.length} (${pct}%) — ${elapsed}s elapsed`);
+    }
   }
   return total;
 }

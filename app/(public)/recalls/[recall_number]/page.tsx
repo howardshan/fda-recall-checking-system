@@ -92,19 +92,19 @@ export default async function RecallDetailPage({
       </div>
 
       <section className="card">
-        <h2 className="font-display text-headline-sm text-primary">Reason for recall</h2>
+        <h2 className="font-display text-headline-sm text-on-surface">Reason for recall</h2>
         <p className="mt-2 text-body-md">{r.reason_for_recall ?? "—"}</p>
       </section>
 
       {r.product_description ? (
         <section className="card">
-          <h2 className="font-display text-headline-sm text-primary">Product description</h2>
+          <h2 className="font-display text-headline-sm text-on-surface">Product description</h2>
           <p className="mt-2 whitespace-pre-wrap text-body-md">{r.product_description}</p>
         </section>
       ) : null}
 
       <section className="card">
-        <h2 className="font-display text-headline-sm text-primary">Details</h2>
+        <h2 className="font-display text-headline-sm text-on-surface">Details</h2>
         <dl className="mt-4 grid grid-cols-1 gap-x-6 gap-y-3 text-body-md sm:grid-cols-2">
           <div>
             <dt className="text-label-sm uppercase text-on-surface-variant">Recall number</dt>

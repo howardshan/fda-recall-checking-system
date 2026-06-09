@@ -84,7 +84,7 @@ export function ConfirmationForm({
             Suggested matches
           </label>
           <select
-            className="input bg-surface-container-low"
+            className="input bg-surface-container-lowest"
             onChange={(e) => applyCandidate(Number.parseInt(e.target.value, 10))}
             defaultValue=""
           >
@@ -112,7 +112,7 @@ export function ConfirmationForm({
           value={values.productName}
           onChange={(e) => update("productName", e.target.value)}
           placeholder="e.g. Amoxicillin"
-          className="input bg-surface-container-low"
+          className="input bg-surface-container-lowest"
         />
       </div>
 
@@ -123,14 +123,14 @@ export function ConfirmationForm({
           value={values.manufacturer}
           onChange={(e) => update("manufacturer", e.target.value)}
           placeholder="e.g. Sandoz Inc"
-          className="input bg-surface-container-low"
+          className="input bg-surface-container-lowest"
         />
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
           <label className="text-label-md text-on-surface-variant">
-            NDC <span className="text-outline">(optional)</span>
+            NDC <span className="text-on-surface-variant">(optional)</span>
           </label>
           <input
             type="text"
@@ -143,7 +143,7 @@ export function ConfirmationForm({
 
         <div className="flex flex-col gap-2">
           <label className="text-label-md text-on-surface-variant">
-            Lot number <span className="text-outline">(optional)</span>
+            Lot number <span className="text-on-surface-variant">(optional)</span>
           </label>
           <input
             type="text"

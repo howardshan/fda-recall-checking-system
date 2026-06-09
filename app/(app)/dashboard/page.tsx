@@ -83,7 +83,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="font-display text-headline-md text-primary">Dashboard</h1>
+        <h1 className="font-display text-headline-md text-on-surface">Dashboard</h1>
         <p className="mt-2 text-body-md text-on-surface-variant">
           Your medication safety summary at a glance.
         </p>
@@ -149,7 +149,7 @@ export default async function DashboardPage() {
 
       {/* Recent alerts */}
       <div className="card">
-        <h2 className="font-display text-headline-sm text-primary">Recent alerts</h2>
+        <h2 className="font-display text-headline-sm text-on-surface">Recent alerts</h2>
         {alerts.length === 0 ? (
           <p className="mt-4 text-body-md text-on-surface-variant">
             Nothing to show yet. When the FDA publishes a recall that matches one of your medications,

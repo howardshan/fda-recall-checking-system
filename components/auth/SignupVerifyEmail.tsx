@@ -63,7 +63,7 @@ export function SignupVerifyEmail({ email }: Props) {
       </div>
 
       <div>
-        <h2 className="font-display text-headline-sm text-primary">Check your inbox</h2>
+        <h2 className="font-display text-headline-sm text-on-surface">Check your inbox</h2>
         <p className="mt-3 text-body-md text-on-surface-variant">
           We sent a verification link to{" "}
           <strong className="text-on-surface">{email}</strong>. Open the email and click{" "}

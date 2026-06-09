@@ -99,7 +99,7 @@ export function ManualInputTab({ onSubmit, submitting }: Props) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
           <label htmlFor="ndc" className="text-label-md text-on-surface-variant">
-            NDC <span className="text-outline">(optional)</span>
+            NDC <span className="text-on-surface-variant">(optional)</span>
           </label>
           <input
             id="ndc"
@@ -113,7 +113,7 @@ export function ManualInputTab({ onSubmit, submitting }: Props) {
 
         <div className="flex flex-col gap-2">
           <label htmlFor="lot" className="text-label-md text-on-surface-variant">
-            Lot number <span className="text-outline">(optional)</span>
+            Lot number <span className="text-on-surface-variant">(optional)</span>
           </label>
           <input
             id="lot"

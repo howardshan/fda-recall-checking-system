@@ -8,7 +8,7 @@ export default function ResetPage() {
   return (
     <>
       <div className="mb-gutter text-center">
-        <h1 className="font-display text-headline-md text-primary mb-2">Set a new password</h1>
+        <h1 className="font-display text-headline-md text-on-surface mb-2">Set a new password</h1>
         <p className="text-body-md text-on-surface-variant">
           Choose a password you don&apos;t use anywhere else.
         </p>
