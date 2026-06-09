@@ -64,7 +64,7 @@ export default async function LandingPage() {
                     Get free alerts →
                   </Link>
                   <Link href="/check" className="btn-secondary px-6 py-3 text-label-md">
-                    Search FDA Recalls
+                    Quick Recall Check
                   </Link>
                 </div>
               </div>
