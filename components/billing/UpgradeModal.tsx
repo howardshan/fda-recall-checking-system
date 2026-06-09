@@ -22,11 +22,11 @@ const COPY: Record<"meds", Record<Plan, { title: string; body: string }>> = {
   meds: {
     free: {
       title: "Upgrade to Personal Pro",
-      body: "Free accounts can track up to 2 medications and receive a daily digest. Subscribe to Personal Pro for up to 20 medications with instant recall emails.",
+      body: "Free accounts can track up to 2 medications and receive a weekly digest. Subscribe to Personal Pro for up to 20 medications with instant recall emails.",
     },
     personal: {
       title: "Upgrade to Family Protection",
-      body: "Personal Pro tracks up to 20 medications. Upgrade to Family Protection for up to 100 medications.",
+      body: "Personal Pro tracks up to 20 medications. Upgrade to Family Protection for up to 100 medications — ideal for households managing multiple prescriptions.",
     },
     family: {
       title: "Plan limit reached",
@@ -91,7 +91,7 @@ export function UpgradeModal({ error, onClose, onUpgraded }: Props) {
         className="card w-full max-w-md space-y-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="font-display text-headline-sm text-primary">{copy.title}</h2>
+        <h2 className="font-display text-headline-sm text-on-surface">{copy.title}</h2>
         <p className="text-body-md text-on-surface-variant">{copy.body}</p>
 
         {canUpgrade && target ? (

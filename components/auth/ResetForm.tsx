@@ -55,13 +55,13 @@ export function ResetForm() {
             autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="input bg-surface-container-low pr-12"
+            className="input bg-surface-container-lowest pr-12"
             placeholder="At least 8 characters"
           />
           <button
             type="button"
             onClick={() => setShowPwd((s) => !s)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-label-sm text-outline hover:text-primary"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-label-sm text-on-surface hover:text-primary"
           >
             {showPwd ? "Hide" : "Show"}
           </button>
@@ -82,12 +82,12 @@ export function ResetForm() {
             autoComplete="new-password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="input bg-surface-container-low pr-12"
+            className="input bg-surface-container-lowest pr-12"
           />
           <button
             type="button"
             onClick={() => setShowConfirm((s) => !s)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-label-sm text-outline hover:text-primary"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-label-sm text-on-surface hover:text-primary"
           >
             {showConfirm ? "Hide" : "Show"}
           </button>

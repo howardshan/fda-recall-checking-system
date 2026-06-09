@@ -50,7 +50,7 @@ export function LegalPage({
         ← All policies
       </Link>
       <header className="mt-4">
-        <h1 className="font-display text-headline-md text-primary">{title}</h1>
+        <h1 className="font-display text-headline-md text-on-surface">{title}</h1>
         <p className="mt-2 text-label-sm text-on-surface-variant">
           Effective: {effectiveDate}
         </p>
@@ -63,7 +63,7 @@ export function LegalPage({
       <div className="mt-6 space-y-8 text-body-md text-on-surface">
         {sections.map((s, i) => (
           <section key={s.heading}>
-            <h2 className="font-display text-headline-sm text-primary">
+            <h2 className="font-display text-headline-sm text-on-surface">
               {i + 1}. {s.heading}
             </h2>
             <div className="mt-3 space-y-3">{s.body}</div>
@@ -71,7 +71,7 @@ export function LegalPage({
         ))}
 
         <section>
-          <h2 className="font-display text-headline-sm text-primary">Contact</h2>
+          <h2 className="font-display text-headline-sm text-on-surface">Contact</h2>
           <div className="mt-3 space-y-3">{contact}</div>
         </section>
       </div>

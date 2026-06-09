@@ -102,7 +102,7 @@ export function PreferencesForm({
   return (
     <form className="space-y-8" onSubmit={handleSave}>
       <section className="card">
-        <h2 className="font-display text-headline-sm text-primary">Channels</h2>
+        <h2 className="font-display text-headline-sm text-on-surface">Channels</h2>
         <p className="mt-1 text-body-md text-on-surface-variant">
           Where should we send your recall alerts?
         </p>
@@ -149,7 +149,7 @@ export function PreferencesForm({
       </section>
 
       <section className="card">
-        <h2 className="font-display text-headline-sm text-primary">Severity classes</h2>
+        <h2 className="font-display text-headline-sm text-on-surface">Severity classes</h2>
         <p className="mt-1 text-body-md text-on-surface-variant">
           Choose which FDA classifications you want alerts for. Class I is
           always recommended.

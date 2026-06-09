@@ -72,7 +72,7 @@ export function ConfirmDialog({
         <div className="space-y-2">
           <h2
             id={titleId}
-            className="font-display text-headline-sm text-primary"
+            className="font-display text-headline-sm text-on-surface"
           >
             {title}
           </h2>

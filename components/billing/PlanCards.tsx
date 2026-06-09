@@ -75,9 +75,9 @@ const PLANS: PlanCard[] = [
     featured: true,
     bullets: [
       "Track up to 20 medications",
-      "Instant recall alerts",
       "Email notifications",
       "Priority monitoring",
+      "Instant recall alerts",
       "Lot number tracking",
     ],
   },
@@ -91,11 +91,10 @@ const PLANS: PlanCard[] = [
     featured: false,
     bullets: [
       "Everything in Personal Pro",
-      "Track up to 5 family members",
-      "Shared family dashboard",
-      "Caregiver notifications",
-      "Priority family alerts",
       "Track up to 100 medications",
+      "Ideal for households managing multiple medications",
+      "Enhanced monitoring capacity",
+      "Priority family alerts",
     ],
   },
 ];
@@ -427,7 +426,7 @@ export function PlanCards({
                   Most popular
                 </span>
               ) : null}
-              <h3 className="font-display text-headline-sm text-primary">{p.name}</h3>
+              <h3 className="font-display text-headline-sm text-on-surface">{p.name}</h3>
               <p className="mt-2 font-display text-headline-md text-on-surface">{primary}</p>
               {secondary ? (
                 <p className="text-label-sm text-on-surface-variant">{secondary}</p>

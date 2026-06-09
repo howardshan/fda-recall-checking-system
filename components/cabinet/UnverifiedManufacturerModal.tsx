@@ -58,7 +58,7 @@ export function UnverifiedManufacturerModal({
           <div className="space-y-1">
             <h2
               id="unverified-mfr-title"
-              className="font-display text-headline-sm text-primary"
+              className="font-display text-headline-sm text-on-surface"
             >
               Manufacturer not verified
             </h2>

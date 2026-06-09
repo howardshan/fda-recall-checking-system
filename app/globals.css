@@ -8,8 +8,8 @@
 
 html,
 body {
-  background: #f4faff;
-  color: #001f2a;
+  background: #f0fdfa;
+  color: #0f172a;
   font-family: "Fira Sans", system-ui, sans-serif;
   font-size: 16px;
   line-height: 24px;
@@ -20,7 +20,7 @@ h2,
 h3,
 h4 {
   font-family: Merriweather, Georgia, serif;
-  color: #0e7c89;
+  color: #0f172a;
 }
 
 @layer components {
@@ -32,8 +32,8 @@ h4 {
     color: #ffffff;
   }
   .chip-ii {
-    background-color: #ffdbcf;
-    color: #0e7c89;
+    background-color: #ffedd5;
+    color: #9a3412;
   }
   .chip-iii {
     background-color: #707975;
@@ -55,6 +55,6 @@ h4 {
   }
 
   .input {
-    @apply w-full rounded border border-outline bg-surface px-3 py-2 font-sans text-body-md text-on-surface placeholder:text-outline focus:border-2 focus:border-primary focus:outline-none;
+    @apply w-full rounded border border-outline bg-surface-container-lowest px-3 py-2 font-sans text-body-md text-on-surface placeholder:text-on-surface-variant focus:border-2 focus:border-primary focus:outline-none;
   }
 }

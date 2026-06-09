@@ -51,7 +51,7 @@ export default async function LandingPage() {
                 <p className="mb-4 inline-block rounded-full bg-primary-fixed px-3 py-1 text-label-md uppercase tracking-wider text-on-primary-fixed">
                   Faster than your pharmacy
                 </p>
-                <h1 className="font-display text-display-lg-mobile md:text-display-lg text-primary">
+                <h1 className="font-display text-display-lg-mobile md:text-display-lg text-on-surface">
                   FDA Recall Alerts Delivered Before Your Pharmacy Calls.
                 </h1>
                 <p className="mt-6 text-body-lg text-on-surface-variant">
@@ -64,14 +64,14 @@ export default async function LandingPage() {
                     Get free alerts →
                   </Link>
                   <Link href="/check" className="btn-secondary px-6 py-3 text-label-md">
-                    Start Free Monitoring
+                    Search FDA Recalls
                   </Link>
                 </div>
               </div>
               <div className="hidden md:block">
                 <div className="rounded-xl border border-primary/10 bg-surface-container-lowest p-6 shadow-sm">
                   <div className="chip chip-i">Class I — Serious Risk</div>
-                  <h3 className="mt-4 font-display text-headline-sm text-primary">
+                  <h3 className="mt-4 font-display text-headline-sm text-on-surface">
                     SIROLIMUS
                   </h3>
                   <p className="text-body-md text-on-surface-variant">
@@ -93,7 +93,7 @@ export default async function LandingPage() {
         {/* Three steps */}
         <section className="border-b border-primary/10 bg-surface-container-low">
           <div className="mx-auto max-w-container px-margin-mobile py-16 md:px-margin-desktop">
-            <h2 className="font-display text-headline-md text-primary text-center">
+            <h2 className="font-display text-headline-md text-on-surface text-center">
               How it works
             </h2>
             <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-3">
@@ -116,7 +116,7 @@ export default async function LandingPage() {
               ].map((s) => (
                 <div key={s.step} className="card">
                   <div className="font-display text-headline-md text-secondary">{s.step}</div>
-                  <h3 className="mt-2 font-display text-headline-sm text-primary">{s.title}</h3>
+                  <h3 className="mt-2 font-display text-headline-sm text-on-surface">{s.title}</h3>
                   <p className="mt-2 text-body-md text-on-surface-variant">{s.body}</p>
                 </div>
               ))}
@@ -153,7 +153,7 @@ export default async function LandingPage() {
         {/* CTA */}
         <section className="px-margin-mobile py-16 md:px-margin-desktop">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-display text-headline-md text-primary">
+            <h2 className="font-display text-headline-md text-on-surface">
               Take five minutes to set up. Stay informed for years.
             </h2>
             <p className="mt-4 text-body-md text-on-surface-variant">

@@ -63,7 +63,7 @@ export default function LegalIndexPage() {
         ← Back to homepage
       </Link>
       <header>
-        <h1 className="font-display text-headline-md text-primary">Legal</h1>
+        <h1 className="font-display text-headline-md text-on-surface">Legal</h1>
         <p className="mt-2 text-body-md text-on-surface-variant">
           All SafeTrack DV LLC policies in one place. Last updated June 2026.
         </p>
@@ -76,7 +76,7 @@ export default function LegalIndexPage() {
               href={doc.href}
               className="card block h-full transition hover:border-primary/30 hover:bg-surface-container-low"
             >
-              <h2 className="font-display text-headline-sm text-primary">
+              <h2 className="font-display text-headline-sm text-on-surface">
                 {doc.title}
               </h2>
               <p className="mt-2 text-body-sm text-on-surface-variant">

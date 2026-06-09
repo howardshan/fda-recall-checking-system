@@ -87,7 +87,7 @@ function composeMatches(matches: Match[], appUrl: string): { html: string; text:
     )
     .join("");
   const html = `<table style="width:100%;border-collapse:collapse;margin:16px 0">${htmlRows}</table>
-  <p><a href="${appUrl}/notifications" style="color:#0a66c2">Review all alerts in your dashboard →</a></p>`;
+  <p><a href="${appUrl}/notifications" style="color:#0d9488">Review all alerts in your dashboard →</a></p>`;
   const text = rows
     .map(
       (r) =>
@@ -109,7 +109,7 @@ function composeDigest(args: {
   if (matches.length === 0) {
     const subject = "[FDA] Daily check — no recalls found";
     const html = `
-<div style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#1a1a1a">
+<div style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0f172a">
   <h2 style="margin:0 0 8px;font-size:20px">All clear, ${safeUser}.</h2>
   <p style="margin:0 0 16px">
     We checked your ${medCount} medication${medCount === 1 ? "" : "s"} against the FDA recall
@@ -119,8 +119,8 @@ function composeDigest(args: {
     You&rsquo;ll get this check every day. If something is recalled, you&rsquo;ll see it here first.
   </p>
   <p style="margin-top:24px;font-size:13px;color:#888">
-    <a href="${appUrl}/cabinet" style="color:#0a66c2">Manage your cabinet</a> ·
-    <a href="${appUrl}/settings/notifications" style="color:#0a66c2">Notification settings</a>
+    <a href="${appUrl}/cabinet" style="color:#0d9488">Manage your cabinet</a> ·
+    <a href="${appUrl}/settings/notifications" style="color:#0d9488">Notification settings</a>
   </p>
 </div>`;
     const text = `All clear, ${userName}.
@@ -136,7 +136,7 @@ Manage your cabinet: ${appUrl}/cabinet`;
   const subject = `[FDA] ${matches.length} recall match${matches.length === 1 ? "" : "es"} for your medications`;
   const { html: matchHtml, text: matchText } = composeMatches(matches, appUrl);
   const html = `
-<div style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#1a1a1a">
+<div style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0f172a">
   <h2 style="margin:0 0 8px;font-size:20px;color:#b91c1c">
     ${matches.length} medication${matches.length === 1 ? "" : "s"} in your cabinet ${matches.length === 1 ? "has" : "have"} a recall notice
   </h2>
@@ -150,7 +150,7 @@ Manage your cabinet: ${appUrl}/cabinet`;
     pharmacist or physician.
   </p>
   <p style="margin-top:24px;font-size:12px;color:#888">
-    <a href="${appUrl}/settings/notifications" style="color:#0a66c2">Notification settings</a>
+    <a href="${appUrl}/settings/notifications" style="color:#0d9488">Notification settings</a>
   </p>
 </div>`;
   const text = `${matches.length} medication${matches.length === 1 ? "" : "s"} in your cabinet ${matches.length === 1 ? "has" : "have"} a recall notice.

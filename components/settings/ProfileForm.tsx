@@ -128,7 +128,7 @@ export function ProfileForm({ initial }: { initial: Initial }) {
     <div className="space-y-8">
       <section className="card space-y-4">
         <div>
-          <h2 className="font-display text-headline-sm text-primary">Account</h2>
+          <h2 className="font-display text-headline-sm text-on-surface">Account</h2>
           <p className="mt-1 text-body-sm text-on-surface-variant">
             Email is locked to your sign-in identity. Username appears in your dashboard and email
             greetings.
@@ -141,7 +141,7 @@ export function ProfileForm({ initial }: { initial: Initial }) {
             type="email"
             value={initial.email}
             disabled
-            className="input cursor-not-allowed bg-surface-container-high opacity-70"
+            className="input cursor-not-allowed bg-surface-container-lowest opacity-70"
           />
         </div>
 
@@ -155,7 +155,7 @@ export function ProfileForm({ initial }: { initial: Initial }) {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="input bg-surface-container-low"
+              className="input bg-surface-container-lowest"
             />
           </div>
           {msgBanner(nameMsg)}
@@ -173,7 +173,7 @@ export function ProfileForm({ initial }: { initial: Initial }) {
 
       <section className="card space-y-4">
         <div>
-          <h2 className="font-display text-headline-sm text-primary">Change password</h2>
+          <h2 className="font-display text-headline-sm text-on-surface">Change password</h2>
           <p className="mt-1 text-body-sm text-on-surface-variant">
             Enter a new password. You&apos;ll stay signed in on this device.
           </p>
@@ -191,12 +191,12 @@ export function ProfileForm({ initial }: { initial: Initial }) {
                 autoComplete="current-password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                className="input bg-surface-container-low pr-12"
+                className="input bg-surface-container-lowest pr-12"
               />
               <button
                 type="button"
                 onClick={() => setShowCurrent((s) => !s)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-label-sm text-outline hover:text-primary"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-label-sm text-on-surface hover:text-primary"
               >
                 {showCurrent ? "Hide" : "Show"}
               </button>
@@ -215,13 +215,13 @@ export function ProfileForm({ initial }: { initial: Initial }) {
                 minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input bg-surface-container-low pr-12"
+                className="input bg-surface-container-lowest pr-12"
                 placeholder="At least 8 characters"
               />
               <button
                 type="button"
                 onClick={() => setShowPwd((s) => !s)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-label-sm text-outline hover:text-primary"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-label-sm text-on-surface hover:text-primary"
               >
                 {showPwd ? "Hide" : "Show"}
               </button>
@@ -241,12 +241,12 @@ export function ProfileForm({ initial }: { initial: Initial }) {
                 minLength={8}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="input bg-surface-container-low pr-12"
+                className="input bg-surface-container-lowest pr-12"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirm((s) => !s)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-label-sm text-outline hover:text-primary"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-label-sm text-on-surface hover:text-primary"
               >
                 {showConfirm ? "Hide" : "Show"}
               </button>

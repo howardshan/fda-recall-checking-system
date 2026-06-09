@@ -11,7 +11,7 @@ export default function LoginPage() {
   return (
     <>
       <div className="mb-gutter text-center">
-        <h1 className="font-display text-headline-md text-primary mb-2">Welcome back</h1>
+        <h1 className="font-display text-headline-md text-on-surface mb-2">Welcome back</h1>
         <p className="text-body-md text-on-surface-variant">
           Access your safety notifications and medicine cabinet.
         </p>

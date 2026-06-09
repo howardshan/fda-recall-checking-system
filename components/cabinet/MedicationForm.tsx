@@ -202,7 +202,7 @@ export function MedicationForm({ mode, initial, itemId }: Props) {
           <input
             id="ndc"
             type="text"
-            className="input bg-surface-container-low font-mono"
+            className="input bg-surface-container-lowest font-mono"
             placeholder="0093-4155-01"
             value={values.productNdc}
             onChange={(e) => update("productNdc", e.target.value)}
@@ -216,7 +216,7 @@ export function MedicationForm({ mode, initial, itemId }: Props) {
           <input
             id="lot"
             type="text"
-            className="input bg-surface-container-low font-mono"
+            className="input bg-surface-container-lowest font-mono"
             placeholder="AB1234"
             value={values.lotNumber}
             onChange={(e) => update("lotNumber", e.target.value)}

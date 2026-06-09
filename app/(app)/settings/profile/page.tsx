@@ -27,7 +27,7 @@ export default async function ProfileSettingsPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="font-display text-headline-md text-primary">Profile</h1>
+        <h1 className="font-display text-headline-md text-on-surface">Profile</h1>
         <p className="mt-2 text-body-md text-on-surface-variant">
           Update your username or change your password.
         </p>

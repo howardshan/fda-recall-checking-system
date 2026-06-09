@@ -22,7 +22,7 @@ export default async function NotificationsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-headline-md text-primary">Notifications</h1>
+        <h1 className="font-display text-headline-md text-on-surface">Notifications</h1>
         <p className="mt-2 text-body-md text-on-surface-variant">
           FDA recall alerts for medications in your cabinet.
         </p>

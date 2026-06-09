@@ -83,7 +83,7 @@ function MedCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="font-display text-headline-sm text-primary truncate">
+          <h3 className="font-display text-headline-sm text-on-surface truncate">
             {item.product_name}
           </h3>
           <p className="text-body-md text-on-surface-variant truncate">
@@ -147,7 +147,7 @@ export default async function CabinetPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="font-display text-headline-md text-primary">Medicine Cabinet</h1>
+          <h1 className="font-display text-headline-md text-on-surface">Medicine Cabinet</h1>
           <p className="mt-2 text-body-md text-on-surface-variant">
             Track your medications and get alerted the moment one is recalled.
           </p>
@@ -165,7 +165,7 @@ export default async function CabinetPage() {
 
       {!loadError && items.length === 0 && pausedItems.length === 0 ? (
         <div className="card flex flex-col items-center gap-4 py-16 text-center">
-          <h2 className="font-display text-headline-sm text-primary">Your cabinet is empty</h2>
+          <h2 className="font-display text-headline-sm text-on-surface">Your cabinet is empty</h2>
           <p className="max-w-md text-body-md text-on-surface-variant">
             Add a medication to start receiving FDA recall alerts. We&apos;ll only contact you
             when something you take is affected.
@@ -189,7 +189,7 @@ export default async function CabinetPage() {
           {pausedItems.length > 0 ? (
             <section className="space-y-4">
               <div>
-                <h2 className="font-display text-headline-sm text-primary">
+                <h2 className="font-display text-headline-sm text-on-surface">
                   Monitoring paused
                 </h2>
                 <p className="mt-2 text-body-md text-on-surface-variant">

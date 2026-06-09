@@ -27,70 +27,70 @@ const config: Config = {
         'label-sm': ['12px', { lineHeight: '16px', fontWeight: '500' }],
       },
       colors: {
-        // Surfaces
+        // Surfaces — teal-50 tinted background
         surface: {
-          DEFAULT: '#f4faff',
-          dim: '#c0dfee',
-          bright: '#f4faff',
+          DEFAULT: '#f0fdfa',
+          dim: '#ccfbf1',
+          bright: '#f0fdfa',
           'container-lowest': '#ffffff',
-          'container-low': '#e6f6ff',
-          container: '#d9f2ff',
-          'container-high': '#ceedfd',
-          'container-highest': '#c9e7f7',
-          variant: '#c9e7f7',
-          tint: '#29695b',
+          'container-low': '#f0fdfa',
+          container: '#ccfbf1',
+          'container-high': '#99f6e4',
+          'container-highest': '#5eead4',
+          variant: '#ccfbf1',
+          tint: '#0d9488',
         },
         'on-surface': {
-          DEFAULT: '#001f2a',
-          variant: '#3f4945',
+          DEFAULT: '#0f172a',
+          variant: '#475569',
         },
-        'inverse-surface': '#163440',
-        'inverse-on-surface': '#e0f4ff',
+        'inverse-surface': '#0f172a',
+        'inverse-on-surface': '#f0fdfa',
         outline: {
-          DEFAULT: '#707975',
-          variant: '#bfc9c4',
+          DEFAULT: '#5eead4',
+          variant: '#ccfbf1',
         },
-        // Primary — Mayo Clinic medical teal (blue-green)
+        // Primary — brand teal (#0D9488)
         primary: {
-          DEFAULT: '#0e7c89',
-          container: '#15a3b5',
-          fixed: '#b5e7ed',
-          'fixed-dim': '#8dcfd9',
-          inverse: '#5cb8c6',
+          DEFAULT: '#0d9488',
+          container: '#0f766e',
+          fixed: '#ccfbf1',
+          'fixed-dim': '#99f6e4',
+          inverse: '#2dd4bf',
         },
         'on-primary': {
           DEFAULT: '#ffffff',
-          container: '#cdeff4',
-          fixed: '#003138',
-          'fixed-variant': '#005761',
+          container: '#ccfbf1',
+          fixed: '#134e4a',
+          'fixed-variant': '#115e59',
         },
-        // Secondary — warm coral CTA
+        // Secondary — CTA orange (#F97316)
         secondary: {
-          DEFAULT: '#a43c12',
-          container: '#fe7e4f',
-          fixed: '#ffdbcf',
-          'fixed-dim': '#ffb59c',
+          DEFAULT: '#f97316',
+          container: '#ea580c',
+          fixed: '#ffedd5',
+          'fixed-dim': '#fed7aa',
         },
         'on-secondary': {
           DEFAULT: '#ffffff',
-          container: '#6b1f00',
-          fixed: '#380c00',
-          'fixed-variant': '#822800',
+          container: '#ffffff',
+          fixed: '#7c2d12',
+          'fixed-variant': '#9a3412',
         },
-        // Tertiary — neutral charcoal
+        // Tertiary — slate neutrals
         tertiary: {
-          DEFAULT: '#2e2e29',
-          container: '#44443f',
-          fixed: '#e5e2db',
-          'fixed-dim': '#c9c6c0',
+          DEFAULT: '#334155',
+          container: '#475569',
+          fixed: '#e2e8f0',
+          'fixed-dim': '#cbd5e1',
         },
         'on-tertiary': {
           DEFAULT: '#ffffff',
-          container: '#b3b1ab',
-          fixed: '#1c1c18',
-          'fixed-variant': '#474742',
+          container: '#cbd5e1',
+          fixed: '#0f172a',
+          'fixed-variant': '#334155',
         },
-        // Error — Class I crimson
+        // Error — Class I crimson (unchanged)
         error: {
           DEFAULT: '#ba1a1a',
           container: '#ffdad6',
@@ -99,8 +99,8 @@ const config: Config = {
           DEFAULT: '#ffffff',
           container: '#93000a',
         },
-        background: '#f4faff',
-        'on-background': '#001f2a',
+        background: '#f0fdfa',
+        'on-background': '#0f172a',
       },
       borderRadius: {
         sm: '0.125rem',

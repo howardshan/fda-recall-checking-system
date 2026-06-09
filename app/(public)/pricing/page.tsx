@@ -60,7 +60,7 @@ export default async function PricingPage({
         <p className="mx-auto mb-4 inline-block rounded-full bg-primary-fixed px-3 py-1 text-label-md uppercase tracking-wider text-on-primary-fixed">
           FDA recall alerts before your pharmacy calls
         </p>
-        <h1 className="font-display text-headline-md text-primary">
+        <h1 className="font-display text-headline-md text-on-surface">
           Pick the plan that fits your household
         </h1>
         <p className="mt-3 text-body-md text-on-surface-variant">
@@ -81,8 +81,33 @@ export default async function PricingPage({
         currentBillingCycle={signedIn ? billingCycle : null}
       />
 
+      <ul className="mx-auto grid max-w-3xl grid-cols-1 gap-3 text-body-sm text-on-surface-variant sm:grid-cols-2">
+        {[
+          "FDA monitored daily",
+          "No credit card required for free plan",
+          "Cancel anytime",
+          "Secure payment by Stripe",
+        ].map((item) => (
+          <li key={item} className="flex items-center gap-2">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 20 20"
+              className="h-4 w-4 shrink-0 text-primary"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M16.704 5.296a1 1 0 010 1.408l-7.5 7.5a1 1 0 01-1.408 0l-3.5-3.5a1 1 0 011.408-1.408L8.5 12.09l6.796-6.796a1 1 0 011.408 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+            {item}
+          </li>
+        ))}
+      </ul>
+
       <div className="card text-center">
-        <h2 className="font-display text-headline-sm text-primary">FAQ</h2>
+        <h2 className="font-display text-headline-sm text-on-surface">FAQ</h2>
         <dl className="mt-4 grid grid-cols-1 gap-6 text-left md:grid-cols-2">
           <div>
             <dt className="font-medium text-on-surface">Will I be charged today?</dt>

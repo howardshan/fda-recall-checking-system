@@ -27,7 +27,7 @@ export default function CheckPage() {
             ← Back to home
           </Link>
           <div className="mt-4 mb-6">
-            <h1 className="font-display text-headline-md text-primary">Quick recall check</h1>
+            <h1 className="font-display text-headline-md text-on-surface">Quick recall check</h1>
             <p className="mt-2 text-body-md text-on-surface-variant">
               One-off lookup against the FDA drug recall database. To get email
               alerts when new recalls match medications you take,{" "}

@@ -9,7 +9,7 @@ export default function ForgotPage() {
   return (
     <>
       <div className="mb-gutter text-center">
-        <h1 className="font-display text-headline-md text-primary mb-2">Reset your password</h1>
+        <h1 className="font-display text-headline-md text-on-surface mb-2">Reset your password</h1>
         <p className="text-body-md text-on-surface-variant">
           Enter the email on your account and we&apos;ll send you a reset link.
         </p>

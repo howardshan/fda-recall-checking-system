@@ -14,7 +14,7 @@ export default function AddMedicationPage() {
         ← Back to cabinet
       </Link>
       <div>
-        <h1 className="font-display text-headline-md text-primary">Add a medication</h1>
+        <h1 className="font-display text-headline-md text-on-surface">Add a medication</h1>
         <p className="mt-2 text-body-md text-on-surface-variant">
           Start typing the drug name and pick from the dropdown for the most accurate match.
         </p>
