@@ -69,5 +69,6 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </footer>
     </div>
+    </UnreadNotificationsProvider>
   );
 }
