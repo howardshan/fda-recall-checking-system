@@ -11,7 +11,7 @@ describe("plan capabilities", () => {
   it("medQuota matches QUOTAS", () => {
     expect(medQuota("free")).toBe(QUOTAS.free.meds);
     expect(medQuota("personal")).toBe(20);
-    expect(medQuota("family")).toBe(50);
+    expect(medQuota("family")).toBe(100);
   });
 
   it("hasPaidPlan", () => {

@@ -32,7 +32,7 @@ export function ForgotForm() {
   if (sent) {
     return (
       <div className="space-y-4 text-center">
-        <h2 className="font-display text-headline-sm text-primary">Email sent</h2>
+        <h2 className="font-display text-headline-sm text-on-surface">Email sent</h2>
         <p className="text-body-md text-on-surface-variant">
           If an account with <strong>{email}</strong> exists, we just sent a password reset link.
         </p>
@@ -56,7 +56,7 @@ export function ForgotForm() {
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="input bg-surface-container-low"
+          className="input bg-surface-container-lowest"
           placeholder="name@example.com"
         />
       </div>

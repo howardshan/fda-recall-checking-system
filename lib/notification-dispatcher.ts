@@ -63,15 +63,15 @@ function classTemplateTokens(tier: ClassTier): {
         classHeadline: "Class II — Moderate Risk",
         classSubhead:
           "Potential for temporary or medically reversible adverse health consequences.",
-        classBannerBg: "#ffdbcf",
-        classBannerText: "#00342b",
+        classBannerBg: "#ffedd5",
+        classBannerText: "#9a3412",
       };
     case "III":
       return {
         classHeadline: "Class III — Low Risk",
         classSubhead:
           "Not likely to cause adverse health consequences, but a labeling or quality issue exists.",
-        classBannerBg: "#707975",
+        classBannerBg: "#475569",
         classBannerText: "#ffffff",
       };
     default:
@@ -79,7 +79,7 @@ function classTemplateTokens(tier: ClassTier): {
         classHeadline: "FDA Recall Notice",
         classSubhead:
           "A medication in your cabinet is subject to an FDA recall. Review the details below.",
-        classBannerBg: "#00342b",
+        classBannerBg: "#0d9488",
         classBannerText: "#ffffff",
       };
   }

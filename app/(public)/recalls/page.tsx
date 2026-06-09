@@ -9,7 +9,7 @@ export default function RecallsBrowserPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-headline-md text-primary">Browse FDA recalls</h1>
+        <h1 className="font-display text-headline-md text-on-surface">Browse FDA recalls</h1>
         <p className="mt-2 text-body-md text-on-surface-variant">
           Search the FDA enforcement database. Filter by classification or date
           to find historical recalls.

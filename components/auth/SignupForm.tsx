@@ -107,7 +107,7 @@ export function SignupForm() {
             autoComplete="username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            className="input bg-surface-container-low"
+            className="input bg-surface-container-lowest"
           />
         </div>
 
@@ -122,7 +122,7 @@ export function SignupForm() {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="input bg-surface-container-low"
+            className="input bg-surface-container-lowest"
             placeholder="name@example.com"
           />
         </div>
@@ -140,13 +140,13 @@ export function SignupForm() {
               minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="input bg-surface-container-low pr-12"
+              className="input bg-surface-container-lowest pr-12"
               placeholder="At least 8 characters"
             />
             <button
               type="button"
               onClick={() => setShowPwd((s) => !s)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-label-sm text-outline hover:text-primary"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-label-sm text-on-surface hover:text-primary"
             >
               {showPwd ? "Hide" : "Show"}
             </button>

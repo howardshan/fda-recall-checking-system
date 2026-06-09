@@ -30,7 +30,7 @@ export default async function NotificationSettingsPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="font-display text-headline-md text-primary">Notification settings</h1>
+        <h1 className="font-display text-headline-md text-on-surface">Notification settings</h1>
         <p className="mt-2 text-body-md text-on-surface-variant">
           Choose how and when we alert you to FDA recalls.
         </p>

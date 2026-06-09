@@ -84,7 +84,7 @@ export function ConfirmationForm({
             Suggested matches
           </label>
           <select
-            className="input bg-surface-container-low"
+            className="input bg-surface-container-lowest"
             onChange={(e) => applyCandidate(Number.parseInt(e.target.value, 10))}
             defaultValue=""
           >
@@ -112,7 +112,7 @@ export function ConfirmationForm({
           value={values.productName}
           onChange={(e) => update("productName", e.target.value)}
           placeholder="e.g. Amoxicillin"
-          className="input bg-surface-container-low"
+          className="input bg-surface-container-lowest"
         />
       </div>
 
@@ -123,7 +123,7 @@ export function ConfirmationForm({
           value={values.manufacturer}
           onChange={(e) => update("manufacturer", e.target.value)}
           placeholder="e.g. Sandoz Inc"
-          className="input bg-surface-container-low"
+          className="input bg-surface-container-lowest"
         />
       </div>
 

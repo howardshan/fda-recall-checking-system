@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LegalFooterLinks } from "@/components/legal/LegalFooterLinks";
 import { Logo } from "@/components/Logo";
 import { RecallChecker } from "@/components/RecallChecker";
 
@@ -26,7 +27,7 @@ export default function CheckPage() {
             ← Back to home
           </Link>
           <div className="mt-4 mb-6">
-            <h1 className="font-display text-headline-md text-primary">Quick recall check</h1>
+            <h1 className="font-display text-headline-md text-on-surface">Quick recall check</h1>
             <p className="mt-2 text-body-md text-on-surface-variant">
               One-off lookup against the FDA drug recall database. To get email
               alerts when new recalls match medications you take,{" "}
@@ -45,11 +46,7 @@ export default function CheckPage() {
       <footer className="border-t border-primary/10 bg-surface-container-low">
         <div className="mx-auto flex max-w-container flex-col items-center justify-between gap-2 px-margin-mobile py-6 md:flex-row md:px-margin-desktop">
           <Logo size={28} />
-          <div className="flex gap-4 text-label-sm text-on-surface-variant">
-            <Link href="/privacy" className="hover:text-secondary">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-secondary">Terms of Service</Link>
-            <Link href="/cookies" className="hover:text-secondary">Cookies</Link>
-          </div>
+          <LegalFooterLinks />
         </div>
       </footer>
     </div>

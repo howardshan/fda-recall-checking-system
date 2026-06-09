@@ -49,7 +49,7 @@ export default async function EditMedicationPage({
         ← Back to cabinet
       </Link>
       <div>
-        <h1 className="font-display text-headline-md text-primary">Edit medication</h1>
+        <h1 className="font-display text-headline-md text-on-surface">Edit medication</h1>
         <p className="mt-2 text-body-md text-on-surface-variant">
           Update details or remove this entry from monitoring.
         </p>

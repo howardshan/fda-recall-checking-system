@@ -128,7 +128,7 @@ export function RecallBrowser() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Drug name, manufacturer, reason…"
-            className="input bg-surface-container-low"
+            className="input bg-surface-container-lowest"
           />
         </div>
         <div className="flex flex-col gap-2">
@@ -136,7 +136,7 @@ export function RecallBrowser() {
           <select
             value={cls}
             onChange={(e) => setCls(e.target.value)}
-            className="input bg-surface-container-low"
+            className="input bg-surface-container-lowest"
           >
             <option value="">All classes</option>
             <option value="I">Class I — Serious</option>
@@ -150,7 +150,7 @@ export function RecallBrowser() {
             type="date"
             value={since}
             onChange={(e) => setSince(e.target.value)}
-            className="input bg-surface-container-low"
+            className="input bg-surface-container-lowest"
           />
         </div>
         <div className="flex flex-col gap-2">
@@ -159,7 +159,7 @@ export function RecallBrowser() {
             type="date"
             value={until}
             onChange={(e) => setUntil(e.target.value)}
-            className="input bg-surface-container-low"
+            className="input bg-surface-container-lowest"
           />
         </div>
         <div className="md:col-span-5 flex justify-end">
@@ -205,7 +205,7 @@ export function RecallBrowser() {
                       {formatDate(r.recall_initiation_date)} · #{r.recall_number}
                     </span>
                   </div>
-                  <h3 className="mt-2 font-display text-headline-sm text-primary">
+                  <h3 className="mt-2 font-display text-headline-sm text-on-surface">
                     {r.brand_name || r.generic_name || "(unnamed)"}
                   </h3>
                   <p className="text-body-md text-on-surface-variant">

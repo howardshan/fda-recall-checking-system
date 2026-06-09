@@ -62,8 +62,7 @@ const PLANS: PlanCard[] = [
     featured: false,
     bullets: [
       "Track 2 medications",
-      "Daily recall digest email",
-      "In-app recall alerts",
+      "Weekly digest",
     ],
   },
   {
@@ -76,9 +75,10 @@ const PLANS: PlanCard[] = [
     featured: true,
     bullets: [
       "Track up to 20 medications",
-      "Instant recall emails",
-      "Lot-number tracking",
-      "In-app recall alerts",
+      "Email notifications",
+      "Priority monitoring",
+      "Instant recall alerts",
+      "Lot number tracking",
     ],
   },
   {
@@ -90,11 +90,11 @@ const PLANS: PlanCard[] = [
     annualSecondary: "≈ $8.33/mo",
     featured: false,
     bullets: [
-      "Track up to 50 medications",
-      "Priority alerts",
-      "Lot-number tracking",
-      "Faster monitoring",
-      "Future cosmetic + food monitoring",
+      "Everything in Personal Pro",
+      "Track up to 100 medications",
+      "Ideal for households managing multiple medications",
+      "Enhanced monitoring capacity",
+      "Priority family alerts",
     ],
   },
 ];
@@ -426,7 +426,7 @@ export function PlanCards({
                   Most popular
                 </span>
               ) : null}
-              <h3 className="font-display text-headline-sm text-primary">{p.name}</h3>
+              <h3 className="font-display text-headline-sm text-on-surface">{p.name}</h3>
               <p className="mt-2 font-display text-headline-md text-on-surface">{primary}</p>
               {secondary ? (
                 <p className="text-label-sm text-on-surface-variant">{secondary}</p>

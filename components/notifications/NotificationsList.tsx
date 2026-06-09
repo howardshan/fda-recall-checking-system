@@ -150,7 +150,7 @@ export function NotificationsList({ initial }: { initial: NotificationRow[] }) {
                       {formatDate(n.created_at)}
                     </span>
                   </div>
-                  <h3 className="mt-2 font-display text-headline-sm text-primary">
+                  <h3 className="mt-2 font-display text-headline-sm text-on-surface">
                     {n.medication_items?.product_name ?? "(unknown)"}
                   </h3>
                   <p className="text-body-md text-on-surface-variant">
