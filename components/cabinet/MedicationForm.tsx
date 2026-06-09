@@ -204,7 +204,7 @@ export function MedicationForm({ mode, initial, itemId }: Props) {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="flex flex-col gap-2">
           <label className="text-label-md text-on-surface-variant" htmlFor="ndc">
-            NDC <span className="text-outline">(optional)</span>
+            NDC <span className="text-on-surface-variant">(optional)</span>
           </label>
           <input
             id="ndc"
@@ -218,7 +218,7 @@ export function MedicationForm({ mode, initial, itemId }: Props) {
 
         <div className="flex flex-col gap-2">
           <label className="text-label-md text-on-surface-variant" htmlFor="lot">
-            Lot number <span className="text-outline">(optional)</span>
+            Lot number <span className="text-on-surface-variant">(optional)</span>
           </label>
           <input
             id="lot"

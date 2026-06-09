@@ -131,7 +131,7 @@ async function main() {
         if (row) rows.push(row);
       }
       console.log(`  · inserting ${rows.length} rows…`);
-      const inserted = await insertNdcChunked(supabase, rows, 500);
+      const inserted = await insertNdcChunked(supabase, rows, 200);
       totalInserted += inserted;
       console.log(`  · partition done. total so far: ${totalInserted}`);
     }

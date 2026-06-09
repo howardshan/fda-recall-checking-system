@@ -128,13 +128,13 @@ export default async function LandingPage() {
         <section className="bg-primary text-on-primary">
           <div className="mx-auto grid max-w-container grid-cols-2 gap-8 px-margin-mobile py-12 text-center md:grid-cols-4 md:px-margin-desktop">
             <div>
-              <p className="font-display text-headline-md">{meta?.recallCount ?? 0}</p>
+              <p className="font-display text-headline-md">{(meta?.recallCount ?? 0).toLocaleString("en-US")}</p>
               <p className="mt-1 text-label-sm uppercase opacity-80">
                 Recalls tracked
               </p>
             </div>
             <div>
-              <p className="font-display text-headline-md">{meta?.ndcCount ?? 0}</p>
+              <p className="font-display text-headline-md">{(meta?.ndcCount ?? 0).toLocaleString("en-US")}</p>
               <p className="mt-1 text-label-sm uppercase opacity-80">
                 NDC products
               </p>
