@@ -137,12 +137,12 @@ export default async function DashboardPage() {
           </Link>
         </div>
         <div className="card">
-          <p className="text-label-md uppercase text-on-surface-variant">Quick check</p>
+          <p className="text-label-md uppercase text-on-surface-variant">Quick FDA Recall Check</p>
           <p className="mt-2 text-body-md text-on-surface-variant">
             Check a one-off medication without adding it to your cabinet.
           </p>
           <Link href="/check" className="mt-3 inline-block text-label-md text-secondary hover:underline">
-            Open quick check →
+            Open Quick FDA Recall Check →
           </Link>
         </div>
       </div>

@@ -21,7 +21,7 @@ export default async function LandingPage() {
           </Link>
           <nav className="flex flex-1 items-center justify-evenly gap-4 text-label-md md:flex-none md:justify-end md:gap-6">
             <Link href="/check" className="text-on-surface-variant hover:text-secondary whitespace-nowrap">
-              Quick check
+              Quick FDA Recall Check
             </Link>
             <Link href="/pricing" className="text-on-surface-variant hover:text-secondary">
               Pricing
@@ -64,7 +64,7 @@ export default async function LandingPage() {
                     Get free alerts →
                   </Link>
                   <Link href="/check" className="btn-secondary px-6 py-3 text-label-md">
-                    Quick Recall Check
+                    Quick FDA Recall Check
                   </Link>
                 </div>
               </div>

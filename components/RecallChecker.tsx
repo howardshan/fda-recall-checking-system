@@ -22,7 +22,11 @@ type LoginRequired = {
   quota: { used: number; limit: number };
 };
 
-export function RecallChecker() {
+type RecallCheckerProps = {
+  isLoggedIn?: boolean;
+};
+
+export function RecallChecker({ isLoggedIn = false }: RecallCheckerProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<CheckResponse | null>(null);
@@ -104,7 +108,7 @@ export function RecallChecker() {
   return (
     <div className="space-y-6">
       {result ? (
-        <ResultPanel result={result} onReset={reset} />
+        <ResultPanel result={result} onReset={reset} isLoggedIn={isLoggedIn} />
       ) : (
         <>
           <ManualInputTab onSubmit={handleSubmit} submitting={submitting} />
@@ -116,30 +120,11 @@ export function RecallChecker() {
         </>
       )}
 
-      {result && remaining != null ? (
+      {result && remaining != null && !isLoggedIn ? (
         <div className="rounded-md border border-primary/10 bg-surface-container-low p-3 text-label-sm text-on-surface-variant">
-          {remaining > 0 ? (
-            <>
-              {remaining} free quick check{remaining === 1 ? "" : "s"} remaining on this device.
-              {remaining === 1 ? (
-                <>
-                  {" "}
-                  <Link href="/signup" className="text-secondary underline">
-                    Create a free account
-                  </Link>{" "}
-                  for unlimited checks + recall alerts.
-                </>
-              ) : null}
-            </>
-          ) : (
-            <>
-              You&apos;ve used your free quick checks on this device.{" "}
-              <Link href="/signup" className="text-secondary underline">
-                Sign up
-              </Link>{" "}
-              to keep checking.
-            </>
-          )}
+          {remaining > 0
+            ? `${remaining} free quick check${remaining === 1 ? "" : "s"} remaining on this device.`
+            : "You've used your free quick checks on this device."}
         </div>
       ) : null}
 

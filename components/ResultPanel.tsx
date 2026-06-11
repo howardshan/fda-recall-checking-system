@@ -8,6 +8,7 @@ import { recallClassChipClass } from "@/lib/recall-classification";
 type Props = {
   result: CheckRecallResult & { lastSyncedAt: string | null };
   onReset: () => void;
+  isLoggedIn?: boolean;
 };
 
 function classLabelLong(c: string | null): string {
@@ -234,16 +235,89 @@ function StatusBanner({
           to check other manufacturers of the same drug.
         </p>
       ) : (
-        <p className="mt-2 text-body-md">
-          No matching recall records were found. This does not guarantee safety —
-          it only means our data has no match.
-        </p>
+        <>
+          <p className="mt-2 text-body-md">
+            No active FDA recall was found for this medication.
+          </p>
+          <p className="mt-2 text-body-md">
+            SafeTrack continuously updates recall information from FDA sources.
+            Create a free account to receive alerts if this changes in the future.
+          </p>
+        </>
       )}
     </div>
   );
 }
 
-export function ResultPanel({ result, onReset }: Props) {
+function ResultCta({
+  status,
+  isLoggedIn,
+}: {
+  status: CheckRecallResult["status"];
+  isLoggedIn: boolean;
+}) {
+  if (isLoggedIn) {
+    if (status !== "recalled") return null;
+    return (
+      <section className="card space-y-4 border-primary/10 bg-surface-container-lowest">
+        <h3 className="font-display text-headline-sm text-on-surface">
+          Add to your medicine cabinet
+        </h3>
+        <p className="text-body-md text-on-surface-variant">
+          Save this medication to your cabinet and receive automatic FDA recall
+          alerts if new matches appear.
+        </p>
+        <Link href="/cabinet/add" className="btn-primary inline-flex w-full sm:w-auto">
+          Add to medicine cabinet
+        </Link>
+      </section>
+    );
+  }
+
+  if (status === "recalled") {
+    return (
+      <section className="card space-y-4 border-primary/10 bg-surface-container-lowest">
+        <h3 className="font-display text-headline-sm text-on-surface">
+          Want ongoing monitoring?
+        </h3>
+        <p className="text-body-md text-on-surface-variant">
+          Add this medication to your medicine cabinet and get notified when FDA
+          recall information changes.
+        </p>
+        <p className="text-body-md text-on-surface-variant">
+          Create a free SafeTrack account to track medications and receive
+          automatic recall alerts.
+        </p>
+        <Link href="/signup" className="btn-primary inline-flex w-full sm:w-auto">
+          Get Free Alerts
+        </Link>
+      </section>
+    );
+  }
+
+  if (status === "not_found" || status === "possible") {
+    return (
+      <section className="card space-y-4 border-primary/10 bg-surface-container-lowest">
+        <h3 className="font-display text-headline-sm text-on-surface">
+          Want ongoing protection?
+        </h3>
+        <p className="text-body-md text-on-surface-variant">
+          Get notified if this medication is recalled in the future.
+        </p>
+        <p className="text-body-md text-on-surface-variant">
+          Create a free SafeTrack account and receive automatic FDA recall alerts.
+        </p>
+        <Link href="/signup" className="btn-primary inline-flex w-full sm:w-auto">
+          Get Free Alerts
+        </Link>
+      </section>
+    );
+  }
+
+  return null;
+}
+
+export function ResultPanel({ result, onReset, isLoggedIn = false }: Props) {
   const { status, matches, lastSyncedAt } = result;
   const sortedMatches = sortMatches(matches);
 
@@ -256,6 +330,8 @@ export function ResultPanel({ result, onReset }: Props) {
       </div>
 
       <StatusBanner status={status} ndcSearched={result.ndcSearched} />
+
+      <ResultCta status={status} isLoggedIn={isLoggedIn} />
 
       {sortedMatches.length > 0 ? (
         <div className="space-y-4">
