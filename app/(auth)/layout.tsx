@@ -10,8 +10,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <Link href="/" aria-label="SafeTrack home">
             <Logo size={56} />
           </Link>
-          <Link href="/check" className="text-label-md text-on-surface-variant hover:text-secondary">
-            Quick check
+          <Link href="/check" className="text-label-md text-on-surface-variant hover:text-secondary whitespace-nowrap">
+            Quick FDA Recall Check
           </Link>
         </div>
       </header>
