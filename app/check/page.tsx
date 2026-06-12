@@ -2,12 +2,19 @@ import Link from "next/link";
 import { LegalFooterLinks } from "@/components/legal/LegalFooterLinks";
 import { Logo } from "@/components/Logo";
 import { RecallChecker } from "@/components/RecallChecker";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = {
-  title: "Quick Recall Check | SafeTrack",
+  title: "Quick FDA Recall Check | SafeTrack",
 };
 
-export default function CheckPage() {
+export default async function CheckPage() {
+  const user = await getCurrentUser();
+  const displayName =
+    (user?.user_metadata?.full_name as string | undefined) ??
+    user?.email?.split("@")[0] ??
+    "Account";
+
   return (
     <div className="flex min-h-screen flex-col bg-surface">
       <header className="border-b border-primary/10 bg-surface-container-lowest">
@@ -15,9 +22,18 @@ export default function CheckPage() {
           <Link href="/" aria-label="SafeTrack home">
             <Logo size={56} />
           </Link>
-          <Link href="/login" className="btn-primary text-label-md">
-            Sign in
-          </Link>
+          {user ? (
+            <Link
+              href="/dashboard"
+              className="rounded-full bg-primary px-3 py-1.5 text-label-md text-on-primary"
+            >
+              {displayName.slice(0, 18)}
+            </Link>
+          ) : (
+            <Link href="/login" className="btn-primary text-label-md">
+              Sign in
+            </Link>
+          )}
         </div>
       </header>
 
@@ -27,18 +43,15 @@ export default function CheckPage() {
             ← Back to home
           </Link>
           <div className="mt-4 mb-6">
-            <h1 className="font-display text-headline-md text-on-surface">Quick recall check</h1>
+            <h1 className="font-display text-headline-md text-on-surface">
+              Quick FDA Recall Check
+            </h1>
             <p className="mt-2 text-body-md text-on-surface-variant">
-              One-off lookup against the FDA drug recall database. To get email
-              alerts when new recalls match medications you take,{" "}
-              <Link href="/signup" className="text-secondary underline">
-                create a free account
-              </Link>
-              .
+              One-off lookup against the FDA drug recall database.
             </p>
           </div>
           <div className="card">
-            <RecallChecker />
+            <RecallChecker isLoggedIn={!!user} />
           </div>
         </div>
       </main>

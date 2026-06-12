@@ -9,6 +9,10 @@
 **基准需求**：[REQUIREMENTS-CLIENT.md](./REQUIREMENTS-CLIENT.md) v4.2 — **V2-4 家庭成员药箱**、**SUB-03 家庭计划**  
 **相关文档**：[PLAN-ENTITLEMENTS-AND-SMS-CLEANUP.md](./PLAN-ENTITLEMENTS-AND-SMS-CLEANUP.md)、[QA-PLAN-ENTITLEMENTS.md](./QA-PLAN-ENTITLEMENTS.md)、[IMPLEMENTATION-COMPARISON.md](./IMPLEMENTATION-COMPARISON.md)
 
+**备选方案**：[PLAN-FAMILY-INVITE-MODEL.md](./PLAN-FAMILY-INVITE-MODEL.md) — 邀请已有 SafeTrack 账户加入家庭组（独立数据模型，~52–58h）。**两套模型不可混用**，实施前须产品选定其一。
+
+**总览与报价**：[PLAN-FAMILY-OVERVIEW.md](./PLAN-FAMILY-OVERVIEW.md) — 客户最新 Family Protection 卖点；**方案 A（本文）/ 方案 B / 附加 Caregiver** 分包说明。
+
 ---
 
 ## 一、现状评估（Gap Summary）
@@ -256,6 +260,8 @@ flowchart TD
 
 ## 相关文档
 
+- [PLAN-FAMILY-OVERVIEW.md](./PLAN-FAMILY-OVERVIEW.md) — **总览**：客户卖点、A/B/C 分包报价
+- [PLAN-FAMILY-INVITE-MODEL.md](./PLAN-FAMILY-INVITE-MODEL.md) — **备选**：邀请已有账户方案
 - [REQUIREMENTS-CLIENT.md](./REQUIREMENTS-CLIENT.md) — 客户合同范围（V2-4、SUB-03）
 - [PLAN-ENTITLEMENTS-AND-SMS-CLEANUP.md](./PLAN-ENTITLEMENTS-AND-SMS-CLEANUP.md) — 订阅权益与 D5 决策
 - [QA-PLAN-ENTITLEMENTS.md](./QA-PLAN-ENTITLEMENTS.md) — 手工 UAT（E 段 Family Protection）
