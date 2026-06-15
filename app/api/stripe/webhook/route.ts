@@ -3,8 +3,9 @@ import type Stripe from "stripe";
 import { getServerSupabase } from "@/lib/supabase";
 import { getStripe } from "@/lib/stripe";
 import {
+  clearPendingPlanChangeMetadata,
+  handleInvoicePaymentFailed,
   resolveUserIdForSubscription,
-  revokePaidAccess,
   syncSubscriptionFromEvent,
   syncSubscriptionFromStripe,
 } from "@/lib/stripe-billing";
@@ -103,22 +104,30 @@ export async function POST(req: Request) {
             ? invoice.subscription
             : invoice.subscription?.id;
         if (subId) {
-          const quotaResult = await syncSubscriptionFromEvent(stripe, admin, subId);
-          await dispatchIfNewMatches(admin, quotaResult);
+          const sub = await stripe.subscriptions.retrieve(subId);
+          const userId = await resolveUserIdForSubscription(admin, sub);
+          if (userId) {
+            const cleared = await clearPendingPlanChangeMetadata(stripe, sub);
+            const quotaResult = await syncSubscriptionFromStripe(
+              admin,
+              userId,
+              cleared,
+            );
+            await dispatchIfNewMatches(admin, quotaResult);
+          } else {
+            const quotaResult = await syncSubscriptionFromEvent(
+              stripe,
+              admin,
+              subId,
+            );
+            await dispatchIfNewMatches(admin, quotaResult);
+          }
         }
         break;
       }
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice;
-        const subId =
-          typeof invoice.subscription === "string"
-            ? invoice.subscription
-            : invoice.subscription?.id;
-        if (subId) {
-          const sub = await stripe.subscriptions.retrieve(subId);
-          const userId = await resolveUserIdForSubscription(admin, sub);
-          if (userId) await revokePaidAccess(admin, userId);
-        }
+        await handleInvoicePaymentFailed(stripe, admin, invoice);
         break;
       }
       default:

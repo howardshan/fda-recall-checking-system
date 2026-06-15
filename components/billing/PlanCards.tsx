@@ -104,7 +104,10 @@ function priceForCycle(p: PlanCard, cycle: Cycle): { primary: string; secondary:
   return { primary: p.monthlyPrimary, secondary: p.monthlySecondary };
 }
 
-async function startCheckout(plan: Plan, cycle: Cycle): Promise<{ ok: boolean; url?: string; error?: string }> {
+async function startCheckout(
+  plan: Plan,
+  cycle: Cycle,
+): Promise<{ ok: boolean; url?: string; upgraded?: boolean; error?: string }> {
   const res = await fetch("/api/stripe/checkout", {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -114,13 +117,11 @@ async function startCheckout(plan: Plan, cycle: Cycle): Promise<{ ok: boolean; u
     url?: string;
     error?: string;
     upgraded?: boolean;
+    planChange?: boolean;
   };
   if (!res.ok) return { ok: false, error: json.error ?? `Failed (${res.status})` };
-  if (json.url) {
-    window.location.href = json.url;
-    return { ok: true };
-  }
-  return { ok: true };
+  if (json.url) return { ok: true, url: json.url };
+  return { ok: true, upgraded: json.upgraded };
 }
 
 function cycleLabel(cycle: Cycle): string {
@@ -199,7 +200,12 @@ export function PlanCards({
         return;
       }
       setChangeDialog(null);
-      if (!result.url) router.refresh();
+      if (result.url) {
+        window.location.assign(result.url);
+        return;
+      }
+      router.replace("/pricing");
+      router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Network error");
     } finally {
@@ -300,7 +306,7 @@ export function PlanCards({
       <ConfirmDialog
         open={changeDialog !== null}
         title={changeDialog ? "Confirm plan change" : ""}
-        description="Changes apply immediately. Final billing is calculated by Stripe at confirmation time."
+        description="You will confirm payment on Stripe's secure page. Your plan updates after payment succeeds; proration is calculated by Stripe."
         size="lg"
         details={
           changeDialog ? (
@@ -491,8 +497,9 @@ export function PlanCards({
       {error ? <p className="text-center text-label-md text-error">{error}</p> : null}
 
       <p className="text-center text-label-sm text-on-surface-variant">
-        Upgrades take effect immediately. Cancellations keep access until the end of the
-        current billing period. Payment failures suspend paid features right away.
+        New subscriptions and upgrades are confirmed on Stripe. Plan changes apply after
+        payment succeeds. Cancellations keep access until the end of the current billing
+        period.
       </p>
 
       {showCancel ? (

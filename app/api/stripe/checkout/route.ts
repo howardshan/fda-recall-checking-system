@@ -4,6 +4,8 @@ import { getServerSupabase } from "@/lib/supabase";
 import { appBaseUrl, getStripe, stripePriceId, type BillingCycle } from "@/lib/stripe";
 import { dispatchAfterMatch } from "@/lib/dispatch-after-match";
 import {
+  applySubscriptionPlanChange,
+  clearPendingPlanChangeMetadata,
   ensureStripeCustomer,
   resolveActiveSubscriptionId,
   syncSubscriptionFromStripe,
@@ -58,18 +60,29 @@ export async function POST(req: Request) {
     const existingSubId = await resolveActiveSubscriptionId(stripe, admin, userId);
 
     if (existingSubId) {
-      const existing = await stripe.subscriptions.retrieve(existingSubId);
-      const itemId = existing.items.data[0]?.id;
-      if (!itemId) {
-        return NextResponse.json({ error: "Subscription item missing" }, { status: 500 });
+      const change = await applySubscriptionPlanChange(
+        stripe,
+        existingSubId,
+        userId,
+        priceId,
+        plan,
+        cycle,
+      );
+
+      if (change.kind === "payment_required") {
+        return NextResponse.json({
+          url: change.url,
+          planChange: true,
+          plan,
+          cycle,
+        });
       }
-      const updated = await stripe.subscriptions.update(existingSubId, {
-        items: [{ id: itemId, price: priceId }],
-        proration_behavior: "always_invoice",
-        cancel_at_period_end: false,
-        metadata: { user_id: userId, plan, cycle },
-      });
-      const quotaResult = await syncSubscriptionFromStripe(admin, userId, updated);
+
+      const cleared = await clearPendingPlanChangeMetadata(
+        stripe,
+        change.subscription,
+      );
+      const quotaResult = await syncSubscriptionFromStripe(admin, userId, cleared);
       if (quotaResult && quotaResult.newNotifications > 0) {
         await dispatchAfterMatch(admin).catch((e) => {
           console.error("[stripe/checkout] dispatch after upgrade failed:", e);
