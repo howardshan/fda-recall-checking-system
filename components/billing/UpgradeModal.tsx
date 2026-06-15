@@ -30,7 +30,7 @@ const COPY: Record<"meds", Record<Plan, { title: string; body: string }>> = {
     },
     family: {
       title: "Plan limit reached",
-      body: "Family Protection includes 100 tracked medications — the highest tier. Remove an item from your cabinet to add a new one.",
+      body: "You've reached the Family Protection limit of 100 tracked medications — the highest tier. Remove an item from your cabinet to add a new one. Family Protection features may evolve over time. Current features are described on the Pricing page.",
     },
   },
 };
