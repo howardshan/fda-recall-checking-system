@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getServerAuthSupabase } from "@/lib/auth";
+import { getStaleSyncWarning } from "@/lib/meta";
 
 export const dynamic = "force-dynamic";
 
@@ -27,30 +28,6 @@ async function getCounts(): Promise<Counts> {
       .eq("status", "unread"),
   ]);
   return { cabinet: cabinetRes.count ?? 0, unread: unreadRes.count ?? 0 };
-}
-
-async function getStaleSyncWarning(): Promise<string | null> {
-  const supabase = await getServerAuthSupabase();
-  const { data } = await supabase
-    .from("sync_runs")
-    .select("finished_at, status")
-    .eq("status", "success")
-    .order("finished_at", { ascending: false })
-    .limit(1);
-  const last = data?.[0]?.finished_at as string | undefined;
-  if (!last) return "Recall data has never been synced. Alerts will not fire until the first sync runs.";
-  const hoursAgo = (Date.now() - new Date(last).getTime()) / 1000 / 60 / 60;
-  if (hoursAgo > 48) {
-    const when = new Date(last).toLocaleString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
-    return `Last updated ${when} — that's longer than expected. Alerts may be delayed.`;
-  }
-  return null;
 }
 
 async function getRecentAlerts(): Promise<AlertRow[]> {
