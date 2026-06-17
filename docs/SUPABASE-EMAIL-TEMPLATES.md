@@ -26,11 +26,17 @@ Supabase 使用 Go 模板语法，本模板使用：
 
 | 变量 | 用途 |
 |------|------|
-| `{{ .ConfirmationURL }}` | 确认按钮与备用链接（必填） |
+| `{{ .TokenHash }}` | 邮件确认令牌（与 `/auth/callback` 配合，不依赖 PKCE cookie） |
+| `{{ .SiteURL }}` | 项目 Site URL（须与 `NEXT_PUBLIC_APP_URL` 一致） |
 | `{{ .Email }}` | 用户邮箱 |
-| `{{ .SiteURL }}` | 项目 Site URL |
 
-勿删除 `{{ .ConfirmationURL }}`，否则用户无法完成验证。
+确认链接格式：
+
+```text
+{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=signup&next=/dashboard
+```
+
+勿改用 `{{ .ConfirmationURL }}`（PKCE 流程在邮件 App / 不同浏览器中易失败）。
 
 ---
 
@@ -51,11 +57,17 @@ Supabase 使用 Go 模板语法，本模板使用：
 
 | 变量 | 用途 |
 |------|------|
-| `{{ .ConfirmationURL }}` | 重置按钮与备用链接（必填） |
-| `{{ .Email }}` | 用户邮箱 |
+| `{{ .TokenHash }}` | 重置令牌（与 `/auth/callback` 配合） |
 | `{{ .SiteURL }}` | 项目 Site URL |
+| `{{ .Email }}` | 用户邮箱 |
 
-应用内 `redirectTo` 已指向 `/auth/callback?next=/reset`，确认 **Redirect URLs** 包含 `{APP_URL}/auth/callback`。
+重置链接格式：
+
+```text
+{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=recovery&next=/reset
+```
+
+确认 **Redirect URLs** 包含 `{APP_URL}/auth/callback`。
 
 ---
 
@@ -74,3 +86,4 @@ Supabase 使用 Go 模板语法，本模板使用：
 |------|------|------|
 | 1.0 | 2026-06-02 | 注册确认 HTML 与配置说明 |
 | 1.1 | 2026-06-04 | 重置密码 HTML 与配置说明 |
+| 1.2 | 2026-06-16 | 邮件链接改用 `token_hash` + `verifyOtp`（修复跨浏览器 PKCE 失败） |
